@@ -6,7 +6,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
-export default function MobileNavigation({ name, homeUrl, links, actions }) {
+export default function MobileNavigation({ name, homeUrl, links, actions, isActiveLink }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -23,15 +23,22 @@ export default function MobileNavigation({ name, homeUrl, links, actions }) {
           <a href={homeUrl} className="text-2xl font-bold">
             {name}
           </a>
-          {links.map((link, i) => (
-            <a
-              key={i}
-              href={link.href}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {link.text}
-            </a>
-          ))}
+          {links.map((link, i) => {
+            const isActive = isActiveLink(link.href)
+            return (
+              <a
+                key={i}
+                href={link.href}
+                className={`${
+                  isActive 
+                    ? "text-foreground font-semibold" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {link.text}
+              </a>
+            )
+          })}
           <div className="mt-6 grid gap-3">
             {actions.map((action, i) =>
               action.isButton ? (

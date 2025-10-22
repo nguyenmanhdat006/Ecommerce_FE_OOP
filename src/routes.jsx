@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        path: "/v1/",
+        path: "/",
         element: <AuthenticationWrapper />,
         children: [
             {
