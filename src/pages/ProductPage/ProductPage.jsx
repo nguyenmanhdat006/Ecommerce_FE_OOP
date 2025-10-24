@@ -1,13 +1,12 @@
-import { TableHeader } from "../../components/TableHeader";
 import { ProductStats } from "./components/ProductStats";
-import { ProductFilters } from "./components/ProductFilters";
-import { DataTable } from "@/components/DataTable";
+import { FilterBar } from "./components/FilterBar";
+import { DataTable } from "@/components/DataTable/DataTable";
 import { AppImages } from "@/constants/AppImages";
 import { getStatusColor } from "@/ultils/getStatusColors";
 import { Star, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CrudPageLayout } from "../../layout/CrudPageLayout";
+import { CrudPageLayout } from "@/layout/CrudPageLayout";
 
 const sampleProducts = [
   {
@@ -87,7 +86,7 @@ const sampleProducts = [
     rating: 4.65,
     status: "Closed For Sale",
   },
-]
+];
 
 const defaultColumns = [
   {
@@ -98,7 +97,11 @@ const defaultColumns = [
     width: "35%",
     render: (p) => (
       <div className="flex items-center gap-3">
-        <img src={p.image} alt={p.name} className="w-10 h-10 rounded object-cover" />
+        <img
+          src={p.image}
+          alt={p.name}
+          className="w-10 h-10 rounded object-cover"
+        />
         <span className="text-sm font-medium text-foreground">{p.name}</span>
       </div>
     ),
@@ -149,7 +152,9 @@ const defaultColumns = [
     header: "Status",
     thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
     tdClassName: "px-6 py-4",
-    render: (p) => <Badge className={getStatusColor(p.status)}>{p.status}</Badge>,
+    render: (p) => (
+      <Badge className={getStatusColor(p.status)}>{p.status}</Badge>
+    ),
   },
   {
     key: "actions",
@@ -163,8 +168,51 @@ const defaultColumns = [
       </Button>
     ),
   },
-]
+];
 
+const productFilters = [
+  {
+    key: "status",
+    placeholder: "Status",
+    options: [
+      { value: "active", label: "Active" },
+      { value: "inactive", label: "Inactive" },
+    ],
+    onChange: (key, value) => {
+      console.log("status:", key, value);
+      // TODO: Implement filter logic
+    },
+  },
+  {
+    key: "category",
+    placeholder: "Category",
+    options: [
+      { value: "electronics", label: "Electronics" },
+      { value: "beauty", label: "Beauty" },
+    ],
+    onChange: (key, value) => console.log("category:", key, value),
+  },
+  {
+    key: "price",
+    placeholder: "Price Range",
+    options: [
+      { value: "0-100", label: "$0 - $100" },
+      { value: "100-200", label: "$100 - $200" },
+      { value: "200-500", label: "$200 - $500" },
+    ],
+    onChange: (key, value) => console.log("price:", key, value),
+  },
+];
+
+const onSearch = (v) => {
+  console.log("search:", v);
+  // TODO: Implement search logic
+};
+
+const onClear = () => {
+  console.log("clear");
+  // TODO: Implement clear logic
+};
 
 export function ProductsPage() {
   return (
@@ -173,9 +221,19 @@ export function ProductsPage() {
       actionText="Add Product"
       onAdd={() => console.log("add")}
       stats={<ProductStats />}
-      filters={<ProductFilters />}
+      filters={
+        <FilterBar
+          filters={productFilters}
+          onSearch={onSearch}
+          onClear={onClear}
+        />
+      }
     >
-      <DataTable data={sampleProducts} columns={defaultColumns} showSelect={true}/>
+      <DataTable
+        data={sampleProducts}
+        columns={defaultColumns}
+        showSelect={true}
+      />
     </CrudPageLayout>
   );
 }

@@ -1,9 +1,5 @@
 import React from "react"
-import { Card } from "./ui/card"
-import { Badge } from "./ui/badge"
-import { Button } from "./ui/button"
-import { Star, MoreVertical } from "lucide-react"
-import { AppImages } from "@/constants/AppImages"
+import { Card } from "../ui/card"
 
 export function DataTable({
   data = [],
