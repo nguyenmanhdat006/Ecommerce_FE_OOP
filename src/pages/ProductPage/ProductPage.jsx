@@ -1,12 +1,12 @@
 import { ProductStats } from "./components/ProductStats";
-import { FilterBar } from "./components/FilterBar";
+import { FilterBar } from "../../layout/CrudPageLayout/FilterBar";
 import { DataTable } from "@/components/DataTable/DataTable";
 import { AppImages } from "@/constants/AppImages";
 import { getStatusColor } from "@/ultils/getStatusColors";
 import { Star, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CrudPageLayout } from "@/layout/CrudPageLayout";
+import { CrudPageLayout } from "@/layout/CrudPageLayout/CrudPageLayout";
 
 const sampleProducts = [
   {
@@ -207,6 +207,7 @@ const productFilters = [
 const onSearch = (v) => {
   console.log("search:", v);
   // TODO: Implement search logic
+  // Call API Theo Entity vì search chì nhận value
 };
 
 const onClear = () => {

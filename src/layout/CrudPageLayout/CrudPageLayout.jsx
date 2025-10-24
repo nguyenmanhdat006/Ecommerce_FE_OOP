@@ -1,6 +1,6 @@
 // components/layouts/CrudPageLayout.jsx
 
-import { TableHeader } from "@/components/DataTable/TableHeader";
+import { TableHeader } from "@/layout/CrudPageLayout/TableHeader";
 
 export function CrudPageLayout({ 
   title, 
