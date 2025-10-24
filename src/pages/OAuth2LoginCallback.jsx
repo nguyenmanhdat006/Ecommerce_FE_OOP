@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { saveToken } from '../ultils/jwt-helper';
+import { saveToken } from '../utils/jwt-helper';
 
 const OAuth2LoginCallback = () => {
   const navigate = useNavigate();
