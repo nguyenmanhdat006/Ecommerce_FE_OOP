@@ -11,7 +11,7 @@ const getRefresh = () => {
   return localStorage.getItem(REFRESH_KEY);
 };
 
-const saveTokens = (access, refresh) => {
+const saveToken = (access, refresh) => {
   localStorage.setItem(ACCESS_KEY, access);
   if (refresh) {
     localStorage.setItem(REFRESH_KEY, refresh);
@@ -41,7 +41,7 @@ const isTokenValid = () => {
 export {
   getToken,
   getRefresh,
-  saveTokens,
+  saveToken,
   clearTokens,
   isTokenValid,
 };

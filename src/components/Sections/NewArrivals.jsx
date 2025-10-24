@@ -7,7 +7,7 @@ import dresses from '../../assets/img/dresses.jpg'
 import joggers from '../../assets/img/joggers.jpg'
 import kurtis from '../../assets/img/kurtis.jpg'
 import Carousel from "react-multi-carousel";
-import { responsive } from "../../ultils/Section.constants.js";
+import { responsive } from "../../utils/Section.constants.js";
 import './NewArrivals.css'
 
 const items = [{
