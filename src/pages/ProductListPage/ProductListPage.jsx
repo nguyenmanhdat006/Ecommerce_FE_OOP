@@ -14,9 +14,12 @@ const categories = content?.categories;
 
 const ProductListPage = ({categoryType}) => {
 
-  const categoryData = useSelector((state)=> state?.categoryState?.categories);
+  const categoryData = useSelector((state)=> {
+    return state?.categoryState?.categories});
   const dispatch = useDispatch();
-  const [products,setProducts] = useState([]);
+  const [products,setProducts] = useState([
+    
+  ]);
 
   const categoryContent = useMemo(()=>{
     return categories?.find((category)=> category.code === categoryType);
