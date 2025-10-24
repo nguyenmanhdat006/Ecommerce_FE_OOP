@@ -2,7 +2,7 @@ import { ProductStats } from "./components/ProductStats";
 import { FilterBar } from "../../layout/CrudPageLayout/FilterBar";
 import { DataTable } from "@/components/DataTable/DataTable";
 import { AppImages } from "@/constants/AppImages";
-import { getStatusColor } from "@/ultils/getStatusColors";
+import { getStatusColor } from "@/utils/getStatusColors";
 import { Star, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
