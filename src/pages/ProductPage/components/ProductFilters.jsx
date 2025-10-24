@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 
 export function ProductFilters() {
   return (
-    <Card className="p-6 mb-6">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+    <Card className="p-6 mb-6 shadow-none border-none">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="flex-1 max-w-sm">
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
@@ -48,9 +48,6 @@ export function ProductFilters() {
           </Select>
         </div>
 
-        <Button variant="outline" size="sm">
-          Columns
-        </Button>
       </div>
     </Card>
   )
