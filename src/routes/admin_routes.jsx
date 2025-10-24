@@ -1,4 +1,4 @@
-import { ProductsPage } from "../pages/ProductPage.jsx";
+import { ProductsPage } from "../pages/ProductPage/ProductPage.jsx";
 import { Dashboard } from "../pages/DashBoard/index.jsx";
 
 export const adminRouter = {

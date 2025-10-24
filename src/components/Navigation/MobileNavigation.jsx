@@ -5,6 +5,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { Link } from "react-router-dom"
 
 export default function MobileNavigation({ name, homeUrl, links, actions, isActiveLink }) {
   return (
@@ -20,15 +21,15 @@ export default function MobileNavigation({ name, homeUrl, links, actions, isActi
       </SheetTrigger>
       <SheetContent side="right" className="bg-background">
         <nav className="grid gap-6 text-lg font-semibold mt-6">
-          <a href={homeUrl} className="text-2xl font-bold">
+          <Link to={homeUrl} className="text-2xl font-bold">
             {name}
-          </a>
+          </Link>
           {links.map((link, i) => {
             const isActive = isActiveLink(link.href)
             return (
-              <a
+              <Link
                 key={i}
-                href={link.href}
+                to={link.href}
                 className={`${
                   isActive 
                     ? "text-foreground font-semibold" 
@@ -36,23 +37,23 @@ export default function MobileNavigation({ name, homeUrl, links, actions, isActi
                 }`}
               >
                 {link.text}
-              </a>
+              </Link>
             )
           })}
           <div className="mt-6 grid gap-3">
             {actions.map((action, i) =>
               action.isButton ? (
                 <Button key={i} variant="default" asChild>
-                  <a href={action.href}>{action.text}</a>
+                  <Link to={action.href}>{action.text}</Link>
                 </Button>
               ) : (
-                <a
+                <Link
                   key={i}
-                  href={action.href}
+                  to={action.href}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   {action.text}
-                </a>
+                </Link>
               )
             )}
           </div>

@@ -1,6 +1,6 @@
 import { Heart, ShoppingCart, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 export default function DesktopNavigation({ links, actions, isActiveLink }) {
   const navigate = useNavigate()
   return (
@@ -10,9 +10,9 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
         {links.map((link, i) => {
           const isActive = isActiveLink(link.href)
           return (
-            <a
+            <Link
               key={i}
-              href={link.href}
+              to={link.href}
               className={`relative group transition-colors ${
                 isActive 
                   ? "text-foreground font-semibold" 
@@ -25,7 +25,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
                   ? "w-full bg-primary" 
                   : "w-0 bg-primary group-hover:w-full"
               }`} />
-            </a>
+            </Link>
           )
         })}
       </nav>
@@ -58,16 +58,16 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
               className="text-base px-6"
               asChild
             >
-              <a href={action.href}>{action.text}</a>
+              <Link to={action.href}>{action.text}</Link>
             </Button>
           ) : (
-            <a
+            <Link
               key={i}
-              href={action.href}
+              to={action.href}
               className="text-base text-muted-foreground hover:text-foreground"
             >
               {action.text}
-            </a>
+            </Link>
           )
         )}
       </div>
