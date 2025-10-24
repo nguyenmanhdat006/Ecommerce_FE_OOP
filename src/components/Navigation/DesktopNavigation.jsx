@@ -1,7 +1,8 @@
 import { Heart, ShoppingCart, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
+import { useNavigate } from "react-router-dom"
 export default function DesktopNavigation({ links, actions, isActiveLink }) {
+  const navigate = useNavigate()
   return (
     <>
       {/* Navigation - desktop */}
@@ -34,7 +35,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
         <Button variant="ghost" size="icon" className="h-11 w-11">
           <Heart size={22} />
         </Button>
-        <Button variant="ghost" size="icon" className="h-11 w-11">
+        <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => navigate("/admin/productManagement")}>
           <User size={22} />
         </Button>
         <Button
