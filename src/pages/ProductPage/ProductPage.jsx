@@ -1,4 +1,4 @@
-import { ProductHeader } from "./components/ProductHeader";
+import { TableHeader } from "./components/TableHeader";
 import { ProductStats } from "./components/ProductStats";
 import { ProductFilters } from "./components/ProductFilters";
 import { DataTable } from "@/components/DataTable";
@@ -168,7 +168,7 @@ const defaultColumns = [
 export function ProductsPage() {
   return (
     <div className="p-8 space-y-6">
-      <ProductHeader onAdd={() => console.log("add")} />
+      <TableHeader title="Products" actionText="Add Product" onAdd={() => console.log("add")} />
       <ProductStats />
       <ProductFilters />
       <DataTable data={sampleProducts} columns={defaultColumns} showSelect={true}/>
