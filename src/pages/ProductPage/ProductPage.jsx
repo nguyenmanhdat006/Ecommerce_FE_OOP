@@ -1,4 +1,4 @@
-import { TableHeader } from "./components/TableHeader";
+import { TableHeader } from "../../components/TableHeader";
 import { ProductStats } from "./components/ProductStats";
 import { ProductFilters } from "./components/ProductFilters";
 import { DataTable } from "@/components/DataTable";
@@ -7,6 +7,7 @@ import { getStatusColor } from "@/ultils/getStatusColors";
 import { Star, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CrudPageLayout } from "../../layout/CrudPageLayout";
 
 const sampleProducts = [
   {
@@ -167,11 +168,14 @@ const defaultColumns = [
 
 export function ProductsPage() {
   return (
-    <div className="p-8 space-y-6">
-      <TableHeader title="Products" actionText="Add Product" onAdd={() => console.log("add")} />
-      <ProductStats />
-      <ProductFilters />
+    <CrudPageLayout
+      title="Products"
+      actionText="Add Product"
+      onAdd={() => console.log("add")}
+      stats={<ProductStats />}
+      filters={<ProductFilters />}
+    >
       <DataTable data={sampleProducts} columns={defaultColumns} showSelect={true}/>
-    </div>
+    </CrudPageLayout>
   );
 }
