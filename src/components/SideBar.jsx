@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -9,24 +9,25 @@ import {
   Zap,
   ChevronDown,
   ChevronRight,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 export function Sidebar() {
-  const [expandedItems, setExpandedItems] = useState(["E-commerce"])
-
+  const [expandedItems, setExpandedItems] = useState(["E-commerce"]);
+  const navigate = useNavigate();
   const toggleExpand = (label) => {
     setExpandedItems((prev) =>
       prev.includes(label)
         ? prev.filter((item) => item !== label)
         : [...prev, label]
-    )
-  }
+    );
+  };
 
   const navItems = [
     {
       label: "Dashboards",
       icon: <LayoutDashboard className="w-5 h-5" />,
+      // onClick: () => navigate("/admin/productManagement"),
     },
     {
       label: "Default",
@@ -39,7 +40,11 @@ export function Sidebar() {
         { label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
         { label: "Product List", icon: <ShoppingCart className="w-4 h-4" /> },
         { label: "Product Detail", icon: <ShoppingCart className="w-4 h-4" /> },
-        { label: "Add Product", icon: <ShoppingCart className="w-4 h-4" /> },
+        {
+          label: "Add Product",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          onClick: () => navigate("/admin/addProduct"),
+        },
         { label: "Order List", icon: <ShoppingCart className="w-4 h-4" /> },
         { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" /> },
       ],
@@ -72,12 +77,14 @@ export function Sidebar() {
       label: "Crypto",
       icon: <Zap className="w-5 h-5" />,
     },
-  ]
+  ];
 
   return (
     <aside className="w-64 bg-sidebar border-r border-sidebar-border overflow-y-auto">
       <div className="p-6">
-        <h2 className="text-sm font-semibold text-sidebar-foreground mb-6">Dashboards</h2>
+        <h2 className="text-sm font-semibold text-sidebar-foreground mb-6">
+          Dashboards
+        </h2>
 
         <nav className="space-y-1">
           {navItems.map((item) => (
@@ -109,6 +116,7 @@ export function Sidebar() {
                   {item.submenu.map((subitem) => (
                     <button
                       key={subitem.label}
+                      onClick={() => subitem.onClick && subitem.onClick()}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
                         subitem.label === "Product List"
@@ -134,11 +142,15 @@ export function Sidebar() {
             <span className="text-sm font-semibold text-primary">TB</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">Toby Belhome</p>
-            <p className="text-xs text-sidebar-foreground/70 truncate">hello@tobybelhome.com</p>
+            <p className="text-sm font-medium text-sidebar-foreground truncate">
+              Toby Belhome
+            </p>
+            <p className="text-xs text-sidebar-foreground/70 truncate">
+              hello@tobybelhome.com
+            </p>
           </div>
         </div>
       </div>
     </aside>
-  )
+  );
 }
