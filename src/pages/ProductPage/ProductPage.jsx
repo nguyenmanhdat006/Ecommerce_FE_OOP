@@ -1,167 +1,162 @@
 import { ProductStats } from "./components/ProductStats";
 import { FilterBar } from "../../layout/CrudPageLayout/FilterBar";
 import { DataTable } from "@/components/DataTable/DataTable";
-import { AppImages } from "@/constants/AppImages";
-import { getStatusColor } from "@/utils/getStatusColors";
 import { Star, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CrudPageLayout } from "@/layout/CrudPageLayout/CrudPageLayout";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "@/store/productSlice";
+import { useEffect } from "react";
+import Spinner from "@/components/Spinner/Spinner";
+import { toast } from "react-hot-toast";
 
+
+// eslint-disable-next-line no-unused-vars
 const sampleProducts = [
   {
-    id: "1",
-    name: "HP Pavilion 16.1 Inch Gaming Laptop",
-    image: AppImages.modernLaptopWorkspace,
-    price: 960.99,
-    category: "Electronics",
-    stock: 5,
-    sku: "RCH45Q1A",
-    rating: 4.9,
-    status: "Active",
+    "id": "1ee2d566-52ef-4cbb-aefa-77cf4b028c71",
+    "name": "Adidas Ultraboost 22",
+    "description": "Giày chạy bộ hiệu suất cao, đàn hồi tốt.",
+    "price": 3299000,
+    "brand": "Adidas",
+    "rating": 4.7,
+    "categoryId": "af733a18-f471-48f9-bb92-68265a8a3a8c",
+    "thumbnail": "https://images.adidas.com/ultraboost22.jpg",
+    "slug": "adidas-ultraboost-22",
+    "categoryName": "Shoes",
+    "categoryTypeId": "84fe4ce7-86f0-415d-b987-1e02421e08e8",
+    "categoryTypeName": "Running",
+    "variants": [
+      {
+        "id": "d77ab6cf-5f75-42fb-a913-26632127c925",
+        "color": "Blue",
+        "size": "42",
+        "stockQuantity": 8
+      }
+    ],
+    "productResources": [
+      {
+        "id": "671ceeb8-f0fd-4932-8238-dd5d52e4b761",
+        "name": "Thumbnail",
+        "url": "https://images.adidas.com/ultraboost22-main.jpg",
+        "type": "image",
+        "isPrimary": true
+      }
+    ],
+    "newArrival": false
   },
   {
-    id: "2",
-    name: "Samsung SM-A21S Galaxy A21S",
-    image: AppImages.modernSmartphone,
-    price: 350,
-    category: "Electronics",
-    stock: 25,
-    sku: "MVCFH27F",
-    rating: 4.65,
-    status: "Out Of Stock",
-  },
-  {
-    id: "4",
-    name: "Ultimate Ears Wonderboom Bluetooth Speaker",
-    image: AppImages.audioSpeaker,
-    price: 119.99,
-    category: "Electronics",
-    stock: 10,
-    sku: "MVCFH27F",
-    rating: 4.65,
-    status: "Active",
-  },
-  {
-    id: "5",
-    name: "Canon Pixma TS3350 Multifunction Printer",
-    image: AppImages.officePrinter,
-    price: 439.5,
-    category: "Electronics",
-    stock: 25,
-    sku: "MVCFH27F",
-    rating: 4.65,
-    status: "Closed For Sale",
-  },
-  {
-    id: "6",
-    name: "Canon 4000D 18-55 MM III (Canon Eurasia Guaranteed)",
-    image: AppImages.vintageCameraStillLife,
-    price: 49.5,
-    category: "Beauty",
-    stock: 25,
-    sku: "MVCFH27F",
-    rating: 4.65,
-    status: "Closed For Sale",
-  },
-  {
-    id: "7",
-    name: "Lobwerk Lenovo Tab M10 TB-X605F",
-    image: AppImages.modernTabletDisplay,
-    price: 49.5,
-    category: "Beauty",
-    stock: 25,
-    sku: "MVCFH27F",
-    rating: 4.65,
-    status: "Closed For Sale",
-  },
-  {
-    id: "8",
-    name: '2019 55" Q60R QLED 4K Quantum HDR Smart TV',
-    image: AppImages.retroLivingRoomTv,
-    price: 49.5,
-    category: "Beauty",
-    stock: 25,
-    sku: "MVCFH27F",
-    rating: 4.65,
-    status: "Closed For Sale",
-  },
-];
+    "id": "892b7426-338b-4dae-a949-1d3f86114e47",
+    "name": "Converse Chuck 70",
+    "description": "Thiết kế cổ điển, phù hợp mọi outfit.",
+    "price": 1599000,
+    "brand": "Converse",
+    "rating": 4.3,
+    "categoryId": "9f4044fe-9103-41bb-bcf2-b09b70a41bc0",
+    "thumbnail": "https://images.converse.com/chuck70.jpg",
+    "slug": "converse-chuck-70",
+    "categoryName": "Shoes",
+    "categoryTypeId": "84fe4ce7-86f0-415d-b987-1e02421e08e8",
+    "categoryTypeName": "Classic",
+    "variants": [
+      {
+        "id": "98cf4a97-3e23-4e52-b4a8-cf53f5130911",
+        "color": "White",
+        "size": "41",
+        "stockQuantity": 12
+      }
+    ],
+    "productResources": [
+      {
+        "id": "c73c088a-b8ea-4ddf-a01b-340374b04632",
+        "name": "Thumbnail",
+        "url": "https://images.converse.com/chuck70-main.jpg",
+        "type": "image",
+        "isPrimary": true
+      }
+    ],
+    "newArrival": true
+  }
+]
 
-const defaultColumns = [
+
+const productColumns = [
+  {
+    key: "thumbnail",
+    header: "Thumbnail",
+    width: "50px",
+    render: (p) => (
+      <img
+        src={p.thumbnail}
+        alt={p.name}
+        className="w-10 h-10 rounded object-cover"
+      />
+    ),
+  },
   {
     key: "name",
     header: "Product Name",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4",
-    width: "35%",
-    render: (p) => (
-      <div className="flex items-center gap-3">
-        <img
-          src={p.image}
-          alt={p.name}
-          className="w-10 h-10 rounded object-cover"
-        />
-        <span className="text-sm font-medium text-foreground">{p.name}</span>
-      </div>
-    ),
+    width: "25%",
+    render: (p) => <span className="font-medium">{p.name}</span>,
+  },
+  {
+    key: "brand",
+    header: "Brand",
+    render: (p) => <span className="text-sm">{p.brand}</span>,
+  },
+  {
+    key: "categoryName",
+    header: "Category",
+    render: (p) => <span className="text-sm">{p.categoryName}</span>,
   },
   {
     key: "price",
     header: "Price",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4 text-sm text-foreground",
-    width: "8%",
-    render: (p) => <span>${p.price}</span>,
-  },
-  {
-    key: "category",
-    header: "Category",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4 text-sm text-foreground",
-    render: (p) => <span>{p.category}</span>,
+    render: (p) => <span>${p.price.toLocaleString()}</span>,
   },
   {
     key: "stock",
     header: "Stock",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4 text-sm text-foreground",
-    render: (p) => <span>{p.stock}</span>,
-  },
-  {
-    key: "sku",
-    header: "SKU",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4 text-sm text-foreground",
-    render: (p) => <span>{p.sku}</span>,
+    render: (p) => {
+      const totalStock = p.variants?.reduce(
+        (acc, v) => acc + (v.stockQuantity || 0),
+        0
+      );
+      return <span>{totalStock}</span>;
+    },
   },
   {
     key: "rating",
     header: "Rating",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4",
     render: (p) => (
       <div className="flex items-center gap-1">
         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-        <span className="text-sm text-foreground">{p.rating}</span>
+        <span>{p.rating}</span>
       </div>
     ),
   },
   {
-    key: "status",
-    header: "Status",
-    thClassName: "px-6 py-3 text-left text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4",
+    key: "newArrival",
+    header: "New",
+    render: (p) =>
+      p.newArrival ? (
+        <Badge className="bg-green-500 text-white">New</Badge>
+      ) : (
+        <Badge variant="outline">Old</Badge>
+      ),
+  },
+  {
+    key: "slug",
+    header: "Slug",
     render: (p) => (
-      <Badge className={getStatusColor(p.status)}>{p.status}</Badge>
+      <span className="text-xs text-muted-foreground">{p.slug}</span>
     ),
   },
   {
     key: "actions",
     header: "Actions",
-    thClassName: "px-6 py-3 text-center text-sm font-semibold text-foreground",
-    tdClassName: "px-6 py-4 text-center",
-    width: "80px",
+    width: "60px",
     render: () => (
       <Button variant="ghost" size="sm">
         <MoreVertical className="w-4 h-4" />
@@ -169,6 +164,7 @@ const defaultColumns = [
     ),
   },
 ];
+
 
 const productFilters = [
   {
@@ -216,25 +212,41 @@ const onClear = () => {
 };
 
 export function ProductsPage() {
+  const dispatch = useDispatch();
+
+  const products = useSelector((state) => state.productSlice.products);
+  const loading = useSelector((state) => state.productSlice.loading);
+  const error = useSelector((state) => state.productSlice.error);
+
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
   return (
-    <CrudPageLayout
-      title="Products"
-      actionText="Add Product"
-      onAdd={() => console.log("add")}
-      stats={<ProductStats />}
-      filters={
-        <FilterBar
-          filters={productFilters}
-          onSearch={onSearch}
-          onClear={onClear}
+    <>
+    {loading && <Spinner />}
+    {error && toast.error(error)}
+    {products.length > 0 && (
+      <CrudPageLayout
+        title="Products"
+        actionText="Add Product"
+        onAdd={() => console.log("add")}
+        stats={<ProductStats />}
+        filters={
+          <FilterBar
+            filters={productFilters}
+            onSearch={onSearch}
+            onClear={onClear}
+          />
+        }
+      >
+        <DataTable
+          data={products}
+          columns={productColumns}
+          showSelect={true}
         />
-      }
-    >
-      <DataTable
-        data={sampleProducts}
-        columns={defaultColumns}
-        showSelect={true}
-      />
-    </CrudPageLayout>
+      </CrudPageLayout>
+    )}
+    </>
   );
 }

@@ -14,7 +14,8 @@ export const fetchProducts = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const res = await productAPI.getAll(params);
-      return res.data;
+      console.log("✅ Product res:", res);
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -68,13 +69,16 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
+        console.log("✅ Product payload:", action.payload);
         state.products = action.payload;
+        console.log("✅ Product state:", state.products);
       })
       .addCase(fetchProducts.rejected, (state, action) => {
+        console.log("❌ Fetch error:", action.error);
+        console.log("❌ Rejected payload:", action.payload);
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.error;
       });
-
     builder
       .addCase(fetchProductById.pending, (state) => {
         state.loading = true;
