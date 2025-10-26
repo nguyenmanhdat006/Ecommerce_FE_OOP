@@ -1,106 +1,94 @@
-import { useState } from "react"
-import { toast } from "react-hot-toast"
-import FormHeader from "./components/FormHeader"
-import ProductDetailsSection from "./components/ProductDetailsSection"
-import ImageUploadSection from "./components/ImageUploadSection"
-import PricingSection from "./components/PricingSection"
-import StatusSection from "./components/StatusSection"
-import CategoriesSection from "./components/CategoriesSection"
-import VariantsSection from "./components/VariantsSection"
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import FormHeader from "./components/FormHeader";
+import ProductDetailsSection from "./components/ProductDetailsSection";
+import ImageUploadSection from "./components/ImageUploadSection";
+import PricingSection from "./components/PricingSection";
+import StatusSection from "./components/StatusSection";
+import CategoriesSection from "./components/CategoriesSection";
+import VariantsSection from "./components/VariantsSection";
+import { useForm, useFieldArray } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { productSchema } from "@/validation/productSchema";
+import { createProduct } from "@/store/productSlice";
+import { useDispatch } from "react-redux";
 
 export default function AddProductForm() {
-  const [formData, setFormData] = useState({
-    name: "",
-    sku: "",
-    barcode: "",
-    description: "",
-    basePrice: "",
-    discountedPrice: "",
-    taxable: true,
-    inStock: true,
-    status: "draft",
-    category: "",
-    subCategory: "",
-  })
 
-  const [images, setImages] = useState([])
-  const [dragActive, setDragActive] = useState(false)
+  const dispatch = useDispatch();
 
-  const handleInputChange = (e) => {
-    const { name, value, type } = e.target
-    const checked = e.target.checked
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
-  }
+  const {
+    register, //Đăng kí input field, ví dụ register("name") để đăng kí input name
+    handleSubmit, //Xử lý submit form 
+    control, //Quản lý state của form, dùng với Controller 
+    reset, //Reset form
+    watch, //Theo dõi sự thay đổi của form, ví dụ watch("name") để lấy giá trị của name
+    formState: { errors }, //Lấy lỗi từ form
+  } = useForm({
+    resolver: yupResolver(productSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: "",
+      brand: "",
+      newArrival: false,
+      categoryId: "",
+      categoryTypeId: "",
+      variants: [{ size: "M", color: "Red", stockQuantity: 10 }],
+      productResources: [{ url: "https://cdn-media.sforum.vn/storage/app/media/anh-dep-68.jpg", name: "Ảnh sản phẩm", isPrimary: true }],
+    },
+  });
 
-  const handleToggleTaxable = () => {
-    setFormData((prev) => ({ ...prev, taxable: !prev.taxable }))
-  }
-
-  const handleToggleInStock = () => {
-    setFormData((prev) => ({ ...prev, inStock: !prev.inStock }))
-  }
+  const [images, setImages] = useState([]);
+  const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }
+  };
 
   const handleDrop = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    const files = e.dataTransfer.files
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    const files = e.dataTransfer.files;
     if (files) {
-      setImages((prev) => [...prev, ...Array.from(files)])
+      setImages((prev) => [...prev, ...Array.from(files)]);
     }
-  }
+  };
 
   const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  const handlePublish = () => {
-    console.log("Publishing product:", formData)
-    toast.success("Product published!")
-  }
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSaveDraft = () => {
-    console.log("Saving draft:", formData)
-    toast.success("Draft saved!")
-  }
+    toast.success("Draft saved!");
+  };
 
   const handleDiscard = () => {
-    setFormData({
-      name: "",
-      sku: "",
-      barcode: "",
-      description: "",
-      basePrice: "",
-      discountedPrice: "",
-      taxable: true,
-      inStock: true,
-      status: "draft",
-      category: "",
-      subCategory: "",
-    })
-    setImages([])
-  }
+    reset();
+    setImages([]);
+  };
+
+  const onSubmit = (data) => {
+    console.log("Data:", errors);
+    dispatch(createProduct(data));
+    reset();
+    toast.success("Product published!");
+  };
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <FormHeader 
+      <FormHeader
         onDiscard={handleDiscard}
         onSaveDraft={handleSaveDraft}
-        onPublish={handlePublish}
+        onPublish={handleSubmit(onSubmit)}
       />
 
       {/* Content */}
@@ -109,12 +97,12 @@ export default function AddProductForm() {
           <div className="grid grid-cols-3 gap-6">
             {/* Left Column - Product Details */}
             <div className="col-span-2 space-y-6">
-              <ProductDetailsSection 
-                formData={formData}
-                onInputChange={handleInputChange}
+              <ProductDetailsSection
+                register={register}
+                errors={errors}
               />
 
-              <ImageUploadSection 
+              <ImageUploadSection
                 images={images}
                 dragActive={dragActive}
                 onDrag={handleDrag}
@@ -127,26 +115,25 @@ export default function AddProductForm() {
 
             {/* Right Column - Pricing & Status */}
             <div className="space-y-6">
-              <PricingSection 
-                formData={formData}
-                onInputChange={handleInputChange}
-                onToggleTaxable={handleToggleTaxable}
+              <PricingSection
+                register={register}
+                errors={errors}
               />
 
-              <StatusSection 
-                formData={formData}
-                onInputChange={handleInputChange}
-                onToggleInStock={handleToggleInStock}
+              <StatusSection
+                register={register}
+                errors={errors}
+                control={control}
               />
 
-              <CategoriesSection 
-                formData={formData}
-                onInputChange={handleInputChange}
+              <CategoriesSection
+                register={register}
+                errors={errors}
               />
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

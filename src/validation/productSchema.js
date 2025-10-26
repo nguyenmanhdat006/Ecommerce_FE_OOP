@@ -2,18 +2,18 @@
 import * as yup from "yup";
 
 export const productSchema = yup.object().shape({
-  name: yup.string().required("Tên sản phẩm là bắt buộc"),
-  description: yup.string().max(500, "Mô tả tối đa 500 ký tự"),
-  price: yup
+  name: yup.string().required("Tên sản phẩm là bắt buộc"), //oke
+  description: yup.string().max(500, "Mô tả tối đa 500 ký tự"), //oke
+  price: yup //oke
     .number()
-    .typeError("Giá phải là số")
-    .positive("Giá phải lớn hơn 0")
-    .required("Giá sản phẩm là bắt buộc"),
-  brand: yup.string().required("Thương hiệu là bắt buộc"),
-  newArrival: yup.boolean(),
+    .typeError("Giá phải là số") //oke
+    .positive("Giá phải lớn hơn 0") //oke
+    .required("Giá sản phẩm là bắt buộc"), //oke
+  brand: yup.string().required("Thương hiệu là bắt buộc"), //oke
+  newArrival: yup.boolean().default(false), //oke
 
   // Category
-  categoryId: yup.string().required("Chọn danh mục là bắt buộc"),
+  categoryId: yup.string().nullable(), // optional
   categoryTypeId: yup.string().nullable(), // optional
 
   // Variants
@@ -25,7 +25,7 @@ export const productSchema = yup.object().shape({
         .number()
         .typeError("Số lượng phải là số")
         .min(0, "Số lượng không thể âm")
-        .required("Số lượng bắt buộc"),
+        // .required("Số lượng bắt buộc"),
     })
   ),
 
