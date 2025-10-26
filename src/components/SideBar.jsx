@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
+
 export function Sidebar() {
   const [expandedItems, setExpandedItems] = useState(["E-commerce"]);
   const navigate = useNavigate();
@@ -38,15 +40,15 @@ export function Sidebar() {
       icon: <ShoppingCart className="w-5 h-5" />,
       submenu: [
         { label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-        { label: "Product List", icon: <ShoppingCart className="w-4 h-4" /> },
-        { label: "Product Detail", icon: <ShoppingCart className="w-4 h-4" /> },
+        { label: "Product List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST) },
+        { label: "Product Detail", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_DETAIL) },
         {
           label: "Add Product",
           icon: <ShoppingCart className="w-4 h-4" />,
-          onClick: () => navigate("/admin/addProduct"),
+          onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_ADD),
         },
-        { label: "Order List", icon: <ShoppingCart className="w-4 h-4" /> },
-        { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" /> },
+        { label: "Order List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_ORDER_LIST) },
+        { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL) },
       ],
     },
     {
