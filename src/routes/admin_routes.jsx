@@ -1,6 +1,6 @@
 import { ProductsPage } from "../pages/ProductPage/ProductPage.jsx";
 import { Dashboard } from "../pages/DashBoard/index.jsx";
-import AddProductForm from "@/components/AddProductForm/AddProductForm.jsx";
+import AddProductForm from "@/forms/AddProductForm/AddProductForm.jsx";
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
 
 export const adminRouter = {
