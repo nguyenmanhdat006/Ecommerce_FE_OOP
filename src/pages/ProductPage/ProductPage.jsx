@@ -217,9 +217,12 @@ export function ProductsPage() {
   const products = useSelector((state) => state.productSlice.products);
   const loading = useSelector((state) => state.productSlice.loading);
   const error = useSelector((state) => state.productSlice.error);
-
+  const loaded = useSelector((state) => state.productSlice.loaded);
+  
   useEffect(() => {
-    dispatch(fetchProducts());
+    if (!loaded) {
+      dispatch(fetchProducts());
+    }
   }, [dispatch]);
 
   return (

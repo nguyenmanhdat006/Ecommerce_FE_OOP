@@ -93,11 +93,8 @@ export default function AddProductForm() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const result = await dispatch(uploadSingleFile(formData)).unwrap();
+      const result = await dispatch(uploadSingleFile(file)).unwrap();
       if (result.payload) setValue("thumbnail", result.payload.fileUrl);
     } catch (error) {
       console.error("Upload failed:", error);

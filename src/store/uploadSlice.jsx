@@ -17,7 +17,9 @@ export const uploadSingleFile = createAsyncThunk(
   async (file, { rejectWithValue }) => {
     try {
       const res = await fileAPI.uploadSingle(file);
-      return res.data;
+      // axiosClient interceptor đã trả về response.data rồi
+      // nên res ở đây chính là data rồi, không cần .data nữa
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Upload failed");
     }
