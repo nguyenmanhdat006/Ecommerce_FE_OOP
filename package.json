@@ -26,6 +26,7 @@
     "prop-types": "^15.8.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-hook-form": "^7.65.0",
     "react-hot-toast": "^2.6.0",
     "react-multi-carousel": "^2.8.6",
     "react-range-slider-input": "^3.2.1",
