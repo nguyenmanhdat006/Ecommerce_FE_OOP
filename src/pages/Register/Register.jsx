@@ -57,6 +57,12 @@ const Register = () => {
           <input type="email" name='email' value={values?.userName} onChange={handleOnChange} placeholder='Email address' className='h-[48px] w-full border p-2 mt-2 mb-4 border-gray-400' required autoComplete='off'/>
           <label>Password</label>
           <input type="password" name='password' value={values?.password} onChange={handleOnChange} placeholder='Password' className='h-[48px] mt-2 w-full border p-2 border-gray-400' required autoComplete='new-password'/>
+          <label>First Name</label>
+          <input type="firstName" name='firstName' value={values?.firstName} onChange={handleOnChange} placeholder='First Name' className='h-[48px] mt-2 w-full border p-2 border-gray-400' required autoComplete='new-password'/>
+          <label>Last Name</label>
+          <input type="lastName" name='lastName' value={values?.lastName} onChange={handleOnChange} placeholder='Last Name' className='h-[48px] mt-2 w-full border p-2 border-gray-400' required autoComplete='new-password'/>
+          <label>Phone Number</label>
+          <input type="phoneNumber" name='phoneNumber' value={values?.phoneNumber} onChange={handleOnChange} placeholder='Phone Number' className='h-[48px] mt-2 w-full border p-2 border-gray-400' required autoComplete='new-password'/>
           <button className='border w-full rounded-lg h-[48px] mb-4 bg-black text-white mt-4 hover:opacity-80'>Sign Up</button>
         </form>
       </div>

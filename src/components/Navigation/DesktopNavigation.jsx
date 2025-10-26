@@ -35,7 +35,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
         <Button variant="ghost" size="icon" className="h-11 w-11">
           <Heart size={22} />
         </Button>
-        <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => navigate("/admin/productManagement")}>
+        <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => navigate("/admin")}>
           <User size={22} />
         </Button>
         <Button
