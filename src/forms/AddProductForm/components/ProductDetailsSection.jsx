@@ -1,10 +1,10 @@
 import { FormInput } from "@/components/FormInput";
+import { CardSection } from "@/forms/FormLayout/CardSection";
+import { FormTextarea } from "@/components/FormTextArea";
 
 export default function ProductDetailsSection({ register, errors }) {
   return (
-    <div className="bg-card rounded-lg border border-border p-6">
-      <h2 className="text-lg font-semibold mb-4">Product Details</h2>
-      <div className="space-y-4">
+    <CardSection title="Product Details">
         <FormInput
           label="Name"
           name="name"
@@ -13,29 +13,21 @@ export default function ProductDetailsSection({ register, errors }) {
           errors={errors}
         />
 
-          <FormInput
-            label="Brand"
-            name="brand"
-            register={register}
-            placeholder="Brand"
-            errors={errors}
-          />
+        <FormInput
+          label="Brand"
+          name="brand"
+          register={register}
+          placeholder="Brand"
+          errors={errors}
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Description (Optional)</label>
-          <textarea
-            {...register("description")}
-            rows={4}
-            placeholder="Set a description to the product for better visibility."
-            className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 ${
-              errors?.description ? "border-red-500 ring-red-500" : "border-input ring-ring"
-            }`}
-          />
-          {errors?.description && (
-            <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
-          )}
-        </div>
-      </div>
-    </div>
+        <FormTextarea
+          label="Description"
+          name="description"
+          register={register}
+          placeholder="Set a description to the product for better visibility."
+        errors={errors}
+      />
+    </CardSection>
   );
 }

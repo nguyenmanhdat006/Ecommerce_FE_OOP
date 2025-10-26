@@ -1,35 +1,36 @@
-export default function CategoriesSection({ register, errors }) {
-  return (
-    <div className="bg-card rounded-lg border border-border p-6">
-      <h2 className="text-lg font-semibold mb-4">Categories</h2>
-      <div className="space-y-3">
-        {/* Category */}
-        <select
-          {...register("category")}
-          className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Select a category</option>
-          <option value="electronics">Electronics</option>
-          <option value="clothing">Clothing</option>
-          <option value="books">Books</option>
-        </select>
-        {errors.category && (
-          <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
-        )}
+import { CardSection } from "@/forms/FormLayout/CardSection";
+import { FormSelect } from "@/components/FormSelect";
 
-        {/* Sub Category */}
-        <select
-          {...register("subCategory")}
-          className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Select a sub category</option>
-          <option value="subcategory1">Sub Category 1</option>
-          <option value="subcategory2">Sub Category 2</option>
-        </select>
-        {errors.subCategory && (
-          <p className="text-red-500 text-sm mt-1">{errors.subCategory.message}</p>
-        )}
-      </div>
-    </div>
+export default function CategoriesSection({
+  register,
+  errors,
+  categories,
+  categoryTypes,
+  selectedCategory,
+}) {
+  return (
+    <CardSection title="Categories">
+      <FormSelect
+        label="Category"
+        name="categoryId"
+        register={register}
+        errors={errors}
+        options={[{ value: "", label: "Select a category" }, ...categories.map(cat => ({ value: cat.id, label: cat.name }))]}
+      />
+
+      {selectedCategory && categoryTypes.length > 0 && (
+        <FormSelect
+          label="Category Type"
+          name="categoryTypeId"
+          register={register}
+          errors={errors}
+          options={[{ value: "", label: "Select a type" }, ...categoryTypes.map(type => ({ value: type.id, label: type.name }))]}
+        />
+      )}
+
+      {/* Hidden fields for form submission */}
+      <input type="hidden" {...register("categoryName")} />
+      <input type="hidden" {...register("categoryTypeName")} />
+    </CardSection>
   );
 }

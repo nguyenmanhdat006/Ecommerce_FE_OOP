@@ -10,7 +10,8 @@ export const fetchCategories = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.getAll(params);
-      return res.data;
+      console.log("✅ Category res:", res);
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Get categories failed");
     }
