@@ -15,6 +15,7 @@ import { productSchema } from "@/validation/productSchema";
 import { createProduct } from "@/store/productSlice";
 import { fetchCategories } from "@/store/categorySlice";
 import { useEffect } from "react";
+import { uploadSingleFile } from "@/store/uploadSlice";
 
 export default function AddProductForm() {
   const form = useForm({
@@ -88,6 +89,21 @@ export default function AddProductForm() {
     toast.success("Product published!");
   };
 
+  const handleUploadThumbnail = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const result = await dispatch(uploadSingleFile(formData)).unwrap();
+      if (result.payload) setValue("thumbnail", result.payload.fileUrl);
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+
   return (
     <FormLayout
       title="Add Product"
@@ -97,7 +113,11 @@ export default function AddProductForm() {
     >
       {/* Left Column */}
       <div className="col-span-2 space-y-6">
-        <ProductDetailsSection register={register} errors={errors} />
+        <ProductDetailsSection
+          handleUploadThumbnail={handleUploadThumbnail}
+          register={register}
+          errors={errors}
+        />
         <ImageUploadSection
           fields={resourceArray.fields}
           append={resourceArray.append}

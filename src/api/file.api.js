@@ -6,7 +6,7 @@ export const fileAPI = {
     const formData = new FormData();
     formData.append("file", file);
 
-    return axiosClient.post("api/files/upload", formData, {
+    return axiosClient.post("api/uploads/upload", formData, {
       headers: {
         // KHÔNG set manual multipart/form-data
       },
@@ -20,7 +20,7 @@ export const fileAPI = {
       formData.append("files", file); // backend expects "files"
     });
 
-    return axiosClient.post("api/files/upload-multiple", formData);
+    return axiosClient.post("api/uploads/upload-multiple", formData);
   },
 
   // Lấy info file (ví dụ: name, size…)
@@ -31,7 +31,7 @@ export const fileAPI = {
 
   // Xoá file
   delete: (fileId) =>
-    axiosClient.delete("api/files/delete", {
+    axiosClient.delete("api/uploads/delete", {
       params: { id: fileId },
     }),
 };

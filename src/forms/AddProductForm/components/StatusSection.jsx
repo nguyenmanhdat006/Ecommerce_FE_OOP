@@ -10,7 +10,7 @@ export default function StatusSection({ errors, control, register }) {
   console.log("errors", errors);
   return (
     <CardSection title="Status">
-      <FormSelect
+      {/* <FormSelect
         label="Status"
         name="status"
         register={register}
@@ -20,7 +20,7 @@ export default function StatusSection({ errors, control, register }) {
           { label: "Published", value: "published" },
           { label: "Archived", value: "archived" },
         ]}
-      />
+      /> */}
 
       {/* In Stock Section */}
       <ToggleField name="newArrival" control={control} label="New Arrival" />
