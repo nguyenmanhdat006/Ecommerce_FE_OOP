@@ -19,7 +19,7 @@ const sampleProducts = [
     "name": "Adidas Ultraboost 22",
     "description": "Giày chạy bộ hiệu suất cao, đàn hồi tốt.",
     "price": 3299000,
-    "brand": "Adidas",
+    "brand": "ai phone",
     "rating": 4.7,
     "categoryId": "af733a18-f471-48f9-bb92-68265a8a3a8c",
     "thumbnail": "https://images.adidas.com/ultraboost22.jpg",
