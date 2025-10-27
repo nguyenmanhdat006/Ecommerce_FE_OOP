@@ -1,30 +1,24 @@
-import { useState } from "react";
 import { toast } from "react-hot-toast";
-import FormHeader from "./components/FormHeader";
+import { useForm, useFieldArray } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useDispatch, useSelector } from "react-redux";
+
+import { FormLayout } from "@/forms/FormLayout/FormLayout";
 import ProductDetailsSection from "./components/ProductDetailsSection";
-import ImageUploadSection from "./components/ImageUploadSection";
+import { ImageUploadSection } from "./components/ImageUploadSection";
 import PricingSection from "./components/PricingSection";
 import StatusSection from "./components/StatusSection";
 import CategoriesSection from "./components/CategoriesSection";
-import VariantsSection from "./components/VariantsSection";
-import { useForm, useFieldArray } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { VariantsSection } from "./components/VariantsSection";
+
 import { productSchema } from "@/validation/productSchema";
 import { createProduct } from "@/store/productSlice";
-import { useDispatch } from "react-redux";
+import { fetchCategories } from "@/store/categorySlice";
+import { useEffect } from "react";
+import { uploadSingleFile } from "@/store/uploadSlice";
 
 export default function AddProductForm() {
-
-  const dispatch = useDispatch();
-
-  const {
-    register, //Đăng kí input field, ví dụ register("name") để đăng kí input name
-    handleSubmit, //Xử lý submit form 
-    control, //Quản lý state của form, dùng với Controller 
-    reset, //Reset form
-    watch, //Theo dõi sự thay đổi của form, ví dụ watch("name") để lấy giá trị của name
-    formState: { errors }, //Lấy lỗi từ form
-  } = useForm({
+  const form = useForm({
     resolver: yupResolver(productSchema),
     defaultValues: {
       name: "",
@@ -32,108 +26,127 @@ export default function AddProductForm() {
       price: "",
       brand: "",
       newArrival: false,
+      rating: null,
+      thumbnail: "",
+      slug: "",
       categoryId: "",
       categoryTypeId: "",
-      variants: [{ size: "M", color: "Red", stockQuantity: 10 }],
-      productResources: [{ url: "https://cdn-media.sforum.vn/storage/app/media/anh-dep-68.jpg", name: "Ảnh sản phẩm", isPrimary: true }],
+      categoryName: "",
+      categoryTypeName: "",
+      variants: [],
+      productResources: [],
     },
   });
 
-  const [images, setImages] = useState([]);
-  const [dragActive, setDragActive] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    setValue, // cái này dùng để set giá trị cho form
+    formState: { errors },
+  } = form;
 
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
+  const dispatch = useDispatch();
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    const files = e.dataTransfer.files;
-    if (files) {
-      setImages((prev) => [...prev, ...Array.from(files)]);
-    }
-  };
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
-  const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-  };
+  const categories = useSelector((state) => state.categorySlice?.categories);
 
-  const handleSaveDraft = () => {
-    toast.success("Draft saved!");
-  };
+  const selectedCategoryId = watch("categoryId");
+  const selectedCategoryTypeId = watch("categoryTypeId");
 
-  const handleDiscard = () => {
-    reset();
-    setImages([]);
-  };
+  const selectedCategory = categories?.find(
+    (cat) => cat.id === selectedCategoryId
+  );
+  const categoryTypes = selectedCategory?.categoryTypes || [];
+  const selectedCategoryType = categoryTypes?.find(
+    (type) => type.id === selectedCategoryTypeId
+  );
 
+  // Trong select chỉ cập nhật id, còn name thì thủ công
+  useEffect(() => {
+    setValue("categoryName", selectedCategory?.name || "");
+  }, [selectedCategory, setValue]);
+
+  useEffect(() => {
+    setValue("categoryTypeName", selectedCategoryType?.name || "");
+  }, [selectedCategoryType, setValue]);
+
+  // Field arrays
+  const resourceArray = useFieldArray({ control, name: "productResources" });
+  const variantArray = useFieldArray({ control, name: "variants" });
+
+  // Actions
+  const handleSaveDraft = () => toast.success("Draft saved!");
+  const handleDiscard = () => reset();
   const onSubmit = (data) => {
-    console.log("Data:", errors);
     dispatch(createProduct(data));
     reset();
     toast.success("Product published!");
   };
 
+  const handleUploadThumbnail = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const result = await dispatch(uploadSingleFile(formData)).unwrap();
+      if (result.payload) setValue("thumbnail", result.payload.fileUrl);
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <FormHeader
-        onDiscard={handleDiscard}
-        onSaveDraft={handleSaveDraft}
-        onPublish={handleSubmit(onSubmit)}
-      />
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6  mx-auto">
-          <div className="grid grid-cols-3 gap-6">
-            {/* Left Column - Product Details */}
-            <div className="col-span-2 space-y-6">
-              <ProductDetailsSection
-                register={register}
-                errors={errors}
-              />
-
-              <ImageUploadSection
-                images={images}
-                dragActive={dragActive}
-                onDrag={handleDrag}
-                onDrop={handleDrop}
-                onRemoveImage={removeImage}
-              />
-
-              <VariantsSection />
-            </div>
-
-            {/* Right Column - Pricing & Status */}
-            <div className="space-y-6">
-              <PricingSection
-                register={register}
-                errors={errors}
-              />
-
-              <StatusSection
-                register={register}
-                errors={errors}
-                control={control}
-              />
-
-              <CategoriesSection
-                register={register}
-                errors={errors}
-              />
-            </div>
-          </div>
-        </div>
+    <FormLayout
+      title="Add Product"
+      onDiscard={handleDiscard}
+      onSaveDraft={handleSaveDraft}
+      onPublish={handleSubmit(onSubmit)}
+    >
+      {/* Left Column */}
+      <div className="col-span-2 space-y-6">
+        <ProductDetailsSection
+          handleUploadThumbnail={handleUploadThumbnail}
+          register={register}
+          errors={errors}
+        />
+        <ImageUploadSection
+          fields={resourceArray.fields}
+          append={resourceArray.append}
+          remove={resourceArray.remove}
+          update={resourceArray.update}
+          register={register}
+          errors={errors}
+        />
+        <VariantsSection
+          fields={variantArray.fields}
+          append={variantArray.append}
+          remove={variantArray.remove}
+          register={register}
+          errors={errors}
+        />
       </div>
-    </div>
+
+      {/* Right Column */}
+      <div className="space-y-6">
+        <PricingSection register={register} errors={errors} control={control} />
+        <StatusSection register={register} errors={errors} control={control} />
+        <CategoriesSection
+          register={register}
+          errors={errors}
+          categories={categories}
+          categoryTypes={categoryTypes}
+          selectedCategory={selectedCategory}
+        />
+      </div>
+    </FormLayout>
   );
 }
