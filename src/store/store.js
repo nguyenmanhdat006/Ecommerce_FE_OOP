@@ -9,6 +9,7 @@ import authSlice from "./authSlice";
 import resourceSlice from "./resourceSlice";
 import uploadSlice from "./uploadSlice";
 import categorySlice from "./categorySlice";
+import adminUserSlice from "./adminUserSlice";
 
 const rootReducer = combineReducers({
   productState: productReducer,
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   resourceSlice: resourceSlice,
   uploadSlice: uploadSlice,
   categorySlice: categorySlice,
+  adminUsers: adminUserSlice,
 
 });
 
