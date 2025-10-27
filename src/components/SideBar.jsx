@@ -56,8 +56,9 @@ export function Sidebar() {
       icon: <BarChart3 className="w-5 h-5" />,
     },
     {
-      label: "CRM",
+      label: "User Management",
       icon: <Users className="w-5 h-5" />,
+      onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_USER_LIST),
     },
     {
       label: "Website Analytics",
@@ -92,7 +93,13 @@ export function Sidebar() {
           {navItems.map((item) => (
             <div key={item.label}>
               <button
-                onClick={() => item.submenu && toggleExpand(item.label)}
+                onClick={() => {
+                  if (item.submenu) {
+                    toggleExpand(item.label);
+                  } else if (item.onClick) {
+                    item.onClick();
+                  }
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   item.label === "Product List"
