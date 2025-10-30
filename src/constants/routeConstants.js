@@ -1,6 +1,6 @@
 export const ROUTE_CONSTANTS = {
   ADMIN_PRODUCT_LIST: "/admin/product",
-  ADMIN_PRODUCT_DETAIL: "/admin/product/:id",
+  ADMIN_PRODUCT_DETAIL: "/admin/product-detail",
   ADMIN_PRODUCT_ADD: "/admin/product/add",
   ADMIN_PRODUCT_EDIT: "/admin/product/:id/edit",
   ADMIN_PRODUCT_DELETE: "/admin/product/:id/delete",
