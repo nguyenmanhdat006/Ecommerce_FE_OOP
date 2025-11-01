@@ -15,6 +15,7 @@ export const login = createAsyncThunk(
     try {
       const res = await authAPI.login(data);
       console.log("Login res:", res);
+      console.log("Login res.data:", res.token);
       saveToken(res.token);
       saveUser(res.user);
       return res;
