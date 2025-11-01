@@ -9,7 +9,7 @@ export const login = createAsyncThunk(
     try {
       const res = await authAPI.login(data);
       console.log('Login response:', res);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Login failed");
     }
@@ -47,7 +47,7 @@ export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await authAPI.logout();
+      const res = await authAPI .logout();
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Logout failed");

@@ -1,48 +1,62 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import GoogleSignIn from '../../components/Buttons/GoogleSignIn'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux';
-import { setLoading } from '../../store/features/common'
-import { loginAPI } from '../../api/authentication';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, clearAuthError } from '../../store/authSlice';
 import { saveToken } from '../../utils/jwt-helper';
+import { toast } from 'react-hot-toast';
+
 const Login = () => {
-  const [values,setValues] =useState({
-    userName:'',
-    password:''
+  const [values, setValues] = useState({
+    userName: '',
+    password: ''
   });
-  const [error,setError] =useState('');
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
+  const { loading, error, isAuthenticated, accessToken, refreshToken } = useSelector(
+    (state) => state.authSlice
+  );
 
-  const onSubmit= useCallback((e)=>{
+  // Handle successful login
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("✅ Login res:",isAuthenticated, accessToken, refreshToken);
+      saveToken(accessToken, refreshToken);
+      navigate('/');
+      toast.success('Login successful!');
+    }
+  }, [isAuthenticated, accessToken, refreshToken, navigate]);
+
+  // Clear error when user starts typing
+  useEffect(() => {
+    if (error && (values.userName || values.password)) {
+      dispatch(clearAuthError());
+    }
+  }, [values.userName, values.password, error, dispatch]);
+
+  const onSubmit = useCallback(async (e) => {
     e.preventDefault();
-    setError('');
-    dispatch(setLoading(true));
-    loginAPI(values).then(res=>{
-        if(res?.token){
-          saveToken(res?.token);
-          navigate('/')
-        }
-        else{
-          setError("Something went wrong!");
-        }
-    }).catch(err=>{
-      //To-do Check response status
-      setError("Invalid Credentials!");
-    }).finally(()=>{
-      dispatch(setLoading(false));
-    });
+    dispatch(clearAuthError());
+    
+    try {
+      await dispatch(login(values)).unwrap();
+      toast.success('Login successful!');
+    } catch (err) {
+      // Error is handled by authSlice and will be in error state
+      const errorMessage = err?.message || err?.error || 'Invalid Credentials!';
+      toast.error(errorMessage);
+    }
+  }, [dispatch, values, navigate]);
 
-
-  },[dispatch, navigate, values]);
-
-  const handleOnChange = useCallback((e)=>{
+  const handleOnChange = useCallback((e) => {
     e.persist();
-    setValues(values=>({
+    setValues(values => ({
       ...values,
-      [e.target.name]:e.target?.value,
-    }))
-  },[]);
+      [e.target.name]: e.target?.value,
+    }));
+  }, []);
 
   return (
     <div className='px-8 w-full lg:w-[70%]'>
@@ -53,14 +67,43 @@ const Login = () => {
     
       <div className='pt-4'>
         <form onSubmit={onSubmit}>
-          <input type="email" name='userName' value={values?.userName} onChange={handleOnChange} placeholder='Email address' className='h-[48px] w-full border p-2 border-gray-400' required/>
-          <input type="password" name='password' value={values?.password} onChange={handleOnChange} placeholder='Password' className='h-[48px] mt-8 w-full border p-2 border-gray-400' required autoComplete='new-password'/>
+          <input 
+            type="email" 
+            name='userName' 
+            value={values?.userName} 
+            onChange={handleOnChange} 
+            placeholder='Email address' 
+            className='h-[48px] w-full border p-2 border-gray-400' 
+            required
+            disabled={loading}
+          />
+          <input 
+            type="password" 
+            name='password' 
+            value={values?.password} 
+            onChange={handleOnChange} 
+            placeholder='Password' 
+            className='h-[48px] mt-8 w-full border p-2 border-gray-400' 
+            required 
+            autoComplete='new-password'
+            disabled={loading}
+          />
           <Link className='text-right w-full float-right underline pt-2 text-gray-500 hover:text-black'>Forgot Password?</Link>
-          <button className='border w-full rounded-lg h-[48px] mb-4 bg-black text-white mt-4 hover:opacity-80'>Sign In</button>
+          <button 
+            type="submit"
+            className='border w-full rounded-lg h-[48px] mb-4 bg-black text-white mt-4 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed' 
+            disabled={loading}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
+          </button>
         </form>
       </div>
-      {error && <p className='text-lg text-red-700'>{error}</p>}
-      <Link to={"/v1/register"} className='underline text-gray-500 hover:text-black'>Don’t have an account? Sign up</Link>
+      {error && (
+        <p className='text-lg text-red-700'>
+          {typeof error === 'string' ? error : error?.message || 'Invalid Credentials!'}
+        </p>
+      )}
+      <Link to={"/v1/register"} className='underline text-gray-500 hover:text-black'>Don't have an account? Sign up</Link>
     </div>
   )
 }
