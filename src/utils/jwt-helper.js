@@ -43,9 +43,16 @@ const saveUser = (user) => {
 
 const getUser = () => {
   const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
-};
 
+  if (!user || user === "undefined" || user === "null") return null;
+
+  try {
+    return JSON.parse(user);
+  } catch (err) {
+    console.error("Invalid user JSON:", err);
+    return null;
+  }
+};
 const clearUser = () => {
   localStorage.removeItem("user");
 };
