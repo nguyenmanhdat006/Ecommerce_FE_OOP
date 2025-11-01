@@ -10,7 +10,7 @@ import Login from "./pages/Login/Login.jsx";
 import Register from "./pages/Register/Register.jsx";
 import OAuth2LoginCallback from "./pages/OAuth2LoginCallback.jsx";
 import { adminRouter } from "./routes/admin_routes.jsx";
-import UserProfile from "./pages/UserProfile/UserProfile.jsx";
+import OwnerProfile from "./pages/UserProfile/OwnerProfile.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -24,7 +24,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/profile",
-        element: <UserProfile />,
+        element: <OwnerProfile />,
       },
       {
         path: "/women",
