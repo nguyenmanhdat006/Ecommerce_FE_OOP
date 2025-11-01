@@ -7,6 +7,7 @@ import { EditProductForm } from "@/forms/EditProductForm/EditProductForm.jsx";
 import { OrderList } from "@/forms/OrderList/OrderList.jsx";
 import { OrderDetail } from "@/forms/OrderDetail/OrderDetail.jsx";
 import ProductDetail from "@/forms/ProductDetail/ProductDetail.jsx";
+import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx";
 
 export const adminRouter = {
   path: "/admin",
@@ -36,9 +37,13 @@ export const adminRouter = {
       path: "order-detail",
       element: <OrderDetail />,
     },
-  {
+    {
       path: "product-detail",
-      element: < ProductDetail/>,
+      element: <ProductDetail />,
+    },
+    {
+      path: "category-type-list",
+      element: <CategoryTypePage />,
     },
   ],
 };

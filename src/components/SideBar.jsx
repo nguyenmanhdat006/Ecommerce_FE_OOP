@@ -49,6 +49,8 @@ export function Sidebar() {
         },
         { label: "Order List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_ORDER_LIST) },
         { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL) },
+        { label: "Category Type List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_CATEGORY_TYPE_LIST) },
+        { label: "Category Type Detail", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_CATEGORY_TYPE_DETAIL) },
       ],
     },
     {

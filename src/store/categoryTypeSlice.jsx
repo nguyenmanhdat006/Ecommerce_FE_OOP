@@ -5,7 +5,7 @@ import { categoryTypeAPI } from "@/api/categoryType.api";
 
 // GET ALL
 export const fetchCategoryTypes = createAsyncThunk(
-  "categoryType/fetchCategoryTypes",
+  "categoryTypeSlice/fetchCategoryTypes",
   async (params, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.getAll(params);
@@ -18,11 +18,11 @@ export const fetchCategoryTypes = createAsyncThunk(
 
 // GET BY ID
 export const getCategoryType = createAsyncThunk(
-  "categoryType/getCategoryType",
+  "categoryTypeSlice/getCategoryType",
   async (id, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.getById(id);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Get category type failed");
     }
@@ -31,7 +31,7 @@ export const getCategoryType = createAsyncThunk(
 
 // CREATE
 export const createCategoryType = createAsyncThunk(
-  "categoryType/createCategoryType",
+  "categoryTypeSlice/createCategoryType",
   async (data, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.create(data);
@@ -44,7 +44,7 @@ export const createCategoryType = createAsyncThunk(
 
 // UPDATE
 export const updateCategoryType = createAsyncThunk(
-  "categoryType/updateCategoryType",
+  "categoryTypeSlice/updateCategoryType",
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.update(id, data);
@@ -57,7 +57,7 @@ export const updateCategoryType = createAsyncThunk(
 
 // DELETE
 export const deleteCategoryType = createAsyncThunk(
-  "categoryType/deleteCategoryType",
+  "categoryTypeSlice/deleteCategoryType",
   async (id, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.delete(id);
@@ -71,16 +71,20 @@ export const deleteCategoryType = createAsyncThunk(
 // =================== SLICE ===================
 
 const categoryTypeSlice = createSlice({
-  name: "categoryTypeState",
+  name: "categoryTypeSlice",
   initialState: {
     categoryTypes: [],
     selectedCategoryType: null,
     loading: false,
     error: null,
+    loaded: false,
   },
   reducers: {
     clearCategoryTypeError(state) {
       state.error = null;
+    },
+    resetCategoryTypesLoaded(state) {
+      state.loaded = false;
     },
   },
   extraReducers: (builder) => {
@@ -93,20 +97,33 @@ const categoryTypeSlice = createSlice({
       .addCase(fetchCategoryTypes.fulfilled, (state, action) => {
         state.loading = false;
         state.categoryTypes = action.payload;
+        state.loaded = true;
       })
       .addCase(fetchCategoryTypes.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.loaded = false;
       })
 
       // ---------- GET ID ----------
+      .addCase(getCategoryType.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(getCategoryType.fulfilled, (state, action) => {
+        state.loading = false;
         state.selectedCategoryType = action.payload;
+      })
+      .addCase(getCategoryType.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.loaded = false;
       })
 
       // ---------- CREATE ----------
       .addCase(createCategoryType.fulfilled, (state, action) => {
         state.categoryTypes.push(action.payload);
+        state.loaded = true ;
       })
 
       // ---------- UPDATE ----------
@@ -117,6 +134,7 @@ const categoryTypeSlice = createSlice({
         if (index !== -1) {
           state.categoryTypes[index] = action.payload;
         }
+        state.loaded = true;
       })
 
       // ---------- DELETE ----------
@@ -124,9 +142,10 @@ const categoryTypeSlice = createSlice({
         state.categoryTypes = state.categoryTypes.filter(
           (c) => c.id !== action.payload.id
         );
+        state.loaded = true;
       });
   },
 });
 
-export const { clearCategoryTypeError } = categoryTypeSlice.actions;
+export const { clearCategoryTypeError, resetCategoryTypesLoaded } = categoryTypeSlice.actions;
 export default categoryTypeSlice.reducer;

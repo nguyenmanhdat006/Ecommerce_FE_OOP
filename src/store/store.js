@@ -10,6 +10,7 @@ import resourceSlice from "./resourceSlice";
 import uploadSlice from "./uploadSlice";
 import categorySlice from "./categorySlice";
 import adminUserSlice from "./adminUserSlice";
+import categoryTypeSlice from "./categoryTypeSlice";
 
 const rootReducer = combineReducers({
   productState: productReducer,
@@ -23,7 +24,7 @@ const rootReducer = combineReducers({
   uploadSlice: uploadSlice,
   categorySlice: categorySlice,
   adminUsers: adminUserSlice,
-
+  categoryTypeSlice: categoryTypeSlice,
 });
 
 const store = configureStore({
