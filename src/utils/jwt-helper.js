@@ -37,6 +37,25 @@ const isTokenValid = () => {
     return false;
   }
 };
+const saveUser = (user) => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
+const getUser = () => {
+  const user = localStorage.getItem("user");
+
+  if (!user || user === "undefined" || user === "null") return null;
+
+  try {
+    return JSON.parse(user);
+  } catch (err) {
+    console.error("Invalid user JSON:", err);
+    return null;
+  }
+};
+const clearUser = () => {
+  localStorage.removeItem("user");
+};
 
 export {
   getToken,
@@ -44,4 +63,7 @@ export {
   saveToken,
   clearTokens,
   isTokenValid,
+  saveUser,
+  getUser,
+  clearUser,
 };

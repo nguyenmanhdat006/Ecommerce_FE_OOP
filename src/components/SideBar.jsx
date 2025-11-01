@@ -12,13 +12,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
+
+import { useSelector } from "react-redux";
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
 
 export function Sidebar() {
   const [expandedItems, setExpandedItems] = useState([]);
   const navigate = useNavigate();
   const location = useLocation(); // lấy route hiện tại
-
+  const user = useSelector((state) => state.authSlice.user);
+  console.log('Sidebar User:', user);
   const toggleExpand = (label) => {
     setExpandedItems((prev) =>
       prev.includes(label)
@@ -127,17 +130,20 @@ export function Sidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="p-6 border-t border-sidebar-border">
+      <div
+        className="p-6 border-t border-sidebar-border cursor-pointer"
+        onClick={() => navigate("/profile")}
+      >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-sm font-semibold text-primary">TB</span>
+            <span className="text-sm font-semibold text-primary">{(user && (user.firstName?.[0] + (user.lastName?.[0] || ""))) || "U"}</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              Toby Belhome
+              {user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Guest"}
             </p>
             <p className="text-xs text-sidebar-foreground/70 truncate">
-              hello@tobybelhome.com
+              {user ? user.email : "Not signed in"}
             </p>
           </div>
         </div>
