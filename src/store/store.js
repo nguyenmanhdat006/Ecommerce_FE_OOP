@@ -16,7 +16,7 @@ import userProfileSlice from "./userProfileSlice";
 const rootReducer = combineReducers({
   productState: productReducer,
   cartState: cartReducer,
-  categoryState: categoryReducer,
+  categoryState: categorySlice,
   commonState: commonReducer,
   userState: userReducer,
   userProfile: userProfileReducer,
@@ -24,7 +24,7 @@ const rootReducer = combineReducers({
   authSlice: authSlice,
   resourceSlice: resourceSlice,
   uploadSlice: uploadSlice,
-  categorySlice: categorySlice,
+  // categorySlice: categorySlice,
   adminUsers: adminUserSlice,
   userProfileSlice: userProfileSlice,
 

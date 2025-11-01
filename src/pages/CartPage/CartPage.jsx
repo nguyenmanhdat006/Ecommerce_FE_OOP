@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -13,49 +13,55 @@ import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingCart, Trash2, Plus, Minus, CreditCard } from "lucide-react";
-
-// Mock data
-const mockProducts = [
-  {
-    id: "p1",
-    name: "Áo thun nam basic",
-    price: 149000,
-    qty: 2,
-    shop: "Shop A",
-    img: "https://via.placeholder.com/96",
-    size: "M",
-    color: "Đen",
-  },
-  {
-    id: "p2",
-    name: "Giày sneakers thể thao",
-    price: 599000,
-    qty: 1,
-    shop: "Shop B",
-    img: "https://via.placeholder.com/96",
-    size: "42",
-    color: "Trắng",
-  },
-  {
-    id: "p3",
-    name: "Tai nghe Bluetooth",
-    price: 299000,
-    qty: 1,
-    shop: "Shop A",
-    img: "https://via.placeholder.com/96",
-    size: null,
-    color: "Xanh",
-  },
-];
+import { cartAPI } from '@/api/cart.api';
+import { getUser } from '@/utils/jwt-helper';
 
 // Utils
 const formatVND = (n) =>
   n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
 export default function ShopeeCartPage() {
-  const [products, setProducts] = useState(mockProducts);
   const [view, setView] = useState("compact"); // compact | grid | drawer
 
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const currentUser = getUser();
+        const res = await cartAPI.getUserCarts();
+        // res is expected to be an array of cart items from backend
+        const filtered = Array.isArray(res)
+          ? res.filter((c) => currentUser && c.userId === currentUser.id)
+          : [];
+
+        // map backend shape to UI product shape
+        const mapped = filtered.map((c) => ({
+          id: c.id,
+          name: c.product?.name || "Unknown",
+          price: Math.round((c.product?.price ?? 0) * 1000) / 1000 || c.product?.price || 0,
+          qty: c.quantity || 1,
+          shop: c.product?.brand || "",
+          img: c.product?.thumbnail || "https://via.placeholder.com/96",
+          size: null,
+          color: null,
+        }));
+
+        setProducts(mapped);
+      } catch (err) {
+        console.error(err);
+        setError(err?.message || "Không thể tải giỏ hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, []);
   const updateQty = (id, delta) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, qty: Math.max(1, p.qty + delta) } : p))
