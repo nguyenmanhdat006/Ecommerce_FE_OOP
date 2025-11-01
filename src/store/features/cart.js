@@ -1,12 +1,28 @@
 /* eslint-disable no-unsafe-optional-chaining */
 /* eslint-disable no-unused-vars */
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { cartAPI } from '@/api/cart.api';
 
 // {id:Number,quantity:number}
 
 const initialState = {
   cart: JSON.parse(localStorage.getItem("cart")) || [],
+  loading: false,
+  error: null,
 };
+
+// Thunk to fetch user's carts
+export const fetchUserCarts = createAsyncThunk(
+  'cart/fetchUserCarts',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await cartAPI.getUserCarts();
+      return res;
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
 
 const cartSlice = createSlice({
   name: "cartState",
@@ -47,6 +63,12 @@ const cartSlice = createSlice({
         cart: [],
       };
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserCarts.pending, (state) => ({ ...state, loading: true, error: null }))
+      .addCase(fetchUserCarts.fulfilled, (state, action) => ({ ...state, loading: false, cart: action.payload }))
+      .addCase(fetchUserCarts.rejected, (state, action) => ({ ...state, loading: false, error: action.payload }));
   },
 });
 

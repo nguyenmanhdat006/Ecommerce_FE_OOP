@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils"
 import { DEFAULT_NAVIGATION_CONFIG } from "./constants"
 import { useScrollEffect } from "./hooks/useScrollEffect"
 import Logo from "./Logo"
-import DesktopNavigation from "./DesktopNavigation"
-import MobileNavigation from "./MobileNavigation"
+import DesktopNavigation from "./Desktop/DesktopNavigation"
+import MobileNavigation from "./Mobile/MobileNavigation"
 import { useLocation } from "react-router-dom"
 
 export default function Navbar({

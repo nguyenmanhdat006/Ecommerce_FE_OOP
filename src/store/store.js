@@ -4,25 +4,29 @@ import cartReducer from "./features/cart";
 import categoryReducer from "./features/category";
 import commonReducer from "./features/common";
 import userReducer from "./features/user";
+import userProfileReducer from "./userProfileSlice";
 import productSlice from "./productSlice";
 import authSlice from "./authSlice";
 import resourceSlice from "./resourceSlice";
 import uploadSlice from "./uploadSlice";
 import categorySlice from "./categorySlice";
 import adminUserSlice from "./adminUserSlice";
+import userProfileSlice from "./userProfileSlice";
 
 const rootReducer = combineReducers({
   productState: productReducer,
   cartState: cartReducer,
-  categoryState: categoryReducer,
+  categoryState: categorySlice,
   commonState: commonReducer,
   userState: userReducer,
+  userProfile: userProfileReducer,
   productSlice: productSlice,
   authSlice: authSlice,
   resourceSlice: resourceSlice,
   uploadSlice: uploadSlice,
-  categorySlice: categorySlice,
+  // categorySlice: categorySlice,
   adminUsers: adminUserSlice,
+  userProfileSlice: userProfileSlice,
 
 });
 
