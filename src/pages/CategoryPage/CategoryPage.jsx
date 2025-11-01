@@ -105,20 +105,20 @@ export function CategoryPage() {
       key: "code",
       header: "Code",
       width: "15%",
-      render: (cat) => <span className="font-medium">{cat.code}</span>,
+      render: (cat) => <span className="font-medium">{cat?.code || "-"}</span>,
     },
     {
       key: "name",
       header: "Name",
       width: "25%",
-      render: (cat) => <span className="font-medium">{cat.name}</span>,
+      render: (cat) => <span className="font-medium">{cat?.name || "-"}</span>,
     },
     {
       key: "description",
       header: "Description",
       render: (cat) => (
         <span className="text-sm text-muted-foreground">
-          {cat.description || "-"}
+          {cat?.description || "-"}
         </span>
       ),
     },
@@ -128,8 +128,8 @@ export function CategoryPage() {
       width: "20%",
       render: (cat) => (
         <span className="text-sm text-muted-foreground">
-          {cat.categoryTypes && cat.categoryTypes.length > 0
-            ? `${cat.categoryTypes.length} type(s)`
+          {cat?.categoryTypes && cat?.categoryTypes?.length > 0
+            ? `${cat?.categoryTypes?.length} type(s)`
             : "No types"}
         </span>
       ),
@@ -138,7 +138,7 @@ export function CategoryPage() {
       key: "actions",
       header: "Actions",
       width: "60px",
-      render: (cat) => <ActionMenu actions={categoryActions} item={cat} />,
+      render: (cat) => <ActionMenu actions={categoryActions} item={cat || {}} />,
     },
   ];
 
