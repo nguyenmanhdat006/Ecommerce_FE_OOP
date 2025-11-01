@@ -48,7 +48,7 @@ const ProductDetails = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cartState?.cart);
   const currentUser = useSelector((state) => state?.userProfile?.profile || null);
-  // console.log('Current User in ProductDetails:', currentUser);
+  console.log('Current User in ProductDetails:', currentUser);
   const navigate = useNavigate();
   const [similarProduct,setSimilarProducts] = useState([]);
   const categories = useSelector((state)=> state?.categoryState?.categories);

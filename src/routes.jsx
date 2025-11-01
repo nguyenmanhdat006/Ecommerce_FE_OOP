@@ -39,6 +39,10 @@ export const router = createBrowserRouter([
         loader: loadProductBySlug,
         element: <ProductDetails />,
       },
+      {
+        path: "/cart",
+        element: <CartPage />,
+      },
     ],
   },
   {

@@ -1,46 +1,216 @@
-import React from 'react';
-import { CrudPageLayout } from '@/layout/CrudPageLayout/CrudPageLayout';
-import { useSelector, useDispatch } from 'react-redux';
-import { useEffect } from 'react';
-import { fetchUserCarts } from '@/store/features/cart';
-import { selectCartItems, removeFromCart } from '@/store/features/cart';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard } from "lucide-react";
 
-export default function CartPage(){
-  const dispatch = useDispatch();
-  const items = useSelector((state) => state.cartState?.cart || []);
+// Mock data
+const mockProducts = [
+  {
+    id: "p1",
+    name: "Áo thun nam basic",
+    price: 149000,
+    qty: 2,
+    shop: "Shop A",
+    img: "https://via.placeholder.com/96",
+    size: "M",
+    color: "Đen",
+  },
+  {
+    id: "p2",
+    name: "Giày sneakers thể thao",
+    price: 599000,
+    qty: 1,
+    shop: "Shop B",
+    img: "https://via.placeholder.com/96",
+    size: "42",
+    color: "Trắng",
+  },
+  {
+    id: "p3",
+    name: "Tai nghe Bluetooth",
+    price: 299000,
+    qty: 1,
+    shop: "Shop A",
+    img: "https://via.placeholder.com/96",
+    size: null,
+    color: "Xanh",
+  },
+];
 
-  useEffect(()=>{
-    dispatch(fetchUserCarts());
-  },[])
+// Utils
+const formatVND = (n) =>
+  n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-  const total = items.reduce((s, it) => s + (it.subTotal ?? (it.price * (it.quantity || 1))), 0);
+export default function ShopeeCartPage() {
+  const [products, setProducts] = useState(mockProducts);
+  const [view, setView] = useState("compact"); // compact | grid | drawer
+
+  const updateQty = (id, delta) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, qty: Math.max(1, p.qty + delta) } : p))
+    );
+  };
+
+  const remove = (id) => setProducts((prev) => prev.filter((p) => p.id !== id));
+
+  const total = products.reduce((s, p) => s + p.price * p.qty, 0);
 
   return (
-    <CrudPageLayout title="Cart" actionText="Checkout" onAdd={() => console.log('checkout')}>
-      <div className="space-y-4">
-        {items.length === 0 ? (
-          <div className="text-muted-foreground">Cart is empty</div>
-        ) : (
-          <div className="space-y-2">
-            {items.map((it) => (
-              <div key={it.id || it.variant?.id} className="flex items-center gap-4 p-4 border rounded">
-                <img src={it.thumbnail || '/src/assets/img/thumb.jpg'} alt={it.name || it.title} className="w-16 h-16 object-cover rounded" />
-                <div className="flex-1">
-                  <div className="font-medium">{it.name || it.title}</div>
-                  <div className="text-sm text-muted-foreground">Qty: {it.quantity || 1}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">${(it.subTotal ?? (it.price * (it.quantity || 1))).toLocaleString()}</div>
-                  <Button variant="ghost" size="sm" onClick={() => dispatch(removeFromCart({ productId: it.id, variantId: it.variant?.id }))}>Remove</Button>
+    <div className="p-6 max-w-6xl mx-auto">
+      <header className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold flex items-center gap-3">
+          <ShoppingCart className="h-6 w-6" /> Giỏ hàng của bạn
+        </h1>
+        <div className="flex items-center gap-2">
+          <Select onValueChange={(v) => setView(v)} defaultValue={view}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Chọn kiểu hiển thị" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="compact">Danh sách (Compact)</SelectItem>
+              <SelectItem value="grid">Card (Grid)</SelectItem>
+              <SelectItem value="drawer">Drawer / Mobile</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={() => alert("Checkout giả lập")}>Thanh toán</Button>
+        </div>
+      </header>
+
+      <main>
+        {view === "compact" && <CompactList products={products} updateQty={updateQty} remove={remove} />}
+        {view === "grid" && <GridCards products={products} updateQty={updateQty} remove={remove} />}
+        {view === "drawer" && <DrawerStyle products={products} updateQty={updateQty} remove={remove} total={total} />}
+      </main>
+
+      <footer className="mt-8 flex justify-end">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Tổng</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>Tổng tiền ({products.length} sản phẩm)</div>
+              <div className="font-semibold">{formatVND(total)}</div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex gap-2">
+            <Button onClick={() => alert("Checkout giả lập")} className="flex-1">
+              <CreditCard className="mr-2" /> Mua hàng
+            </Button>
+          </CardFooter>
+        </Card>
+      </footer>
+    </div>
+  );
+}
+
+function CompactList({ products, updateQty, remove }) {
+  return (
+    <div className="space-y-4">
+      {products.map((p) => (
+        <motion.div key={p.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-4 items-center bg-white p-3 rounded-lg shadow-sm">
+          <Checkbox />
+          <Avatar>
+            <img src={p.img} alt={p.name} className="rounded-md" />
+          </Avatar>
+          <div className="flex-1">
+            <div className="font-medium">{p.name}</div>
+            <div className="text-sm text-muted-foreground">{p.shop} • {p.size ? `Size ${p.size}` : p.color}</div>
+            <div className="mt-2 flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={() => updateQty(p.id, -1)}><Minus /></Button>
+                <Input readOnly value={p.qty} className="w-12 text-center" />
+                <Button variant="outline" size="sm" onClick={() => updateQty(p.id, +1)}><Plus /></Button>
+              </div>
+              <div className="ml-auto font-semibold">{formatVND(p.price)}</div>
+              <Button variant="ghost" onClick={() => remove(p.id)}><Trash2 /></Button>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function GridCards({ products, updateQty, remove }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {products.map((p) => (
+        <Card key={p.id} className="hover:shadow-md">
+          <CardContent className="flex gap-4 items-center">
+            <img src={p.img} alt={p.name} className="w-24 h-24 object-cover rounded-md" />
+            <div className="flex-1">
+              <div className="font-medium">{p.name}</div>
+              <div className="text-sm text-muted-foreground">{p.shop}</div>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="text-lg font-semibold">{formatVND(p.price)}</div>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => updateQty(p.id, -1)}><Minus /></Button>
+                  <div className="px-3">{p.qty}</div>
+                  <Button size="sm" variant="outline" onClick={() => updateQty(p.id, +1)}><Plus /></Button>
                 </div>
               </div>
-            ))}
+            </div>
+          </CardContent>
+          <CardFooter className="justify-between">
+            <Button variant="ghost" onClick={() => remove(p.id)}><Trash2 /></Button>
+            <Button onClick={() => alert(`Mua ${p.name}`)}>Mua ngay</Button>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
-            <div className="text-right font-semibold">Total: ${total.toLocaleString()}</div>
+function DrawerStyle({ products, updateQty, remove, total }) {
+  return (
+    <div className="md:hidden">
+      <motion.div initial={{ x: 300 }} animate={{ x: 0 }} className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium">Giỏ hàng</h3>
+          <Button variant="ghost" onClick={() => alert('Đóng drawer')}>Đóng</Button>
+        </div>
+
+        <div className="space-y-3 overflow-auto" style={{ maxHeight: '60vh' }}>
+          {products.map((p) => (
+            <div key={p.id} className="flex items-center gap-3 p-2 border rounded">
+              <img src={p.img} className="w-16 h-16 object-cover rounded" />
+              <div className="flex-1">
+                <div className="font-medium">{p.name}</div>
+                <div className="text-sm text-muted-foreground">{p.shop}</div>
+                <div className="mt-2 flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => updateQty(p.id, -1)}><Minus /></Button>
+                  <div className="px-2">{p.qty}</div>
+                  <Button size="sm" variant="outline" onClick={() => updateQty(p.id, +1)}><Plus /></Button>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold">{formatVND(p.price)}</div>
+                <Button variant="ghost" size="sm" onClick={() => remove(p.id)}><Trash2 /></Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <div>Tổng</div>
+            <div className="font-semibold">{formatVND(total)}</div>
           </div>
-        )}
-      </div>
-    </CrudPageLayout>
-  )
+          <Button className="w-full">Thanh toán</Button>
+        </div>
+      </motion.div>
+    </div>
+  );
 }
