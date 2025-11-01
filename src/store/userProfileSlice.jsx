@@ -28,7 +28,7 @@ export const loadUserProfile = createAsyncThunk(
   "userProfile/loadUserProfile",
   async (_, { rejectWithValue }) => {
     try {
-      const data = await defaultFetch("api/user/profile");
+      const data = await defaultFetch("/api/user/profile");
       console.log(data);
       return data;
     } catch (err) {
