@@ -11,6 +11,7 @@ import resourceSlice from "./resourceSlice";
 import uploadSlice from "./uploadSlice";
 import categorySlice from "./categorySlice";
 import adminUserSlice from "./adminUserSlice";
+import userProfileSlice from "./userProfileSlice";
 
 const rootReducer = combineReducers({
   productState: productReducer,
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   uploadSlice: uploadSlice,
   categorySlice: categorySlice,
   adminUsers: adminUserSlice,
+  userProfileSlice: userProfileSlice,
 
 });
 

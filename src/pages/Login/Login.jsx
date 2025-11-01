@@ -3,7 +3,6 @@ import GoogleSignIn from '../../components/Buttons/GoogleSignIn'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
 import { login, clearAuthError } from '../../store/authSlice';
-import { saveToken } from '../../utils/jwt-helper';
 import { toast } from 'react-hot-toast';
 
 const Login = () => {
@@ -23,7 +22,6 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated) {
       console.log("✅ Login res:",isAuthenticated, accessToken, refreshToken);
-      saveToken(accessToken, refreshToken);
       navigate('/');
       toast.success('Login successful!');
     }

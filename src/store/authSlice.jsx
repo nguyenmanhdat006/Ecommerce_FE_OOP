@@ -14,7 +14,9 @@ export const login = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await authAPI.login(data);
-      saveToken(res.accessToken);
+      console.log("Login res:", res);
+      console.log("Login res.data:", res.token);
+      saveToken(res.token);
       saveUser(res.user);
       return res;
     } catch (err) {
