@@ -4,6 +4,7 @@ import cartReducer from "./features/cart";
 import categoryReducer from "./features/category";
 import commonReducer from "./features/common";
 import userReducer from "./features/user";
+import userProfileReducer from "./userProfileSlice";
 import productSlice from "./productSlice";
 import authSlice from "./authSlice";
 import resourceSlice from "./resourceSlice";
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   categoryState: categoryReducer,
   commonState: commonReducer,
   userState: userReducer,
+  userProfile: userProfileReducer,
   productSlice: productSlice,
   authSlice: authSlice,
   resourceSlice: resourceSlice,

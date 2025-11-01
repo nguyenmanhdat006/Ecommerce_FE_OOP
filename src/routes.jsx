@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import Shop from "./Shop";
 import ProductListPage from "./pages/ProductListPage/ProductListPage.jsx";
 import ProductDetails from "./pages/ProductDetailPage/ProductDetails.jsx";
+import CartPage from "./pages/CartPage/CartPage.jsx";
 import ShopApplicationWrapper from "./pages/ShopApplicationWrapper.jsx";
 import { loadProductBySlug } from "./routes/product.js";
 import AuthenticationWrapper from "./pages/AuthenticationWrapper.jsx";
@@ -9,6 +10,7 @@ import Login from "./pages/Login/Login.jsx";
 import Register from "./pages/Register/Register.jsx";
 import OAuth2LoginCallback from "./pages/OAuth2LoginCallback.jsx";
 import { adminRouter } from "./routes/admin_routes.jsx";
+import UserProfile from "./pages/UserProfile/UserProfile.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -21,12 +23,20 @@ export const router = createBrowserRouter([
         element: <Shop />,
       },
       {
+        path: "/profile",
+        element: <UserProfile />,
+      },
+      {
         path: "/women",
         element: <ProductListPage categoryType="WOMEN" />,
       },
       {
         path: "/men",
         element: <ProductListPage categoryType="MEN" />,
+      },
+      {
+        path: "/cart",
+        element: <CartPage />,
       },
       {
         path: "/product/:slug",

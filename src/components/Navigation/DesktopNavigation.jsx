@@ -42,6 +42,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
           variant="ghost"
           size="icon"
           className="relative h-11 w-11"
+          onClick={() => navigate('/cart')}
         >
           <ShoppingCart size={22} />
           <span className="absolute -top-1 -right-1 bg-primary text-white rounded-full text-[11px] w-5 h-5 flex items-center justify-center">
