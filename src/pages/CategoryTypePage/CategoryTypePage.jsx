@@ -1,16 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import { CrudPageLayout } from "@/layout/CrudPageLayout/CrudPageLayout";
 import { DataTable } from "@/components/DataTable/DataTable";
-import { MoreHorizontal } from "lucide-react";
 import Spinner from "@/components/Spinner/Spinner";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   fetchCategoryTypes,
   deleteCategoryType,
@@ -20,76 +13,7 @@ import AddCategoryTypeForm from "@/forms/AddCategoryTypeForm/AddCategoryTypeForm
 import EditCategoryTypeForm from "@/forms/EditCategoryTypeForm/EditCategoryTypeForm";
 import CategoryTypeDetail from "@/forms/CategoryTypeDetail/CategoryTypeDetail";
 import { SidePanel } from "@/components/SidePanel";
-
-function ActionMenu({ categoryType, onEdit, onView, onDelete }) {
-  const [openMenu, setOpenMenu] = useState(false);
-  const menuRef = useRef(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setOpenMenu(false);
-      }
-    };
-
-    if (openMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [openMenu]);
-
-  return (
-    <div className="relative inline-block text-left" ref={menuRef}>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpenMenu((s) => !s);
-        }}
-        className="p-1 rounded hover:bg-muted"
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </button>
-      {openMenu && (
-        <div className="absolute right-0 mt-2 w-40 bg-background border rounded shadow z-50">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onView(categoryType.id);
-              setOpenMenu(false);
-            }}
-            className="w-full text-left px-3 py-2 hover:bg-muted"
-          >
-            View Details
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(categoryType.id);
-              setOpenMenu(false);
-            }}
-            className="w-full text-left px-3 py-2 hover:bg-muted"
-          >
-            Edit
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(categoryType.id);
-              setOpenMenu(false);
-            }}
-            className="w-full text-left px-3 py-2 hover:bg-muted text-red-500"
-          >
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+import { ActionMenu } from "@/components/ActionMenu";
 
 export function CategoryTypePage() {
   const dispatch = useDispatch();
@@ -117,31 +41,32 @@ export function CategoryTypePage() {
     }
   }, [error]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (item) => {
     if (!confirm("Delete this category type? This action cannot be undone."))
       return;
     try {
-      await dispatch(deleteCategoryType(id)).unwrap();
+      await dispatch(deleteCategoryType(item.id)).unwrap();
       toast.success("Category type deleted successfully");
     } catch (err) {
       toast.error(err?.message || "Delete failed");
     }
   };
 
-  const handleEdit = async (id) => {
-    setSelectedId(id);
+  const handleEdit = async (item) => {
+    setSelectedId(item.id);
     try {
-      await dispatch(getCategoryType(id)).unwrap();
+      await dispatch(getCategoryType(item.id)).unwrap();
       setEditOpen(true);
+      console.log("Edit open: ", editOpen);
     } catch (err) {
       toast.error(err?.message || "Failed to load category type");
     }
   };
 
-  const handleView = async (id) => {
-    setSelectedId(id);
+  const handleView = async (item) => {
+    setSelectedId(item.id);
     try {
-      await dispatch(getCategoryType(id)).unwrap();
+      await dispatch(getCategoryType(item.id)).unwrap();
       setDetailOpen(true);
     } catch (err) {
       toast.error(err?.message || "Failed to load category type");
@@ -158,6 +83,22 @@ export function CategoryTypePage() {
     setSelectedId(null);
     dispatch(fetchCategoryTypes());
   };
+
+  const categoryTypeActions = [
+    {
+      label: "Edit",
+      onClick: handleEdit,
+    },
+    {
+      label: "View",
+      onClick: handleView,
+    },
+    {
+      label: "Delete",
+      onClick: handleDelete,
+      variant: "danger",
+    },
+  ];
 
   // Define columns inside component to access handlers via closure
   const categoryTypeColumns = [
@@ -186,14 +127,7 @@ export function CategoryTypePage() {
       key: "actions",
       header: "Actions",
       width: "60px",
-      render: (ct) => (
-        <ActionMenu
-          categoryType={ct}
-          onEdit={handleEdit}
-          onView={handleView}
-          onDelete={handleDelete}
-        />
-      ),
+      render: (ct) => <ActionMenu actions={categoryTypeActions} item={ct} />,
     },
   ];
 
