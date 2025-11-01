@@ -6,9 +6,9 @@ import Spinner from "@/components/Spinner/Spinner";
 export default function CategoryDetail({ id }) {
   const dispatch = useDispatch();
   const selectedCategory = useSelector(
-    (state) => state.categorySlice?.selectedCategory
+    (state) => state.categoryState?.selectedCategory
   );
-  const loading = useSelector((state) => state.categorySlice?.loading);
+  const loading = useSelector((state) => state.categoryState?.loading);
 
   useEffect(() => {
     if (id) {

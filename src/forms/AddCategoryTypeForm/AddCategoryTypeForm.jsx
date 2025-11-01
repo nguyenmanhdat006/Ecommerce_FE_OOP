@@ -31,9 +31,9 @@ export default function AddCategoryTypeForm({ onSuccess }) {
 
   const dispatch = useDispatch();
   const categories = useSelector(
-    (state) => state.categorySlice?.categories || []
+    (state) => state.categoryState?.categories || []
   );
-  const loaded = useSelector((state) => state.categorySlice?.loaded);
+  const loaded = useSelector((state) => state.categoryState?.loaded);
 
   useEffect(() => {
     if (!loaded) {

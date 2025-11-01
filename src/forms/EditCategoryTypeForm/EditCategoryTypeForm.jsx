@@ -17,10 +17,10 @@ export default function EditCategoryTypeForm({ id, onSuccess }) {
     (state) => state.categoryTypeSlice?.selectedCategoryType
   );
   const categories = useSelector(
-    (state) => state.categorySlice?.categories || []
+    (state) => state.categoryState?.categories || []
   );
   const loading = useSelector((state) => state.categoryTypeSlice?.loading);
-  const form = useForm({
+  const form = useForm({  
     resolver: yupResolver(categoryTypeSchema),
     defaultValues: {
       name: "",
@@ -30,7 +30,7 @@ export default function EditCategoryTypeForm({ id, onSuccess }) {
     },
   });
 
-  const loadedCategories = useSelector((state) => state.categorySlice?.loaded);
+  const loadedCategories = useSelector((state) => state.categoryState?.loaded);
 
   const {
     register,

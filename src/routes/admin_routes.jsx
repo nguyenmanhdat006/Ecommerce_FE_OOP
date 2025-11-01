@@ -27,7 +27,7 @@ export const adminRouter = {
       element: <UsersPage />,
     },
     {
-      path: "update-product",
+      path: "update-produitemct",
       element: <EditProductForm />,
     },
     {

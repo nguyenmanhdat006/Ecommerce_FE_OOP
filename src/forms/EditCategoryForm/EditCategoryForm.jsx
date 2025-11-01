@@ -15,14 +15,14 @@ import Spinner from "@/components/Spinner/Spinner";
 export default function EditCategoryForm({ id, onSuccess }) {
   const dispatch = useDispatch();
   const selectedCategory = useSelector(
-    (state) => state.categorySlice?.selectedCategory
+    (state) => state.categoryState?.selectedCategory
   );
   const categoryTypes = useSelector(
     (state) => state.categoryTypeSlice?.categoryTypes || []
   );
-  const loading = useSelector((state) => state.categorySlice?.loading);
+  const loading = useSelector((state) => state.categoryState?.loading);
   const loadedCategoryTypes = useSelector(
-    (state) => state.categoryTypeSlice?.loaded
+    (state) => state.categoryState?.loaded
   );
 
   const form = useForm({

@@ -18,13 +18,13 @@ import { ActionMenu } from "@/components/ActionMenu";
 export function CategoryPage() {
   const dispatch = useDispatch();
   const categories = useSelector(
-    (state) => state.categorySlice?.categories || []
+    (state) => state.categoryState?.categories || []
   );
-  const loading = useSelector((state) => state.categorySlice?.loading);
-  const error = useSelector((state) => state.categorySlice?.error);
-  const loaded = useSelector((state) => state.categorySlice?.loaded);
+  const loading = useSelector((state) => state.categoryState?.loading);
+  const error = useSelector((state) => state.categoryState?.error);
+  const loaded = useSelector((state) => state.categoryState?.loaded);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false  );
   const [editOpen, setEditOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);

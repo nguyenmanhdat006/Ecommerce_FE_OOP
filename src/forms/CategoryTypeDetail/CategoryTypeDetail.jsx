@@ -11,10 +11,10 @@ export default function CategoryTypeDetail({ id }) {
   );
   const loading = useSelector((state) => state.categoryTypeSlice?.loading);
   const categories = useSelector(
-    (state) => state.categorySlice?.categories || []
+    (state) => state.categoryState?.categories || []
   );
 
-  const loadedCategories = useSelector((state) => state.categorySlice?.loaded);
+  const loadedCategories = useSelector((state) => state.categoryState?.loaded);
 
   useEffect(() => {
     if (!loadedCategories) {
