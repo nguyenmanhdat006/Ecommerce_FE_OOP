@@ -5,10 +5,22 @@ export const fileAPI = {
   uploadSingle: (file) => {
     const formData = new FormData();
     formData.append("file", file);
-
+    
+    // Debug: log FormData entries
+    console.log("FormData contents:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+    console.log("File details:", {
+      name: file?.name,
+      size: file?.size,
+      type: file?.type
+    });
+    
     return axiosClient.post("api/uploads/upload", formData, {
       headers: {
         // KHÔNG set manual multipart/form-data
+        // Axios sẽ tự động set Content-Type với boundary
       },
     });
   },

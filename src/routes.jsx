@@ -35,10 +35,6 @@ export const router = createBrowserRouter([
         element: <ProductListPage categoryType="MEN" />,
       },
       {
-        path: "/cart",
-        element: <CartPage />,
-      },
-      {
         path: "/product/:slug",
         loader: loadProductBySlug,
         element: <ProductDetails />,

@@ -7,6 +7,7 @@ const initialState = {
   productDetail: null,
   loading: false,
   error: null,
+  loaded: false,
 };
 
 export const fetchProducts = createAsyncThunk(
@@ -66,18 +67,21 @@ const productSlice = createSlice({
     builder
       .addCase(fetchProducts.pending, (state) => {
         state.loading = true;
+        state.loaded = false;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
         console.log("✅ Product payload:", action.payload);
         state.products = action.payload;
         console.log("✅ Product state:", state.products);
+        state.loaded = true;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         console.log("❌ Fetch error:", action.error);
         console.log("❌ Rejected payload:", action.payload);
         state.loading = false;
         state.error = action.error;
+        state.loaded = false;
       });
     builder
       .addCase(fetchProductById.pending, (state) => {
@@ -89,7 +93,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchProductById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error.message;
       });
 
     builder
@@ -99,10 +103,12 @@ const productSlice = createSlice({
       .addCase(createProduct.fulfilled, (state, action) => {
         state.loading = false;
         state.products.push(action.payload);
+        state.loaded = true;
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error.message;
+        state.loaded = false;
       });
 
     builder
@@ -111,16 +117,21 @@ const productSlice = createSlice({
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.loading = false;
+        state.loaded = true;
         const index = state.products.findIndex(
           (p) => p.id === action.payload.id
         );
         if (index !== -1) {
           state.products[index] = action.payload;
         }
+        if (state.productDetail?.id === action.payload.id) {
+          state.productDetail = action.payload;
+        }
       })
       .addCase(updateProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error.message;
+        state.loaded = false;
       });
   },
 });
