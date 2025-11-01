@@ -40,12 +40,19 @@ export function Sidebar() {
       label: "E-commerce",
       icon: <ShoppingCart className="w-5 h-5" />,
       submenu: [
-        { label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST },
-        { label: "Product List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST },
-        { label: "Product Detail", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_DETAIL },
-        { label: "Add Product", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_ADD },
-        { label: "Order List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_ORDER_LIST },
-        { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL },
+        { label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+        { label: "Product List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST) },
+        { label: "Product Detail", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_DETAIL) },
+        {
+          label: "Add Product",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_ADD),
+        },
+        { label: "Order List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_ORDER_LIST) },
+        { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL) },
+        { label: "Category Type List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_CATEGORY_TYPE_LIST) },
+        { label: "Category List", icon: <ShoppingCart className="w-4 h-4" />, onClick: () => navigate(ROUTE_CONSTANTS.ADMIN_CATEGORY_LIST) },
+
       ],
     },
     {

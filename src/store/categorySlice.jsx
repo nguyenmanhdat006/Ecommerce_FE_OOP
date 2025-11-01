@@ -81,10 +81,14 @@ const categorySlice = createSlice({
     selectedCategory: null,
     loading: false,
     error: null,
+    loaded: false,
   },
   reducers: {
     clearCategoryError(state) {
       state.error = null;
+    },
+    resetCategoriesLoaded(state) {
+      state.loaded = false;
     },
   },
   extraReducers: (builder) => {
@@ -98,22 +102,34 @@ const categorySlice = createSlice({
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
         state.categories = action.payload;
+        state.loaded = true;
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.loaded = false;
       })
 
 
       // ---------- GET ID ----------
+      .addCase(getCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(getCategory.fulfilled, (state, action) => {
+        state.loading = false;
         state.selectedCategory = action.payload;
+      })
+      .addCase(getCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
 
       // ---------- CREATE ----------
       .addCase(createCategory.fulfilled, (state, action) => {
         state.categories.push(action.payload);
+        state.loaded = true;
       })
 
 
@@ -125,6 +141,7 @@ const categorySlice = createSlice({
         if (index !== -1) {
           state.categories[index] = action.payload;
         }
+        state.loaded = true;
       })
 
 
@@ -133,9 +150,10 @@ const categorySlice = createSlice({
         state.categories = state.categories.filter(
           (c) => c.id !== action.payload.id
         );
+        state.loaded = true;
       });
   },
 });
 
-export const { clearCategoryError } = categorySlice.actions;
+export const { clearCategoryError, resetCategoriesLoaded } = categorySlice.actions;
 export default categorySlice.reducer;

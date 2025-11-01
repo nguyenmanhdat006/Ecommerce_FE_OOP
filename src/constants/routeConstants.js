@@ -16,4 +16,16 @@ export const ROUTE_CONSTANTS = {
   ADMIN_USER_ADD: "/admin/user/add",
   ADMIN_USER_EDIT: "/admin/user/:id/edit",
   ADMIN_USER_DELETE: "/admin/user/:id/delete",
+
+  ADMIN_CATEGORY_TYPE_LIST: "/admin/category-type-list",
+  ADMIN_CATEGORY_TYPE_DETAIL: "/admin/category-type-detail/:id",
+  ADMIN_CATEGORY_TYPE_ADD: "/admin/category-type-add",
+  ADMIN_CATEGORY_TYPE_EDIT: "/admin/category-type-edit/:id",
+  ADMIN_CATEGORY_TYPE_DELETE: "/admin/category-type-delete/:id",
+
+  ADMIN_CATEGORY_LIST: "/admin/category-list",
+  ADMIN_CATEGORY_DETAIL: "/admin/category-detail/:id",
+  ADMIN_CATEGORY_ADD: "/admin/category-add",
+  ADMIN_CATEGORY_EDIT: "/admin/category-edit/:id",
+  ADMIN_CATEGORY_DELETE: "/admin/category-delete/:id",
 };
