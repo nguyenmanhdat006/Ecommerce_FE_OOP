@@ -24,7 +24,7 @@ export const getCategory = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.getById(id);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Get category failed");
     }
@@ -37,7 +37,7 @@ export const createCategory = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.create(data);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Create category failed");
     }
@@ -50,7 +50,7 @@ export const updateCategory = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.update(id, data);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Update category failed");
     }
@@ -63,7 +63,7 @@ export const deleteCategory = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.delete(id);
-      return { id, ...res.data }; // include deleted id
+      return { id, ...res }; // include deleted id
     } catch (err) {
       return rejectWithValue(err.response?.data || "Delete category failed");
     }
