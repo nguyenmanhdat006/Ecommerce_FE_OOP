@@ -13,15 +13,17 @@ export default function CategoryTypeDetail({ id }) {
   const categories = useSelector(
     (state) => state.categorySlice?.categories || []
   );
-  const loaded = useSelector((state) => state.categorySlice?.loaded);
+
+  const loadedCategories = useSelector((state) => state.categorySlice?.loaded);
+
   useEffect(() => {
-    if (!loaded) {
+    if (!loadedCategories) {
       dispatch(fetchCategories());
     }
     if (id) {
       dispatch(getCategoryType(id));
     }
-  }, [id, dispatch, loaded]);
+  }, [id, dispatch, loadedCategories]);
 
   const selectedCategory = categories.find(
     (cat) => cat.id === selectedCategoryType?.categoryId

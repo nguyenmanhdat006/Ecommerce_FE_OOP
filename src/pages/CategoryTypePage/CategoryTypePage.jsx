@@ -19,6 +19,7 @@ import {
 import AddCategoryTypeForm from "@/forms/AddCategoryTypeForm/AddCategoryTypeForm";
 import EditCategoryTypeForm from "@/forms/EditCategoryTypeForm/EditCategoryTypeForm";
 import CategoryTypeDetail from "@/forms/CategoryTypeDetail/CategoryTypeDetail";
+import { SidePanel } from "@/components/SidePanel";
 
 function ActionMenu({ categoryType, onEdit, onView, onDelete }) {
   const [openMenu, setOpenMenu] = useState(false);
@@ -108,7 +109,7 @@ export function CategoryTypePage() {
     if (!loaded) {
       dispatch(fetchCategoryTypes());
     }
-  }, [dispatch]);
+  }, [dispatch, loaded]);
 
   useEffect(() => {
     if (error) {
@@ -196,6 +197,32 @@ export function CategoryTypePage() {
     },
   ];
 
+  const panels = [
+    {
+      key: "create",
+      open: createOpen,
+      onOpenChange: setCreateOpen,
+      title: "Add Category Type",
+      content: <AddCategoryTypeForm onSuccess={handleCreateSuccess} />,
+    },
+    {
+      key: "edit",
+      open: editOpen,
+      onOpenChange: setEditOpen,
+      title: "Edit Category Type",
+      content: selectedId && (
+        <EditCategoryTypeForm id={selectedId} onSuccess={handleEditSuccess} />
+      ),
+    },
+    {
+      key: "detail",
+      open: detailOpen,
+      onOpenChange: setDetailOpen,
+      title: "Category Type Details",
+      content: selectedId && <CategoryTypeDetail id={selectedId} />,
+    },
+  ];
+
   return (
     <>
       {loading && <Spinner />}
@@ -209,49 +236,18 @@ export function CategoryTypePage() {
           columns={categoryTypeColumns}
           showSelect={true}
         />
+
+        {panels.map((panel) => (
+          <SidePanel
+            key={panel.key}
+            open={panel.open}
+            onOpenChange={panel.onOpenChange}
+            title={panel.title}
+          >
+            {panel.content}
+          </SidePanel>
+        ))}
       </CrudPageLayout>
-
-      {/* Create Sheet */}
-      <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Add Category Type</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <AddCategoryTypeForm onSuccess={handleCreateSuccess} />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Edit Sheet */}
-      <Sheet open={editOpen} onOpenChange={setEditOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Edit Category Type</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            {selectedId && (
-              <EditCategoryTypeForm
-                id={selectedId}
-                onSuccess={handleEditSuccess}
-              />
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Detail Sheet */}
-      <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Category Type Details</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            {selectedId && <CategoryTypeDetail id={selectedId} />}
-          </div>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }
-

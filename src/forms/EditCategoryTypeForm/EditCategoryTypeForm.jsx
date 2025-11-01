@@ -30,6 +30,8 @@ export default function EditCategoryTypeForm({ id, onSuccess }) {
     },
   });
 
+  const loadedCategories = useSelector((state) => state.categorySlice?.loaded);
+
   const {
     register,
     handleSubmit,
@@ -39,11 +41,13 @@ export default function EditCategoryTypeForm({ id, onSuccess }) {
 
   // Load categories and category type data when component mounts or id changes
   useEffect(() => {
-    dispatch(fetchCategories());
+    if (!loadedCategories) {
+      dispatch(fetchCategories());
+    }
     if (id) {
       dispatch(getCategoryType(id));
     }
-  }, [id, dispatch]);
+  }, [id, dispatch, loadedCategories]);
 
   // Update form when selectedCategoryType changes
   useEffect(() => {
