@@ -37,6 +37,18 @@ const isTokenValid = () => {
     return false;
   }
 };
+const saveUser = (user) => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
+const getUser = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};
+
+const clearUser = () => {
+  localStorage.removeItem("user");
+};
 
 export {
   getToken,
@@ -44,4 +56,7 @@ export {
   saveToken,
   clearTokens,
   isTokenValid,
+  saveUser,
+  getUser,
+  clearUser,
 };

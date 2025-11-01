@@ -68,7 +68,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
                 2
               </span>
             </Button>
-            <UserDropdown user={user} onLogout={handleLogout} />
+            <UserDropdown user={user} onLogout={handleLogout} />space
           </>
         ) : (
           actions.map((action, i) => <ActionLink key={i} action={action} />)
