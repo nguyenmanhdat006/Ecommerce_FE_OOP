@@ -24,6 +24,9 @@ const Shop = () => {
       dispatch(logout());
     }
 
+  }, [dispatch]);
+
+  useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
