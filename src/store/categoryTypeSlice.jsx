@@ -35,7 +35,7 @@ export const createCategoryType = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.create(data);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Create category type failed");
     }
@@ -48,7 +48,7 @@ export const updateCategoryType = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const res = await categoryTypeAPI.update(id, data);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Update category type failed");
     }
@@ -122,6 +122,7 @@ const categoryTypeSlice = createSlice({
 
       // ---------- CREATE ----------
       .addCase(createCategoryType.fulfilled, (state, action) => {
+        console.log("Create success", action.payload);
         state.categoryTypes.push(action.payload);
         state.loaded = true ;
       })
