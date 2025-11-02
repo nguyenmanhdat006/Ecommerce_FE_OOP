@@ -75,7 +75,7 @@ export function CategoryTypePage() {
 
   const handleCreateSuccess = () => {
     setCreateOpen(false);
-    dispatch(fetchCategoryTypes());
+    // dispatch(fetchCategoryTypes());
   };
 
   const handleEditSuccess = () => {
@@ -106,20 +106,20 @@ export function CategoryTypePage() {
       key: "code",
       header: "Code",
       width: "15%",
-      render: (ct) => <span className="font-medium">{ct.code}</span>,
+      render: (ct) => <span className="font-medium">{ct?.code || "-"}</span>,
     },
     {
       key: "name",
       header: "Name",
       width: "25%",
-      render: (ct) => <span className="font-medium">{ct.name}</span>,
+      render: (ct) => <span className="font-medium">{ct?.name || "-"}</span>,
     },
     {
       key: "description",
       header: "Description",
       render: (ct) => (
         <span className="text-sm text-muted-foreground">
-          {ct.description || "-"}
+          {ct?.description || "-"}
         </span>
       ),
     },
