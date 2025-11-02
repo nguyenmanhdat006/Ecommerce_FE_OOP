@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Minus, MessageCircle } from "lucide-react";
 import { cartAPI } from "@/api/cart.api";
 import { getUser } from "@/utils/jwt-helper";
+import { useNavigate } from "react-router-dom"; 
 
 const formatVND = (n) =>
   n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -68,6 +69,7 @@ export default function ShopeeCartPage() {
   const [products, setProducts] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // ✅ thêm dòng này
 
   // --- Load cart từ BE ---
   useEffect(() => {
@@ -117,6 +119,17 @@ export default function ShopeeCartPage() {
   const total = products
     .filter((p) => checkedItems.includes(p.id))
     .reduce((s, p) => s + p.price * p.qty, 0);
+
+  const handleCheckout = () => {
+    const selected = products.filter((p) => checkedItems.includes(p.id));
+    if (selected.length === 0) {
+      alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!");
+      return;
+    }
+
+    localStorage.setItem("checkoutItems", JSON.stringify(selected));
+    navigate("/checkout");
+  };
 
   if (loading) return <p className="text-center mt-10">Đang tải giỏ hàng...</p>;
 
@@ -258,7 +271,10 @@ export default function ShopeeCartPage() {
                 {formatVND(total)}
               </span>
             </div>
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white mt-2 px-10">
+            <Button
+              className="bg-orange-500 hover:bg-orange-600 text-white mt-2 px-10"
+              onClick={handleCheckout} // ✅ chỉ thêm dòng này
+            >
               Mua hàng
             </Button>
           </div>

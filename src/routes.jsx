@@ -11,6 +11,7 @@ import Register from "./pages/Register/Register.jsx";
 import OAuth2LoginCallback from "./pages/OAuth2LoginCallback.jsx";
 import { adminRouter } from "./routes/admin_routes.jsx";
 import OwnerProfile from "./pages/UserProfile/OwnerProfile.jsx";
+import CheckoutPage from "./pages/Checkout/Checkout.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: "/cart",
         element: <CartPage />,
+      },
+      {
+        path: "/checkout",
+        element: <CheckoutPage />,
       },
     ],
   },
