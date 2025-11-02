@@ -9,12 +9,14 @@ import { UserDropdown } from "../components/UserDropdown";
 import { ActionLink } from "../components/ActionLink";
 import { NavLinkItem } from "../components/NavLinkItem";
 import { User } from "lucide-react";
+import { getToken } from "@/utils/jwt-helper";
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
 
 export default function DesktopNavigation({ links, actions, isActiveLink }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state) => state.authSlice);
+  const isAuthenticated = getToken();
+  const user = useSelector((state) => state.userProfile?.profile);
 
   const handleLogout = async () => {
     try {

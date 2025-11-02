@@ -9,7 +9,6 @@ import { profileSchema } from "@/validation/profileSchema";
 import { updateUser } from "@/store/adminUserSlice";
 import { uploadSingleFile } from "@/store/uploadSlice";
 import { loadUserProfile } from "@/store/userProfileSlice";
-import { setCredentials } from "@/store/authSlice";
 
 export default function ProfileForm({ userId, initialData }) {
   const dispatch = useDispatch();
@@ -89,8 +88,7 @@ export default function ProfileForm({ userId, initialData }) {
     try {
       console.log("Updating profile...");
       await dispatch(updateUser({ id: userId || userIdProfile, data })).unwrap();
-      const { user } = await dispatch(setCredentials()).unwrap();
-      dispatch(loadUserProfile(user));
+      dispatch(loadUserProfile());
       toast.success("Profile updated successfully");
     } catch (err) {
       const errorMessage =

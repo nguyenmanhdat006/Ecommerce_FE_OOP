@@ -43,6 +43,7 @@ const userProfileSlice = createSlice({
     profile: null,
     loadingProfile: false,
     error: null,
+    loaded: false,
   },
   reducers: {
     clearUserProfile(state) {
@@ -60,6 +61,7 @@ const userProfileSlice = createSlice({
       .addCase(loadUserProfile.fulfilled, (state, action) => {
         state.loadingProfile = false;
         state.profile = action.payload;
+        state.loaded = true;
       })
       .addCase(loadUserProfile.rejected, (state, action) => {
         state.loadingProfile = false;
