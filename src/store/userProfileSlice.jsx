@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { saveUser } from "@/utils/jwt-helper";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/";
 
@@ -29,7 +30,6 @@ export const loadUserProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const data = await defaultFetch("/api/user/profile");
-      console.log(data);
       return data;
     } catch (err) {
       return rejectWithValue(err);

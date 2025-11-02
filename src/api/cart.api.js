@@ -12,7 +12,7 @@ const defaultHeaders = () => {
 export const cartAPI = {
   // GET /api/carts - get carts for current authenticated user
   getUserCarts: async () => {
-    const res = await fetch(buildUrl('api/carts'), {
+    const res = await fetch(buildUrl('/api/carts'), {
       method: 'GET',
       headers: defaultHeaders(),
     });
@@ -25,7 +25,7 @@ export const cartAPI = {
 
   // POST /api/carts - add item to cart
   addToCart: async (body) => {
-    const res = await fetch(buildUrl('api/carts'), {
+    const res = await fetch(buildUrl('/api/carts'), {
       method: 'POST',
       headers: defaultHeaders(),
       body: JSON.stringify(body),

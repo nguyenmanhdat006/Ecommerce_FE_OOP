@@ -33,7 +33,11 @@ export function UserDropdown({ user, onLogout }) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-11 w-11 rounded-full p-0">
           <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-sm font-semibold text-primary">{initials}</span>
+            {user?.avatar ? (
+              <img src={user?.avatar} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+            ) : (
+              <span className="text-sm font-semibold text-primary">{initials}</span>
+            )}
           </div>
         </Button>
       </DropdownMenuTrigger>

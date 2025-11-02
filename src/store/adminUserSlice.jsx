@@ -101,6 +101,23 @@ const adminUserSlice = createSlice({
         state.loading = false;
         state.error = action.payload || action.error?.message;
       });
+    builder
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update user in the list
+        const index = state.users.findIndex((u) => u.id === action.payload?.id);
+        if (index !== -1) {
+          state.users[index] = action.payload;
+        }
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error?.message;
+      });
   },
 });
 
