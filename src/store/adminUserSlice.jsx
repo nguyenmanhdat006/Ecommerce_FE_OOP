@@ -44,6 +44,18 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
+export const updateUser = createAsyncThunk(
+  "adminUsers/update",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const res = await adminUserAPI.update(id, data);
+      return res?.data || res;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err.message || 'Update failed');
+    }
+  }
+);
+
 const adminUserSlice = createSlice({
   name: "adminUser",
   initialState,

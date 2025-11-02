@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { Camera } from "lucide-react"
+import { FormInput } from "@/components/FormInput"
+import { FormSelect } from "@/components/FormSelect"
 
 export default function ProfileForm() {
   const [formData, setFormData] = useState({
@@ -23,6 +25,12 @@ export default function ProfileForm() {
     console.log("Form submitted:", formData)
   }
 
+  const genderOptions = [
+    { value: "Female", label: "Female" },
+    { value: "Male", label: "Male" },
+    { value: "Other", label: "Other" },
+  ]
+
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden">
       {/* Profile Picture Section */}
@@ -45,87 +53,84 @@ export default function ProfileForm() {
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* First Name */}
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium mb-2">
-              First Name <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-              placeholder="Enter first name"
-            />
-          </div>
+          <FormInput
+            label={
+              <>
+                First Name <span className="text-destructive">*</span>
+              </>
+            }
+            name="firstName"
+            type="text"
+            value={formData.firstName}
+            onChange={handleChange}
+            placeholder="Enter first name"
+            useRegister={false}
+            errors={{}}
+          />
 
           {/* Last Name */}
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium mb-2">
-              Last Name <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-              placeholder="Enter last name"
-            />
-          </div>
+          <FormInput
+            label={
+              <>
+                Last Name <span className="text-destructive">*</span>
+              </>
+            }
+            name="lastName"
+            type="text"
+            value={formData.lastName}
+            onChange={handleChange}
+            placeholder="Enter last name"
+            useRegister={false}
+            errors={{}}
+          />
         </div>
 
         {/* Email */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
-            Email <span className="text-destructive">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-            placeholder="Enter email address"
-          />
-        </div>
+        <FormInput
+          label={
+            <>
+              Email <span className="text-destructive">*</span>
+            </>
+          }
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter email address"
+          useRegister={false}
+          errors={{}}
+        />
 
         {/* Phone */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium mb-2">
-            Phone <span className="text-destructive">*</span>
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-            placeholder="Enter phone number"
-          />
-        </div>
+        <FormInput
+          label={
+            <>
+              Phone <span className="text-destructive">*</span>
+            </>
+          }
+          name="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={handleChange}
+          placeholder="Enter phone number"
+          useRegister={false}
+          errors={{}}
+        />
 
         {/* Gender */}
-        <div>
-          <label htmlFor="gender" className="block text-sm font-medium mb-2">
-            Gender <span className="text-destructive">*</span>
-          </label>
-          <select
-            id="gender"
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-          >
-            <option value="Female">Female</option>
-            <option value="Male">Male</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
+        <FormSelect
+          label={
+            <>
+              Gender <span className="text-destructive">*</span>
+            </>
+          }
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          options={genderOptions}
+          useRegister={false}
+          errors={{}}
+        />
 
         {/* Submit Button */}
         <div className="flex justify-start pt-4">
