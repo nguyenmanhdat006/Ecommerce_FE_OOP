@@ -7,7 +7,8 @@ import PriceFilter from '../../components/Filters/PriceFilter';
 import ColorsFilter from '../../components/Filters/ColorsFilter';
 import SizeFilter from '../../components/Filters/SizeFilter';
 import ProductCard from './ProductCard';
-import { getAllProducts } from '../../api/fetchProducts';
+import { fetchProducts } from '../../store/productSlice';
+import Spinner from '../../components/Spinner/Spinner';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoading } from '../../store/features/common'
 const categories = content?.categories;
@@ -17,9 +18,8 @@ const ProductListPage = ({categoryType}) => {
   const categoryData = useSelector((state)=> {
     return state?.categoryState?.categories});
   const dispatch = useDispatch();
-  const [products,setProducts] = useState([
-    
-  ]);
+  const loading = useSelector((state) => state.productSlice?.loading);
+  const [products,setProducts] = useState([]);
 
   const categoryContent = useMemo(()=>{
     return categories?.find((category)=> category.code === categoryType);
@@ -35,15 +35,10 @@ const ProductListPage = ({categoryType}) => {
   },[categoryData, categoryType]); // nếu đang ở women page thì sẽ hiện thị category women
 
   useEffect(()=>{
-    dispatch(setLoading(true));
-    getAllProducts(category?.id).then(res=>{
-      setProducts(res);
-    }).catch(err=>{
-      
-    }).finally(()=>{
-      dispatch(setLoading(false));
-    })
-    
+    if (!category?.id) return;
+    dispatch(fetchProducts({ categoryId: category.id })).then((res) => {
+      setProducts(res.payload || []);
+    }).catch(() => {});
   },[category?.id, dispatch]);
 
 
@@ -77,9 +72,13 @@ const ProductListPage = ({categoryType}) => {
             <p className='text-black text-lg'>{category?.description}</p>
                 {/* Products */}
                 <div className='pt-4 grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 px-2'>
-                {products?.map((item,index)=>(
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  products?.map((item,index)=>(
                   <ProductCard key={item?.id+"_"+index} {...item} title={item?.name}/>
-                ))}
+                  ))
+                )}
                 </div>
 
             </div>

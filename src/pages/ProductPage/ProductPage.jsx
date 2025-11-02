@@ -19,7 +19,7 @@ const sampleProducts = [
     "name": "Adidas Ultraboost 22",
     "description": "Giày chạy bộ hiệu suất cao, đàn hồi tốt.",
     "price": 3299000,
-    "brand": "Adidas",
+    "brand": "Sam Sung",
     "rating": 4.7,
     "categoryId": "af733a18-f471-48f9-bb92-68265a8a3a8c",
     "thumbnail": "https://images.adidas.com/ultraboost22.jpg",
@@ -217,9 +217,12 @@ export function ProductsPage() {
   const products = useSelector((state) => state.productSlice.products);
   const loading = useSelector((state) => state.productSlice.loading);
   const error = useSelector((state) => state.productSlice.error);
-
+  const loaded = useSelector((state) => state.productSlice.loaded);
+  
   useEffect(() => {
-    dispatch(fetchProducts());
+    if (!loaded) {
+      dispatch(fetchProducts());
+    }
   }, [dispatch]);
 
   return (

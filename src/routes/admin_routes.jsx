@@ -3,6 +3,12 @@ import { Dashboard } from "../pages/DashBoard/index.jsx";
 import AddProductForm from "@/forms/AddProductForm/AddProductForm.jsx";
 import { UsersPage } from "@/pages/UserManagement/UsersPage.jsx";
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
+import { EditProductForm } from "@/forms/EditProductForm/EditProductForm.jsx";
+import { OrderList } from "@/forms/OrderList/OrderList.jsx";
+import { OrderDetail } from "@/forms/OrderDetail/OrderDetail.jsx";
+import ProductDetail from "@/forms/ProductDetail/ProductDetail.jsx";
+import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx";
+import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
 
 export const adminRouter = {
   path: "/admin",
@@ -19,6 +25,30 @@ export const adminRouter = {
     {
       path: ROUTE_CONSTANTS.ADMIN_USER_LIST,
       element: <UsersPage />,
+    },
+    {
+      path: "update-produitemct",
+      element: <EditProductForm />,
+    },
+    {
+      path: "order-list",
+      element: <OrderList />,
+    },
+    {
+      path: "order-detail",
+      element: <OrderDetail />,
+    },
+    {
+      path: "product-detail",
+      element: <ProductDetail />,
+    },
+    {
+      path: "category-type-list",
+      element: <CategoryTypePage />,
+    },
+    {
+      path: "category-list",
+      element: <CategoryPage />,
     },
   ],
 };
