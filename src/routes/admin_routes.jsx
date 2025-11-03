@@ -4,11 +4,15 @@ import AddProductForm from "@/forms/AddProductForm/AddProductForm.jsx";
 import { UsersPage } from "@/pages/UserManagement/UsersPage.jsx";
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
 import { EditProductForm } from "@/forms/EditProductForm/EditProductForm.jsx";
+
+import OrdersPage from "@/pages/OrdersPage/OrdersPage.jsx";
+import OrderDetailPage from "@/pages/OrdersDetailPage/OrdersDetailPage.jsx";
 import { OrderDetail } from "@/forms/OrderDetail/OrderDetail.jsx";
 import ProductDetail from "@/forms/ProductDetail/ProductDetail.jsx";
 import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx";
 import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
 import OrdersPage from "@/pages/OrdersPage/OrdersPage.jsx";
+
 
 
 export const adminRouter = {
@@ -32,12 +36,12 @@ export const adminRouter = {
       element: <EditProductForm />,
     },
     {
-      path: "order-list", 
+      path: "order-list",
       element: <OrdersPage />,
     },
     {
       path: "order-detail",
-      element: <OrderDetail />,
+      element: <OrderDetailPage />,
     },
     {
       path: "product-detail",
