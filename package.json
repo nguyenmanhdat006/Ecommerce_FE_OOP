@@ -23,6 +23,7 @@
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.546.0",
     "prop-types": "^15.8.1",
@@ -53,10 +54,6 @@
     "globals": "^16.3.0",
     "jwt-decode": "^4.0.0",
     "postcss": "^8.5.6",
-<<<<<<< HEAD
-=======
-    "tailwindcss": "^4.1.16",
->>>>>>> 805d939e3b8d1c36a5dfd453fe364e5e031a3753
     "vite": "^7.1.2"
   }
 }
