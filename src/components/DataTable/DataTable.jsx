@@ -30,7 +30,7 @@ export function DataTable({
           </thead>
           <tbody>
             {data.map((item) => (
-              <tr key={item.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+              <tr key={item?.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                 {showSelect && (
                   <td className="px-6 py-4">
                     <input type="checkbox" className="rounded" />

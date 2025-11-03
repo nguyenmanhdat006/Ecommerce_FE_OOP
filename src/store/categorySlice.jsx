@@ -24,7 +24,7 @@ export const getCategory = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.getById(id);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Get category failed");
     }
@@ -37,7 +37,7 @@ export const createCategory = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.create(data);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Create category failed");
     }
@@ -50,7 +50,7 @@ export const updateCategory = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.update(id, data);
-      return res.data;
+      return res;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Update category failed");
     }
@@ -63,7 +63,7 @@ export const deleteCategory = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await categoryAPI.delete(id);
-      return { id, ...res.data }; // include deleted id
+      return { id, ...res }; // include deleted id
     } catch (err) {
       return rejectWithValue(err.response?.data || "Delete category failed");
     }
@@ -81,10 +81,14 @@ const categorySlice = createSlice({
     selectedCategory: null,
     loading: false,
     error: null,
+    loaded: false,
   },
   reducers: {
     clearCategoryError(state) {
       state.error = null;
+    },
+    resetCategoriesLoaded(state) {
+      state.loaded = false;
     },
   },
   extraReducers: (builder) => {
@@ -98,22 +102,34 @@ const categorySlice = createSlice({
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
         state.categories = action.payload;
+        state.loaded = true;
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.loaded = false;
       })
 
 
       // ---------- GET ID ----------
+      .addCase(getCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(getCategory.fulfilled, (state, action) => {
+        state.loading = false;
         state.selectedCategory = action.payload;
+      })
+      .addCase(getCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
 
       // ---------- CREATE ----------
       .addCase(createCategory.fulfilled, (state, action) => {
         state.categories.push(action.payload);
+        state.loaded = true;
       })
 
 
@@ -125,6 +141,7 @@ const categorySlice = createSlice({
         if (index !== -1) {
           state.categories[index] = action.payload;
         }
+        state.loaded = true;
       })
 
 
@@ -133,9 +150,10 @@ const categorySlice = createSlice({
         state.categories = state.categories.filter(
           (c) => c.id !== action.payload.id
         );
+        state.loaded = true;
       });
   },
 });
 
-export const { clearCategoryError } = categorySlice.actions;
+export const { clearCategoryError, resetCategoriesLoaded } = categorySlice.actions;
 export default categorySlice.reducer;

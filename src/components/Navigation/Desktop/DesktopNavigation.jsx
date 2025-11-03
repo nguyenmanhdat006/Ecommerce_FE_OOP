@@ -1,0 +1,81 @@
+import { Heart, ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "@/store/authSlice";
+import { clearTokens } from "@/utils/jwt-helper";
+import { toast } from "react-hot-toast";
+import { UserDropdown } from "../components/UserDropdown";
+import { ActionLink } from "../components/ActionLink";
+import { NavLinkItem } from "../components/NavLinkItem";
+import { User } from "lucide-react";
+import { getToken } from "@/utils/jwt-helper";
+import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
+
+export default function DesktopNavigation({ links, actions, isActiveLink }) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isAuthenticated = getToken();
+  const user = useSelector((state) => state.userProfile?.profile);
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      clearTokens();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (err) {
+      toast.error(err?.message || "Logout failed");
+    }
+  };
+
+  return (
+    <>
+      {/* Navigation */}
+      <nav className="hidden md:flex gap-10 text-lg font-medium text-muted-foreground">
+        {links.map((link, i) => (
+          <NavLinkItem
+            key={i}
+            href={link.href}
+            text={link.text}
+            isActive={isActiveLink(link.href)}
+          />
+        ))}
+      </nav>
+
+      {/* Actions */}
+      <div className="hidden md:flex items-center gap-5">
+        {isAuthenticated ? (
+          <>
+            <Button variant="ghost" size="icon" className="h-11 w-11">
+              <Heart size={22} />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11"
+              onClick={() => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST)}
+            >
+              <User size={22} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-11 w-11"
+              onClick={() => navigate("/cart")}
+            >
+              <ShoppingCart size={22} />
+              <span className="absolute -top-1 -right-1 bg-primary text-white rounded-full text-[11px] w-5 h-5 flex items-center justify-center">
+                2
+              </span>
+            </Button>
+            <UserDropdown user={user} onLogout={handleLogout} />
+          </>
+        ) : (
+          actions.map((action, i) => <ActionLink key={i} action={action} />)
+        )}
+      </div>
+    </>
+  );
+}

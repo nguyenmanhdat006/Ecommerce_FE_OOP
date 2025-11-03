@@ -1,11 +1,23 @@
 import Navigation from '../components/Navigation/Navigation'
 import { Outlet } from 'react-router-dom'
 import Spinner from '../components/Spinner/Spinner'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { useEffect } from 'react'
+import { loadUserProfile } from '@/store/userProfileSlice'
+import { getToken } from '@/utils/jwt-helper'
 
 const ShopApplicationWrapper = () => {
+  const dispatch = useDispatch();
+  const loaded = useSelector((state)=> state?.userProfile?.loaded);
+  useEffect(() => {
+    console.log("ShopApplicationWrapper");
+    const token = getToken();
+    if (token && !loaded) {
+      dispatch(loadUserProfile());
+    }
+  }, [dispatch]);
 
-  const isLoading = useSelector((state)=> state?.commonState?.loading);
+  const isLoading = useSelector((state)=> state?.userProfile?.loadingProfile);
   return (
     <div>
         <Navigation />

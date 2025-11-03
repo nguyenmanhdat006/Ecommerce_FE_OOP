@@ -54,7 +54,7 @@ export default function AddProductForm() {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  const categories = useSelector((state) => state.categorySlice?.categories);
+  const categories = useSelector((state) => state.categoryState?.categories);
 
   const selectedCategoryId = watch("categoryId");
   const selectedCategoryTypeId = watch("categoryTypeId");

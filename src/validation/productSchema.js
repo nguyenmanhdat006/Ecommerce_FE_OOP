@@ -11,7 +11,7 @@ export const productSchema = yup.object().shape({
   brand: yup.string().required("Thương hiệu là bắt buộc"),
   newArrival: yup.boolean().default(false),
   rating: yup.number().min(0).max(5).nullable(),
-  thumbnail: yup.string().url().nullable(),
+  thumbnail: yup.string().nullable(),
   slug: yup.string().nullable(),
 
   categoryId: yup.string().nullable(),

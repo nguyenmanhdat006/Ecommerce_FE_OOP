@@ -1,32 +1,34 @@
-import './Shop.css'
-import HeroSection from './components/HeroSection/HeroSection.jsx';
-import NewArrivals from './components/Sections/NewArrivals.jsx';
-import Category from './components/Sections/Categories/Category.jsx';
-import content from './data/content.json';
-import Footer from './components/Footer/Footer.jsx';
-import { useEffect } from 'react';
-import { fetchCategories } from './api/fetchCategories.js';
-import { useDispatch } from 'react-redux';
-import { loadCategories } from './store/features/category.js';
-import { setLoading } from './store/features/common.js';
+import "./Shop.css";
+import HeroSection from "./components/HeroSection/HeroSection.jsx";
+import NewArrivals from "./components/Sections/NewArrivals.jsx";
+import Category from "./components/Sections/Categories/Category.jsx";
+import content from "./data/content.json";
+import Footer from "./components/Footer/Footer.jsx";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { getToken, getUser } from "./utils/jwt-helper.js";
+import { logout, setCredentials } from "./store/authSlice.jsx";
+import { fetchCategories } from "./store/categorySlice.jsx";
 
 const Shop = () => {
-
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    const accessToken = getToken();
+    const user = getUser();
+    console.log("accessToken", accessToken);
+    console.log("user", user);
+    if (accessToken && user) {
+      dispatch(setCredentials({ accessToken, user }));
+    } else {
+      dispatch(logout());
+    }
+
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(setLoading(true))
-    fetchCategories().then(res => {
-      dispatch(loadCategories(res))
-    
-        // eslint-disable-next-line no-unused-vars
-    }).catch(err => {
-
-    }).finally(()=> {
-      dispatch(setLoading(false))
-    })
-  }, [dispatch])
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   return (
     <>
@@ -38,8 +40,7 @@ const Shop = () => {
         ))}
       <Footer content={content?.footer} />
     </>
-  )
-} 
-
+  );
+};
 
 export default Shop;
