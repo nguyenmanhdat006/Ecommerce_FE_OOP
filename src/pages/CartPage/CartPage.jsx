@@ -69,7 +69,7 @@ export default function ShopeeCartPage() {
   const [products, setProducts] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // ✅ thêm dòng này
+  const navigate = useNavigate();
 
   // --- Load cart từ BE ---
   useEffect(() => {
@@ -84,10 +84,12 @@ export default function ShopeeCartPage() {
 
         const mapped = filtered.map((c) => ({
           id: c.id,
+          productId: c.product?.id || null,
+          productVariantId: c.productVariant?.id || null,
           name: c.product?.name || "Sản phẩm",
           price: c.product?.price || 0,
           qty: c.quantity || 1,
-          shop: c.product?.brand || "Coolmate - Official Store",
+          shop: c.product?.brand || "Shopease - Official Store",
           img: c.product?.thumbnail || "https://via.placeholder.com/120",
           size: c.productVariant?.size || "-",
           color: c.productVariant?.color || "-",
