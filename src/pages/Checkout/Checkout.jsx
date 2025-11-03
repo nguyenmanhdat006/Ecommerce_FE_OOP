@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { orderAPI } from '@/api/order.api';
 import { MapPin, Store, MessageCircle, Ticket, Truck, Coins, Check } from "lucide-react";
+import { getUser } from '@/utils/jwt-helper';
 
 export default function Checkout() {
   const [cartItems, setCartItems] = useState([]);
@@ -14,6 +16,13 @@ export default function Checkout() {
     { id: 2, code: "GIAM20K", discount: 20000, minOrder: 100000 },
     { id: 3, code: "GIAM50K", discount: 50000, minOrder: 300000 },
   ];
+
+  const user = getUser();
+  console.log('checkout user:', user);
+  if (!user) {
+        alert("Bạn cần đăng nhập để đặt hàng");
+        return;
+      }
 
   // Lấy sản phẩm từ localStorage
   useEffect(() => {
@@ -42,6 +51,7 @@ export default function Checkout() {
   const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
   const discount = selectedVoucher && totalPrice >= selectedVoucher.minOrder ? selectedVoucher.discount : 0;
   const totalPayment = totalPrice + shippingFee - discount;
+  const [isPlacing, setIsPlacing] = useState(false);
 
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-md shadow-sm p-6 text-gray-800 mb-10">
@@ -134,14 +144,6 @@ export default function Checkout() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between py-4 border-t-8 border-gray-100 text-sm">
-        <div className="flex items-center gap-2">
-          <Ticket className="w-4 h-4 text-red-500" />
-          <span>Shopease Voucher</span>
-        </div>
-        <button className="text-blue-600 hover:underline">Chọn Voucher</button>
-      </div>
-
       <div className="flex items-center justify-between py-4 border-t border-gray-100 text-sm">
         <div className="flex items-center gap-2">
           <Coins className="w-4 h-4 text-yellow-500" />
@@ -154,13 +156,14 @@ export default function Checkout() {
         <h3 className="font-semibold mb-3 text-base">Phương thức thanh toán</h3>
         
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {["shopeePay", "creditCard", "googlePay", "napas", "cod"].map((method) => (
+          {["shopeePay", "creditCard", "googlePay", "napas", "vnpay", "cod"].map((method) => (
             <button key={method} className={`px-4 py-2 text-sm whitespace-nowrap rounded border transition-all ${paymentMethod === method ? "border-orange-500 text-orange-500 bg-orange-50" : "border-gray-300 text-gray-700"}`}
               onClick={() => setPaymentMethod(method)}>
               {method === "shopeePay" && "Ví ShopeePay"}
               {method === "creditCard" && "Thẻ Tín dụng/Ghi nợ"}
               {method === "googlePay" && "Google Pay"}
               {method === "napas" && "Thẻ nội địa NAPAS"}
+              {method === "vnpay" && "VNPAY"}
               {method === "cod" && "Thanh toán khi nhận hàng"}
             </button>
           ))}
@@ -203,6 +206,13 @@ export default function Checkout() {
           )}
 
           {paymentMethod === "googlePay" && <div className="flex items-center justify-center h-40 text-gray-400">Google Pay chưa được kích hoạt</div>}
+
+          {paymentMethod === "vnpay" && (
+            <div className="bg-white p-4 ">
+              <p className="font-medium mb-2">Thanh toán qua cổng VNPAY</p>
+              <p className="text-sm text-gray-600 mb-3">Bạn sẽ được chuyển đến cổng thanh toán VNPAY để hoàn tất giao dịch.</p>
+            </div>
+          )}
 
           {paymentMethod === "cod" && (
             <div className="bg-gray-50 p-4 rounded border">
@@ -247,7 +257,48 @@ export default function Checkout() {
           <span>{totalPayment.toLocaleString()}₫</span>
         </div>
         <div className="text-right mt-5">
-          <button className="bg-orange-600 text-white px-10 py-2 rounded-sm font-medium hover:bg-orange-700 transition-all">Đặt hàng</button>
+          <button
+            className={`bg-orange-600 text-white px-10 py-2 rounded-sm font-medium hover:bg-orange-700 transition-all ${isPlacing ? 'opacity-70 cursor-not-allowed' : ''}`}
+            onClick={async () => {
+              if (cartItems.length === 0) return alert('Giỏ hàng rỗng');
+
+              setIsPlacing(true);
+              try {
+                const orderItems = cartItems.map((it) => ({
+                  productId: it.productId,
+                  productVariantId: it.productVariantId || it.variantId || null,
+                  quantity: it.qty || it.quantity || 1,
+                  unitPrice: Number(it.price || 0),
+                  totalPrice: Number((it.price || 0) * (it.qty || it.quantity || 1)),
+                }));
+
+                const payload = {
+                  orderNumber: new Date().toISOString(),
+                  totalAmount: totalPayment,
+                  status: 'PENDING',
+                  paymentMethod: paymentMethod,
+                  shippingAddress: 'Ngõ 3 Cúc Phố, Xã Vinh Quang, Huyện Vĩnh Bảo, Hải Phòng',
+                  notes: '',
+                  customerId: user.id,
+                  orderItems,
+                };
+                console.log('Checkout payload:', payload);
+                const res = await orderAPI.create(payload);
+                localStorage.removeItem('checkoutItems');
+                setCartItems([]);
+                alert('Đặt hàng thành công');
+              } catch (err) {
+                console.error('Order create failed', err);
+                const msg = err?.message || (err?.data && err.data.message) || 'Tạo đơn hàng thất bại';
+                alert(msg);
+              } finally {
+                setIsPlacing(false);
+              }
+            }}
+            disabled={isPlacing}
+          >
+            {isPlacing ? 'Đang xử lý...' : 'Đặt hàng'}
+          </button>
         </div>
       </div>
     </div>
