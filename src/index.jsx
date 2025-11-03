@@ -6,16 +6,13 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./routes";
 import { Provider } from "react-redux";
 import store from "./store/store";
-import ShopApplicationWrapper from "./pages/ShopApplicationWrapper";
 import { Toaster } from "react-hot-toast";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Provider store={store}>
-    <RouterProvider router={router}>
-      <ShopApplicationWrapper />
-      <Toaster />
-    </RouterProvider>
+    <RouterProvider router={router}/>
+    <Toaster />
   </Provider>
 );
 

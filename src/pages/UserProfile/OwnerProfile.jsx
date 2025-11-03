@@ -1,50 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import ProfileLayout from "@/layout/ProfileLayout";
 import ProfileSidebar from "./components/ProfileSidebar";
 import ProfileForm from "@/forms/ProfileForm/ProfileForm";
+import { Section } from "./components/Section";
+import { loadUserProfile, selectUserProfile } from "@/store/userProfileSlice";
 
 export default function OwnerProfile() {
   const [activeSection, setActiveSection] = useState("personal");
+  const dispatch = useDispatch();
+  const userProfile = useSelector(selectUserProfile);
+
+  useEffect(() => {
+    if (!userProfile) {
+      dispatch(loadUserProfile());
+    }
+  }, [dispatch, userProfile]);
+
+  // Map user profile data to form format
+  const initialData = userProfile
+    ? {
+        firstName: userProfile.firstName || "",
+        lastName: userProfile.lastName || "",
+        email: userProfile.email || "",
+        phoneNumber: userProfile.phoneNumber || "",
+        avatar: userProfile.avatar || "",
+      }
+    : null;
+
+  const sections = {
+    personal: (
+      <ProfileForm userId={userProfile?.id} initialData={initialData} />
+    ),
+    orders: <Section title="My Orders">No orders yet.</Section>,
+    address: <Section title="Manage Address">No addresses saved.</Section>,
+    payment: (
+      <Section title="Payment Methods">No payment methods saved.</Section>
+    ),
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-
-      <div className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            
-            <ProfileSidebar 
-              activeSection={activeSection} 
-              onSectionChange={setActiveSection} 
-            />
-
-            <div className="md:col-span-3">
-              {activeSection === "personal" && <ProfileForm />}
-
-              {activeSection === "orders" && (
-                <section className="bg-card rounded-lg p-6 border border-border">
-                  <h2 className="text-xl font-semibold mb-4">My Orders</h2>
-                  <p className="text-muted-foreground">No orders yet.</p>
-                </section>
-              )}
-
-              {activeSection === "address" && (
-                <section className="bg-card rounded-lg p-6 border border-border">
-                  <h2 className="text-xl font-semibold mb-4">Manage Address</h2>
-                  <p className="text-muted-foreground">No addresses saved.</p>
-                </section>
-              )}
-
-              {activeSection === "payment" && (
-                <section className="bg-card rounded-lg p-6 border border-border">
-                  <h2 className="text-xl font-semibold mb-4">Payment Methods</h2>
-                  <p className="text-muted-foreground">No payment methods saved.</p>
-                </section>
-              )}
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
+    <ProfileLayout
+      sidebar={
+        <ProfileSidebar
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+      }
+    >
+      {sections[activeSection]}
+    </ProfileLayout>
   );
 }
