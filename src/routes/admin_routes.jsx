@@ -7,11 +7,9 @@ import { EditProductForm } from "@/forms/EditProductForm/EditProductForm.jsx";
 
 import OrdersPage from "@/pages/OrdersPage/OrdersPage.jsx";
 import OrderDetailPage from "@/pages/OrdersDetailPage/OrdersDetailPage.jsx";
-import { OrderDetail } from "@/forms/OrderDetail/OrderDetail.jsx";
 import ProductDetail from "@/forms/ProductDetail/ProductDetail.jsx";
 import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx";
 import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
-import OrdersPage from "@/pages/OrdersPage/OrdersPage.jsx";
 
 
 
