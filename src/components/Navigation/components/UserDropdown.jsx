@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut, Package } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 export function UserDropdown({ user, onLogout }) {
@@ -59,6 +59,9 @@ export function UserDropdown({ user, onLogout }) {
           <Settings className="mr-2 h-4 w-4" /> <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleNavigate("/order-success")}>
+          <Package className="mr-2 h-4 w-4" /> <span>My Orders</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onLogout} className="text-red-600 focus:text-red-600">
           <LogOut className="mr-2 h-4 w-4" /> <span>Log out</span>
         </DropdownMenuItem>
