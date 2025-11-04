@@ -31,6 +31,7 @@ import {
   Package,
   CreditCard,
 } from "lucide-react";
+import { orderAPI } from "@/api/order.api";
 
 const OrderDetailPage = () => {
   const [orderStatus, setOrderStatus] = useState("Processing");

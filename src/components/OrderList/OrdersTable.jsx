@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 import StatusBadge from "./StatusBadge";
+import { orderAPI } from "@/api/order.api";
 
 export default function OrdersTable({
   activeTab,
@@ -20,8 +21,9 @@ export default function OrdersTable({
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/orders");
-        const data = await res.json();
+        const res = await orderAPI.getAll();
+        console.log("res", res);
+        const data = await res;
         setOrders(data);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
