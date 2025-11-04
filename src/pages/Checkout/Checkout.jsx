@@ -160,10 +160,10 @@ export default function Checkout() {
         <h3 className="font-semibold mb-3 text-base">Phương thức thanh toán</h3>
         
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {["shopeePay", "creditCard", "googlePay", "napas", "vnpay", "cod"].map((method) => (
+          {[ "creditCard", "googlePay", "napas", "vnpay", "cod"].map((method) => (
             <button key={method} className={`px-4 py-2 text-sm whitespace-nowrap rounded border transition-all ${paymentMethod === method ? "border-orange-500 text-orange-500 bg-orange-50" : "border-gray-300 text-gray-700"}`}
               onClick={() => setPaymentMethod(method)}>
-              {method === "shopeePay" && "Ví ShopeePay"}
+              {/* {method === "shopeePay" && "Ví ShopeePay"} */}
               {method === "creditCard" && "Thẻ Tín dụng/Ghi nợ"}
               {method === "googlePay" && "Google Pay"}
               {method === "napas" && "Thẻ nội địa NAPAS"}
@@ -174,7 +174,7 @@ export default function Checkout() {
         </div>
 
         <div className="min-h-[200px]">
-          {paymentMethod === "shopeePay" && (
+          {/* {paymentMethod === "shopeePay" && (
             <div>
               <img src="https://placehold.co/300x100/ee4d2d/white?text=ShopeePay" alt="Banner" className="w-full max-w-xs rounded mb-4" />
               <div className="flex items-center gap-3 p-3 border rounded">
@@ -186,7 +186,7 @@ export default function Checkout() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {(paymentMethod === "creditCard" || paymentMethod === "napas") && (
             <div>
@@ -306,7 +306,7 @@ export default function Checkout() {
                   }
                   break;
 
-                case "shopeePay":
+                // case "shopeePay":
                 case "creditCard":
                 case "googlePay":
                 case "napas":
