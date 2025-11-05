@@ -7,7 +7,7 @@ export default function Chat() {
 
   useEffect(() => {
     // Connect WebSocket
-    socketRef.current = new WebSocket(`${import.meta.env.VITE_API_URL}/ws/chat`);
+    socketRef.current = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}/ws/chat`);
 
     socketRef.current.onmessage = (event) => {
       const msg = JSON.parse(event.data);
