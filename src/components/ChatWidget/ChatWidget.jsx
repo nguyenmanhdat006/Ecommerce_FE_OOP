@@ -1,18 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { useState, useEffect, useRef } from "react";
+import { MessageCircle, X, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { getUser } from "@/utils/jwt-helper";
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
+  const currentUser = getUser()?.id; // người dùng hiện tại
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -21,30 +24,24 @@ const ChatWidget = () => {
 
   useEffect(() => {
     if (isOpen && !socketRef.current) {
-      // Connect WebSocket when chat is opened
-      try {
-        socketRef.current = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_URL}/ws/chat`);
+      socketRef.current = new WebSocket(
+        `${import.meta.env.VITE_WEBSOCKET_URL}/ws/chat`
+      );
 
-        socketRef.current.onopen = () => {
-          console.log('WebSocket connected');
-        };
+      socketRef.current.onopen = () => console.log("WebSocket connected");
 
-        socketRef.current.onmessage = (event) => {
-          const msg = JSON.parse(event.data);
-          setMessages((prev) => [...prev, { ...msg, timestamp: new Date() }]);
-        };
+      socketRef.current.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        setMessages((prev) => [...prev, { ...msg, timestamp: new Date() }]);
+      };
 
-        socketRef.current.onerror = (error) => {
-          console.error('WebSocket error:', error);
-        };
+      socketRef.current.onerror = (error) =>
+        console.error("WebSocket error:", error);
 
-        socketRef.current.onclose = () => {
-          console.log('WebSocket disconnected');
-          socketRef.current = null;
-        };
-      } catch (error) {
-        console.error('Failed to connect WebSocket:', error);
-      }
+      socketRef.current.onclose = () => {
+        console.log("WebSocket disconnected");
+        socketRef.current = null;
+      };
     }
 
     return () => {
@@ -60,32 +57,30 @@ const ChatWidget = () => {
     if (!text.trim() || !socketRef.current) return;
 
     const msg = {
-      from: 'userA',
+      from: currentUser ?? "userA",
       message: text.trim(),
     };
 
     try {
       socketRef.current.send(JSON.stringify(msg));
-      setText('');
+      setText("");
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
     }
   };
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleChat = () => setIsOpen(!isOpen);
 
   return (
     <>
       {/* Chat Window */}
       <div
         className={cn(
-          'fixed bottom-6 right-6 w-[380px] h-[550px] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col z-[9999] transition-all duration-300',
+          "fixed bottom-6 right-6 w-[380px] h-[550px] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col z-[9999] transition-all duration-300",
           isOpen
-            ? 'scale-100 opacity-100'
-            : 'scale-0 opacity-0 pointer-events-none',
-          'origin-bottom-right'
+            ? "scale-100 opacity-100"
+            : "scale-0 opacity-0 pointer-events-none",
+          "origin-bottom-right"
         )}
       >
         {/* Header */}
@@ -127,43 +122,51 @@ const ChatWidget = () => {
               </p>
             </div>
           ) : (
-            messages.map((msg, index) => (
-              <div
-                key={index}
-                className={cn(
-                  'flex animate-in slide-in-from-bottom-2 duration-300',
-                  msg.from === 'userA' ? 'justify-end' : 'justify-start'
-                )}
-              >
+            messages.map((msg, index) => {
+              const isMe = msg.from === currentUser;
+              return (
                 <div
+                  key={index}
                   className={cn(
-                    'max-w-[75%] rounded-2xl px-4 py-3',
-                    msg.from === 'userA'
-                      ? 'bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-sm shadow-md shadow-pink-500/20'
-                      : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-sm shadow-sm border border-gray-200 dark:border-gray-700'
+                    "flex animate-in slide-in-from-bottom-2 duration-300",
+                    isMe ? "justify-end" : "justify-start"
                   )}
                 >
-                  <p className="text-sm leading-relaxed break-words">
-                    {msg.message}
-                  </p>
-                  <span
+                  {!isMe && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-white text-xs mr-2">
+                      {msg.from[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div
                     className={cn(
-                      'text-xs mt-1 block',
-                      msg.from === 'userA'
-                        ? 'text-pink-100'
-                        : 'text-gray-500 dark:text-gray-400'
+                      "max-w-[75%] rounded-2xl px-4 py-3",
+                      isMe
+                        ? "bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-sm shadow-md shadow-pink-500/20"
+                        : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-sm shadow-sm border border-gray-200 dark:border-gray-700"
                     )}
                   >
-                    {msg.timestamp
-                      ? new Date(msg.timestamp).toLocaleTimeString('vi-VN', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : ''}
-                  </span>
+                    <p className="text-sm leading-relaxed break-words">
+                      {msg.message}
+                    </p>
+                    <span
+                      className={cn(
+                        "text-xs mt-1 block",
+                        isMe
+                          ? "text-pink-100"
+                          : "text-gray-500 dark:text-gray-400"
+                      )}
+                    >
+                      {msg.timestamp
+                        ? new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -195,8 +198,8 @@ const ChatWidget = () => {
       <button
         onClick={toggleChat}
         className={cn(
-          'fixed bottom-6 right-6 w-[60px] h-[60px] rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40 hover:shadow-xl hover:shadow-pink-500/50 flex items-center justify-center transition-all duration-300 z-[9998] hover:scale-110',
-          isOpen && 'scale-0 opacity-0 pointer-events-none'
+          "fixed bottom-6 right-6 w-[60px] h-[60px] rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40 hover:shadow-xl hover:shadow-pink-500/50 flex items-center justify-center transition-all duration-300 z-[9998] hover:scale-110",
+          isOpen && "scale-0 opacity-0 pointer-events-none"
         )}
       >
         <MessageCircle className="w-7 h-7" />
@@ -209,4 +212,3 @@ const ChatWidget = () => {
 };
 
 export default ChatWidget;
-

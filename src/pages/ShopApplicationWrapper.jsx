@@ -5,7 +5,7 @@ import ChatWidget from '../components/ChatWidget/ChatWidget'
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from 'react'
 import { loadUserProfile } from '@/store/userProfileSlice'
-import { getToken } from '@/utils/jwt-helper'
+import { getToken, getUser } from '@/utils/jwt-helper'
 
 const ShopApplicationWrapper = () => {
   const dispatch = useDispatch();
@@ -24,7 +24,7 @@ const ShopApplicationWrapper = () => {
         <Navigation />
         <Outlet />
         {isLoading && <Spinner />}
-        <ChatWidget />
+        {getUser()?.id && <ChatWidget />}
     </div>
   )
 }
