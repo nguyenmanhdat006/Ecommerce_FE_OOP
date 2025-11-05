@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import { orderAPI } from '@/api/order.api';
 import { MapPin, Store, MessageCircle, Ticket, Truck, Coins, Check } from "lucide-react";
 import { getUser } from '@/utils/jwt-helper';
+import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
+
+  const navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
   const [cartItems, setCartItems] = useState([]);
   const [shippingFee] = useState(10000);
   const [showVoucherList, setShowVoucherList] = useState(false);
@@ -156,10 +160,10 @@ export default function Checkout() {
         <h3 className="font-semibold mb-3 text-base">Phương thức thanh toán</h3>
         
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {["shopeePay", "creditCard", "googlePay", "napas", "vnpay", "cod"].map((method) => (
+          {[ "creditCard", "googlePay", "napas", "vnpay", "cod"].map((method) => (
             <button key={method} className={`px-4 py-2 text-sm whitespace-nowrap rounded border transition-all ${paymentMethod === method ? "border-orange-500 text-orange-500 bg-orange-50" : "border-gray-300 text-gray-700"}`}
               onClick={() => setPaymentMethod(method)}>
-              {method === "shopeePay" && "Ví ShopeePay"}
+              {/* {method === "shopeePay" && "Ví ShopeePay"} */}
               {method === "creditCard" && "Thẻ Tín dụng/Ghi nợ"}
               {method === "googlePay" && "Google Pay"}
               {method === "napas" && "Thẻ nội địa NAPAS"}
@@ -170,7 +174,7 @@ export default function Checkout() {
         </div>
 
         <div className="min-h-[200px]">
-          {paymentMethod === "shopeePay" && (
+          {/* {paymentMethod === "shopeePay" && (
             <div>
               <img src="https://placehold.co/300x100/ee4d2d/white?text=ShopeePay" alt="Banner" className="w-full max-w-xs rounded mb-4" />
               <div className="flex items-center gap-3 p-3 border rounded">
@@ -182,7 +186,7 @@ export default function Checkout() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {(paymentMethod === "creditCard" || paymentMethod === "napas") && (
             <div>
@@ -257,48 +261,99 @@ export default function Checkout() {
           <span>{totalPayment.toLocaleString()}₫</span>
         </div>
         <div className="text-right mt-5">
-          <button
-            className={`bg-orange-600 text-white px-10 py-2 rounded-sm font-medium hover:bg-orange-700 transition-all ${isPlacing ? 'opacity-70 cursor-not-allowed' : ''}`}
-            onClick={async () => {
-              if (cartItems.length === 0) return alert('Giỏ hàng rỗng');
+        <button
+          className={`bg-orange-600 text-white px-10 py-2 rounded-sm font-medium hover:bg-orange-700 transition-all ${isPlacing ? 'opacity-70 cursor-not-allowed' : ''}`}
+          onClick={async () => {
+            if (cartItems.length === 0) return alert('Giỏ hàng rỗng');
 
-              setIsPlacing(true);
-              try {
-                const orderItems = cartItems.map((it) => ({
-                  productId: it.productId,
-                  productVariantId: it.productVariantId || it.variantId || null,
-                  quantity: it.qty || it.quantity || 1,
-                  unitPrice: Number(it.price || 0),
-                  totalPrice: Number((it.price || 0) * (it.qty || it.quantity || 1)),
-                }));
+            setIsPlacing(true);
+            try {
+              // Tạo payload order
+              const orderItems = cartItems.map(it => ({
+                productId: it.productId,
+                productVariantId: it.productVariantId || it.variantId || null,
+                quantity: it.qty || it.quantity || 1,
+                unitPrice: Number(it.price || 0),
+                totalPrice: Number((it.price || 0) * (it.qty || it.quantity || 1)),
+              }));
 
-                const payload = {
-                  orderNumber: new Date().toISOString(),
-                  totalAmount: totalPayment,
-                  status: 'PENDING',
-                  paymentMethod: paymentMethod,
-                  shippingAddress: 'Ngõ 3 Cúc Phố, Xã Vinh Quang, Huyện Vĩnh Bảo, Hải Phòng',
-                  notes: '',
-                  customerId: user.id,
-                  orderItems,
-                };
-                console.log('Checkout payload:', payload);
-                const res = await orderAPI.create(payload);
-                localStorage.removeItem('checkoutItems');
-                setCartItems([]);
-                alert('Đặt hàng thành công');
-              } catch (err) {
-                console.error('Order create failed', err);
-                const msg = err?.message || (err?.data && err.data.message) || 'Tạo đơn hàng thất bại';
-                alert(msg);
-              } finally {
-                setIsPlacing(false);
+              const payload = {
+                orderNumber: new Date().toISOString(),
+                totalAmount: totalPayment,
+                // status: paymentMethod === "cod" ? "PENDING" : "UNPAID",
+                status: "PENDING",
+                paymentMethod,
+                shippingAddress: 'Ngõ 3 Cúc Phố, Xã Vinh Quang, Huyện Vĩnh Bảo, Hải Phòng',
+                notes: '',
+                customerId: user.id,
+                orderItems,
+              };
+
+              const orderResponse = await orderAPI.create(payload);
+              const orderId = orderResponse?.id;
+              if (!orderId) throw new Error('Không lấy được ID đơn hàng từ server');
+
+              // Xử lý thanh toán
+              switch (paymentMethod) {
+                case "vnpay":
+                  {
+                    const res = await fetch("http://localhost:8080/api/vnpay/create-payment", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ orderId, amount: totalPayment }),
+                    });
+                    const paymentUrl = await res.text();
+                    window.location.href = paymentUrl; // Redirect sang VNPAY
+                  }
+                  break;
+
+                // case "shopeePay":
+                case "creditCard":
+                case "googlePay":
+                case "napas":
+                  {
+                    // Giả lập redirect đến cổng tương ứng
+                    const res = await fetch(`http://localhost:8080/api/payment/${paymentMethod}`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ orderId, amount: totalPayment, bankId: selectedBank || null }),
+                    });
+                    const { paymentUrl } = await res.json();
+                    if (paymentUrl) window.location.href = paymentUrl;
+                    else {
+                      alert('Thanh toán thành công'); // Trường hợp thử nghiệm
+                      localStorage.removeItem('checkoutItems');
+                      setCartItems([]);
+                    }
+                  }
+                  break;
+
+                case "cod":
+                  {
+                    alert('Đặt hàng thành công! Vui lòng chuẩn bị tiền khi nhận hàng.');
+                    navigate(`/order-success/`);
+                    localStorage.removeItem('checkoutItems');
+                    setCartItems([]);
+                  }
+                  break;
+
+                default:
+                  alert('Phương thức thanh toán chưa được hỗ trợ');
+                  break;
               }
-            }}
-            disabled={isPlacing}
-          >
-            {isPlacing ? 'Đang xử lý...' : 'Đặt hàng'}
-          </button>
+
+            } catch (err) {
+              console.error('Checkout failed', err);
+              alert(err?.message || 'Đặt hàng thất bại');
+            } finally {
+              setIsPlacing(false);
+            }
+          }}
+          disabled={isPlacing}
+        >
+          {isPlacing ? 'Đang xử lý...' : 'Đặt hàng'}
+        </button>
+
         </div>
       </div>
     </div>

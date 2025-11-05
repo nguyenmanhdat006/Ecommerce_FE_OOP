@@ -17,6 +17,10 @@ import { fetchCategories } from "@/store/categorySlice";
 import { useEffect } from "react";
 import { uploadSingleFile } from "@/store/uploadSlice";
 
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+
+
 export default function AddProductForm() {
   const form = useForm({
     resolver: yupResolver(productSchema),
@@ -50,9 +54,30 @@ export default function AddProductForm() {
 
   const dispatch = useDispatch();
 
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEdit = Boolean(id);
+
+
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
+
+  useEffect(() => {
+  if (isEdit) {
+    const token = localStorage.getItem("token");
+    axios
+      .get(`http://localhost:8080/api/products/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        console.log("✅ Dữ liệu sản phẩm:", res.data);
+        reset(res.data); // nạp dữ liệu vào form react-hook-form
+      })
+      .catch((err) => console.error("❌ Lỗi tải sản phẩm:", err));
+  }
+}, [id, isEdit, reset]);
+
 
   const categories = useSelector((state) => state.categoryState?.categories);
 
@@ -83,11 +108,25 @@ export default function AddProductForm() {
   // Actions
   const handleSaveDraft = () => toast.success("Draft saved!");
   const handleDiscard = () => reset();
-  const onSubmit = (data) => {
-    dispatch(createProduct(data));
-    reset();
-    toast.success("Product published!");
-  };
+  const onSubmit = async (data) => {
+  const token = localStorage.getItem("token");
+  try {
+    if (isEdit) {
+      await axios.put(`http://localhost:8080/api/products/${id}`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("✅ Cập nhật sản phẩm thành công!");
+    } else {
+      await dispatch(createProduct(data));
+      toast.success("✅ Thêm sản phẩm mới thành công!");
+    }
+    navigate("/admin/products"); // quay lại danh sách
+  } catch (err) {
+    console.error("❌ Lỗi lưu sản phẩm:", err);
+    toast.error("Lưu sản phẩm thất bại!");
+  }
+};
+
 
   const handleUploadThumbnail = async (e) => {
     const file = e.target.files[0];
@@ -104,11 +143,11 @@ export default function AddProductForm() {
 
   return (
     <FormLayout
-      title="Add Product"
-      onDiscard={handleDiscard}
-      onSaveDraft={handleSaveDraft}
-      onPublish={handleSubmit(onSubmit)}
-    >
+  title={isEdit ? "Edit Product" : "Add Product"}
+  onDiscard={handleDiscard}
+  onSaveDraft={handleSaveDraft}
+  onPublish={handleSubmit(onSubmit)}
+  >
       {/* Left Column */}
       <div className="col-span-2 space-y-6">
         <ProductDetailsSection

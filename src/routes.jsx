@@ -12,6 +12,9 @@ import OAuth2LoginCallback from "./pages/OAuth2LoginCallback.jsx";
 import { adminRouter } from "./routes/admin_routes.jsx";
 import OwnerProfile from "./pages/UserProfile/OwnerProfile.jsx";
 import CheckoutPage from "./pages/Checkout/Checkout.jsx";
+import OrderSuccess from "./pages/OrderSuccess.jsx";
+import OrderVnpSuccess from "./pages/Checkout/vnpayDone.jsx";
+import Chat from "./pages/Chat.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: "/",
         element: <Shop />,
+      },
+      {
+        path: "/chat",
+        element: <Chat />,
       },
       {
         path: "/profile",
@@ -47,6 +54,14 @@ export const router = createBrowserRouter([
       {
         path: "/checkout",
         element: <CheckoutPage />,
+      },
+      {
+        path: "/order-success/",
+        element: <OrderSuccess />,
+      },
+      {
+        path: "/vnpay-done/:orderId",
+        element: <OrderVnpSuccess />,
       },
     ],
   },
