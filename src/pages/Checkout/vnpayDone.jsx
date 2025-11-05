@@ -1,4 +1,3 @@
-// src/pages/OrderVnpSuccess.jsx
 import { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -12,7 +11,7 @@ export default function OrderVnpSuccess() {
   const [statusMessage, setStatusMessage] = useState("Đang xử lý thanh toán...");
   const [success, setSuccess] = useState(false);
 
-  // ✅ Lấy query params
+  // Lấy query params
   const queryParams = new URLSearchParams(location.search || "");
   const vnpAmount = queryParams.get("vnp_Amount");
   const vnpBankCode = queryParams.get("vnp_BankCode");
@@ -91,7 +90,7 @@ export default function OrderVnpSuccess() {
               transition={{ type: "spring", stiffness: 120, damping: 12 }}
             >
               <div className="flex flex-col items-center">
-                {/* ✅ Icon */}
+                {/* Icon */}
                 <div className="relative mb-5">
                   <motion.div
                     className="w-24 h-24 rounded-full border-4 border-green-500 flex items-center justify-center bg-green-50"

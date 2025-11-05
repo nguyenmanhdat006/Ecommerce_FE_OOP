@@ -280,7 +280,8 @@ export default function Checkout() {
               const payload = {
                 orderNumber: new Date().toISOString(),
                 totalAmount: totalPayment,
-                status: paymentMethod === "cod" ? "PENDING" : "UNPAID",
+                // status: paymentMethod === "cod" ? "PENDING" : "UNPAID",
+                status: "PENDING",
                 paymentMethod,
                 shippingAddress: 'Ngõ 3 Cúc Phố, Xã Vinh Quang, Huyện Vĩnh Bảo, Hải Phòng',
                 notes: '',

@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import Spinner from "@/components/Spinner/Spinner";
 import { toast } from "react-hot-toast";
 
-
 // eslint-disable-next-line no-unused-vars
 const sampleProducts = [
   {
