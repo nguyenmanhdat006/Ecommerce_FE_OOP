@@ -1,6 +1,7 @@
 import Navigation from '../components/Navigation/Navigation'
 import { Outlet } from 'react-router-dom'
 import Spinner from '../components/Spinner/Spinner'
+import ChatWidget from '../components/ChatWidget/ChatWidget'
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from 'react'
 import { loadUserProfile } from '@/store/userProfileSlice'
@@ -15,7 +16,7 @@ const ShopApplicationWrapper = () => {
     if (token && !loaded) {
       dispatch(loadUserProfile());
     }
-  }, [dispatch]);
+  }, [dispatch, loaded]);
 
   const isLoading = useSelector((state)=> state?.userProfile?.loadingProfile);
   return (
@@ -23,6 +24,7 @@ const ShopApplicationWrapper = () => {
         <Navigation />
         <Outlet />
         {isLoading && <Spinner />}
+        <ChatWidget />
     </div>
   )
 }
