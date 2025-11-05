@@ -71,7 +71,6 @@ export default function ShopeeCartPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // --- Load cart từ BE ---
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -274,8 +273,8 @@ export default function ShopeeCartPage() {
               </span>
             </div>
             <Button
-              className="bg-orange-500 hover:bg-orange-600 text-white mt-2 px-10"
-              onClick={handleCheckout} // ✅ chỉ thêm dòng này
+              className="bg-pink-500 hover:bg-pink-600 text-white mt-2 px-10"
+              onClick={handleCheckout}
             >
               Mua hàng
             </Button>
