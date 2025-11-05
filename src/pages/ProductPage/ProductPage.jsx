@@ -1,254 +1,309 @@
-import { ProductStats } from "./components/ProductStats";
-import { FilterBar } from "../../layout/CrudPageLayout/FilterBar";
-import { DataTable } from "@/components/DataTable/DataTable";
-import { Star, MoreVertical } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CrudPageLayout } from "@/layout/CrudPageLayout/CrudPageLayout";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "@/store/productSlice";
-import { useEffect } from "react";
-import Spinner from "@/components/Spinner/Spinner";
-import { toast } from "react-hot-toast";
+"use client";
 
-// eslint-disable-next-line no-unused-vars
-const sampleProducts = [
-  {
-    "id": "1ee2d566-52ef-4cbb-aefa-77cf4b028c71",
-    "name": "Adidas Ultraboost 22",
-    "description": "Giày chạy bộ hiệu suất cao, đàn hồi tốt.",
-    "price": 3299000,
-    "brand": "Sam Sung",
-    "rating": 4.7,
-    "categoryId": "af733a18-f471-48f9-bb92-68265a8a3a8c",
-    "thumbnail": "https://images.adidas.com/ultraboost22.jpg",
-    "slug": "adidas-ultraboost-22",
-    "categoryName": "Shoes",
-    "categoryTypeId": "84fe4ce7-86f0-415d-b987-1e02421e08e8",
-    "categoryTypeName": "Running",
-    "variants": [
-      {
-        "id": "d77ab6cf-5f75-42fb-a913-26632127c925",
-        "color": "Blue",
-        "size": "42",
-        "stockQuantity": 8
-      }
-    ],
-    "productResources": [
-      {
-        "id": "671ceeb8-f0fd-4932-8238-dd5d52e4b761",
-        "name": "Thumbnail",
-        "url": "https://images.adidas.com/ultraboost22-main.jpg",
-        "type": "image",
-        "isPrimary": true
-      }
-    ],
-    "newArrival": false
-  },
-  {
-    "id": "892b7426-338b-4dae-a949-1d3f86114e47",
-    "name": "Converse Chuck 70",
-    "description": "Thiết kế cổ điển, phù hợp mọi outfit.",
-    "price": 1599000,
-    "brand": "Converse",
-    "rating": 4.3,
-    "categoryId": "9f4044fe-9103-41bb-bcf2-b09b70a41bc0",
-    "thumbnail": "https://images.converse.com/chuck70.jpg",
-    "slug": "converse-chuck-70",
-    "categoryName": "Shoes",
-    "categoryTypeId": "84fe4ce7-86f0-415d-b987-1e02421e08e8",
-    "categoryTypeName": "Classic",
-    "variants": [
-      {
-        "id": "98cf4a97-3e23-4e52-b4a8-cf53f5130911",
-        "color": "White",
-        "size": "41",
-        "stockQuantity": 12
-      }
-    ],
-    "productResources": [
-      {
-        "id": "c73c088a-b8ea-4ddf-a01b-340374b04632",
-        "name": "Thumbnail",
-        "url": "https://images.converse.com/chuck70-main.jpg",
-        "type": "image",
-        "isPrimary": true
-      }
-    ],
-    "newArrival": true
-  }
-]
+import { QRCodeCanvas } from "qrcode.react";
+import { useState, useEffect } from "react";
+import { Search, Settings, Download, Plus, Info, MoreVertical, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
+// ==== Component cơ bản ====
+function Button({ children, className = "", variant, size, ...props }) {
+  const base =
+    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const variants = {
+    default: "bg-blue-600 text-white hover:bg-blue-700",
+    outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
+    ghost: "text-gray-700 hover:bg-gray-100",
+  };
+  return (
+    <button className={`${base} ${variants[variant] || ""} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+}
 
-const productColumns = [
-  {
-    key: "thumbnail",
-    header: "Thumbnail",
-    width: "50px",
-    render: (p) => (
-      <img
-        src={p.thumbnail}
-        alt={p.name}
-        className="w-10 h-10 rounded object-cover"
-      />
-    ),
-  },
-  {
-    key: "name",
-    header: "Product Name",
-    width: "25%",
-    render: (p) => <span className="font-medium">{p.name}</span>,
-  },
-  {
-    key: "brand",
-    header: "Brand",
-    render: (p) => <span className="text-sm">{p.brand}</span>,
-  },
-  {
-    key: "categoryName",
-    header: "Category",
-    render: (p) => <span className="text-sm">{p.categoryName}</span>,
-  },
-  {
-    key: "price",
-    header: "Price",
-    render: (p) => <span>${p.price.toLocaleString()}</span>,
-  },
-  {
-    key: "stock",
-    header: "Stock",
-    render: (p) => {
-      const totalStock = p.variants?.reduce(
-        (acc, v) => acc + (v.stockQuantity || 0),
-        0
-      );
-      return <span>{totalStock}</span>;
-    },
-  },
-  {
-    key: "rating",
-    header: "Rating",
-    render: (p) => (
-      <div className="flex items-center gap-1">
-        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-        <span>{p.rating}</span>
-      </div>
-    ),
-  },
-  {
-    key: "newArrival",
-    header: "New",
-    render: (p) =>
-      p.newArrival ? (
-        <Badge className="bg-green-500 text-white">New</Badge>
-      ) : (
-        <Badge variant="outline">Old</Badge>
-      ),
-  },
-  {
-    key: "slug",
-    header: "Slug",
-    render: (p) => (
-      <span className="text-xs text-muted-foreground">{p.slug}</span>
-    ),
-  },
-  {
-    key: "actions",
-    header: "Actions",
-    width: "60px",
-    render: () => (
-      <Button variant="ghost" size="sm">
-        <MoreVertical className="w-4 h-4" />
-      </Button>
-    ),
-  },
-];
+function Input({ className = "", ...props }) {
+  return (
+    <input
+      className={`border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+      {...props}
+    />
+  );
+}
 
+function Card({ children, className = "" }) {
+  return <div className={`rounded-lg border bg-white shadow-sm ${className}`}>{children}</div>;
+}
 
-const productFilters = [
-  {
-    key: "status",
-    placeholder: "Status",
-    options: [
-      { value: "active", label: "Active" },
-      { value: "inactive", label: "Inactive" },
-    ],
-    onChange: (key, value) => {
-      console.log("status:", key, value);
-      // TODO: Implement filter logic
-    },
-  },
-  {
-    key: "category",
-    placeholder: "Category",
-    options: [
-      { value: "electronics", label: "Electronics" },
-      { value: "beauty", label: "Beauty" },
-    ],
-    onChange: (key, value) => console.log("category:", key, value),
-  },
-  {
-    key: "price",
-    placeholder: "Price Range",
-    options: [
-      { value: "0-100", label: "$0 - $100" },
-      { value: "100-200", label: "$100 - $200" },
-      { value: "200-500", label: "$200 - $500" },
-    ],
-    onChange: (key, value) => console.log("price:", key, value),
-  },
-];
+function Avatar({ children, className = "" }) {
+  return <div className={`rounded-full overflow-hidden ${className}`}>{children}</div>;
+}
 
-const onSearch = (v) => {
-  console.log("search:", v);
-  // TODO: Implement search logic
-  // Call API Theo Entity vì search chì nhận value
-};
+function AvatarImage({ src, alt }) {
+  return <img src={src} alt={alt} className="w-full h-full object-cover" />;
+}
 
-const onClear = () => {
-  console.log("clear");
-  // TODO: Implement clear logic
-};
+function AvatarFallback({ children }) {
+  return (
+    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-600 text-sm font-medium">
+      {children}
+    </div>
+  );
+}
 
-export function ProductsPage() {
-  const dispatch = useDispatch();
+// ==== Table ====
+function Table({ children }) {
+  return <table className="w-full border-collapse">{children}</table>;
+}
+function TableHeader({ children }) {
+  return <thead className="bg-gray-100">{children}</thead>;
+}
+function TableBody({ children }) {
+  return <tbody>{children}</tbody>;
+}
+function TableRow({ children, className = "" }) {
+  return <tr className={`border-b ${className}`}>{children}</tr>;
+}
+function TableHead({ children, className = "" }) {
+  return <th className={`text-left px-4 py-2 text-sm font-semibold text-gray-700 ${className}`}>{children}</th>;
+}
+function TableCell({ children, className = "" }) {
+  return <td className={`px-4 py-2 text-sm text-gray-600 ${className}`}>{children}</td>;
+}
 
-  const products = useSelector((state) => state.productSlice.products);
-  const loading = useSelector((state) => state.productSlice.loading);
-  const error = useSelector((state) => state.productSlice.error);
-  const loaded = useSelector((state) => state.productSlice.loaded);
-  
+// ==== ProductTable ====
+function ProductTable({ searchTerm }) {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  // Ẩn dropdown khi click ra ngoài
   useEffect(() => {
-    if (!loaded) {
-      dispatch(fetchProducts());
-    }
-  }, [dispatch]);
+    const handleClickOutside = (event) => {
+      const dropdowns = document.querySelectorAll(".dropdown-menu");
+      let clickedInside = false;
+      dropdowns.forEach((el) => {
+        if (el.contains(event.target)) clickedInside = true;
+      });
+      if (!clickedInside) setSelectedProduct(null);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
+
+  // 🔥 Fetch API từ backend thật
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token"); // nếu có JWT
+        const res = await axios.get("http://localhost:8080/api/products", {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        });
+        setProducts(res.data);
+      } catch (err) {
+        console.error("❌ Lỗi khi lấy danh sách sản phẩm:", err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
-    {loading && <Spinner />}
-    {error && toast.error(error)}
-    {products.length > 0 && (
-      <CrudPageLayout
-        title="Products"
-        actionText="Add Product"
-        onAdd={() => console.log("add")}
-        stats={<ProductStats />}
-        filters={
-          <FilterBar
-            filters={productFilters}
-            onSearch={onSearch}
-            onClear={onClear}
-          />
-        }
-      >
-        <DataTable
-          data={products}
-          columns={productColumns}
-          showSelect={true}
-        />
-      </CrudPageLayout>
-    )}
+      {/* Popup chi tiết */}
+      {isDetailOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-lg w-3/4 max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex gap-6 items-start">
+              <img
+                src={selectedProduct.thumbnail}
+                alt={selectedProduct.name}
+                className="w-48 h-48 rounded-lg object-cover border"
+              />
+              <div>
+                <h2 className="text-2xl font-bold mb-2">{selectedProduct.name}</h2>
+                <p className="text-gray-700 mb-2">{selectedProduct.description}</p>
+                <p className="text-gray-700 mb-2">🏷️ Thương hiệu: {selectedProduct.brand || "Không rõ"}</p>
+                <p className="text-gray-700 mb-2">
+                  ⭐ Đánh giá: {selectedProduct.rating ?? "Chưa có"} / 5
+                </p>
+                <p className="text-gray-700 mb-4">
+                  💰 Giá: {selectedProduct.price?.toLocaleString("vi-VN")} VNĐ
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+                Đóng
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bảng sản phẩm */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Ảnh</TableHead>
+                <TableHead>Tên</TableHead>
+                <TableHead>Mô tả</TableHead>
+                <TableHead>Thương hiệu</TableHead>
+                <TableHead>Đánh giá</TableHead>
+                <TableHead className="text-right">Giá</TableHead>
+                <TableHead>QR</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.map((product) => (
+                <TableRow key={product.id} className="hover:bg-gray-50">
+                  <TableCell>{product.id}</TableCell>
+                  <TableCell>
+                    <img
+                      src={product.thumbnail}
+                      alt={product.name}
+                      className="w-14 h-14 rounded-md object-cover border"
+                    />
+                  </TableCell>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell className="max-w-xs truncate">{product.description}</TableCell>
+                  <TableCell>{product.brand || "Không rõ"}</TableCell>
+                  <TableCell className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    {product.rating ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {product.price?.toLocaleString("vi-VN")} VNĐ
+                  </TableCell>
+                  <TableCell>
+                    {origin && <QRCodeCanvas value={`${origin}/qr?id=${product.id}`} size={60} />}
+                  </TableCell>
+                  <TableCell>
+                    <div className="relative inline-block text-left dropdown-menu">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() =>
+                          setSelectedProduct(selectedProduct?.id === product.id ? null : product)
+                        }
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                      {selectedProduct?.id === product.id && (
+                        <div className="absolute right-0 mt-2 w-24 bg-white border rounded-lg shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              setIsDetailOpen(true);
+                              setSelectedProduct(product);
+                            }}
+                            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                          >
+                            Chi tiết
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
     </>
   );
 }
+
+// ==== PAGE CHÍNH ====
+function ProductPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  const stats = [
+    { label: "Tổng sản phẩm", value: "8", description: "Tổng số mặt hàng trong kho", icon: "📦" },
+    { label: "Còn hàng", value: "6", description: "Sản phẩm sẵn sàng bán", icon: "✅" },
+    { label: "Tồn kho thấp", value: "0", description: "Cần nhập thêm hàng", icon: "⚠️" },
+    { label: "Hết hàng", value: "2", description: "Không còn sản phẩm", icon: "❌" },
+  ];
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <main className="flex-1 overflow-auto">
+        <header className="border-b bg-white p-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Tìm kiếm sản phẩm..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Xuất dữ liệu
+            </Button>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+          </div>
+        </header>
+
+        <div className="p-6 space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold mb-4">Tổng quan sản phẩm</h1>
+            <div className="grid grid-cols-4 gap-4">
+              {stats.map((s, i) => (
+                <Card key={i} className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm text-gray-500">{s.label}</span>
+                  </div>
+                  <div className="text-3xl font-bold mb-1">{s.value}</div>
+                  <p className="text-xs text-gray-500">{s.description}</p>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Danh sách sản phẩm</h2>
+              <Button className="gap-2" onClick={() => navigate("/admin/product/add")}>
+                <Plus className="h-4 w-4" />
+                Thêm sản phẩm mới
+              </Button>
+            </div>
+            <ProductTable searchTerm={searchTerm} />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default ProductPage;
+export { ProductPage as ProductsPage };
