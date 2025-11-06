@@ -7,8 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
@@ -24,7 +22,6 @@ export default function OrdersTable({
   const [orders, setOrders] = useState([]); // dữ liệu từ API
   const [loading, setLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState(new Set());
-  const [updatingStatus, setUpdatingStatus] = useState(new Set()); // Track which orders are being updated
   const [deletingOrders, setDeletingOrders] = useState(new Set()); // Track which orders are being deleted
 
   //  Gọi API khi component load
@@ -71,49 +68,7 @@ export default function OrdersTable({
     else setSelectedRows(new Set(filteredOrders.map((o) => o.id)));
   };
 
-  // Cập nhật trạng thái đơn hàng
-  const handleStatusUpdate = async (orderId, newStatus) => {
-    // Trim status để loại bỏ khoảng trắng thừa
-    const trimmedStatus = newStatus.trim();
-
-    setUpdatingStatus((prev) => new Set(prev).add(orderId));
-    try {
-      console.log("Đang cập nhật trạng thái:", {
-        orderId,
-        newStatus: trimmedStatus,
-      });
-      const response = await orderAPI.updateStatus(orderId, trimmedStatus);
-      console.log("Cập nhật thành công:", response);
-
-      // Cập nhật trạng thái trong local state
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.id === orderId ? { ...order, status: trimmedStatus } : order
-        )
-      );
-    } catch (error) {
-      console.error("Lỗi chi tiết khi cập nhật trạng thái:", error);
-      // axiosClient interceptor trả về error.response?.data hoặc { message, status }
-      const errorMessage =
-        error?.message ||
-        (typeof error === "string"
-          ? error
-          : "Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.");
-
-      console.error("Error object:", error);
-      console.error("Error message:", errorMessage);
-
-      alert(
-        `Lỗi: ${errorMessage}\n\nVui lòng kiểm tra console để xem chi tiết lỗi.`
-      );
-    } finally {
-      setUpdatingStatus((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(orderId);
-        return newSet;
-      });
-    }
-  };
+  // (Đã bỏ chức năng cập nhật trạng thái theo yêu cầu)
 
   // Xóa đơn hàng
   const handleDelete = async (orderId, orderNumber) => {
@@ -150,16 +105,7 @@ export default function OrdersTable({
     }
   };
 
-  // Danh sách các trạng thái có thể chọn
-  const statusOptions = [
-    { value: "pending", label: "Pending" },
-    { value: "processing", label: "Processing" },
-    { value: "shipped", label: "Shipped" },
-    { value: "delivered", label: "Delivered" },
-    { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
-    { value: "refunded", label: "Refunded" },
-  ];
+  // (Đã bỏ danh sách trạng thái vì chỉ giữ tính năng xóa)
 
   // Loading UI
   if (loading)
@@ -239,47 +185,17 @@ export default function OrdersTable({
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        disabled={
-                          updatingStatus.has(order.id) ||
-                          deletingOrders.has(order.id)
-                        }
+                        disabled={deletingOrders.has(order.id)}
                       >
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Cập nhật trạng thái</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {statusOptions.map((status) => (
-                        <DropdownMenuItem
-                          key={status.value}
-                          onClick={() =>
-                            handleStatusUpdate(order.id, status.value)
-                          }
-                          disabled={
-                            order.status === status.value ||
-                            updatingStatus.has(order.id) ||
-                            deletingOrders.has(order.id)
-                          }
-                          className={
-                            order.status === status.value
-                              ? "bg-muted font-medium"
-                              : ""
-                          }
-                        >
-                          {status.label}
-                          {order.status === status.value && " (hiện tại)"}
-                        </DropdownMenuItem>
-                      ))}
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() =>
                           handleDelete(order.id, order.orderNumber)
                         }
-                        disabled={
-                          updatingStatus.has(order.id) ||
-                          deletingOrders.has(order.id)
-                        }
+                        disabled={deletingOrders.has(order.id)}
                         className="text-red-600 focus:text-red-600 focus:bg-red-50"
                       >
                         Xóa đơn hàng

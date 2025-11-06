@@ -10,10 +10,10 @@ export const orderAPI = {
 
   // DELETE - xóa đơn hàng
   delete: (orderId) => axiosClient.delete(`/api/orders/${orderId}`),
-  
-  // PATCH - cập nhật trạng thái đơn hàng
+
+  // PUT - cập nhật trạng thái đơn hàng
   updateStatus: (orderId, newStatus, changedBy) =>
-    axiosClient.patch(
+    axiosClient.put(
       `/api/orders/${orderId}/status${
         changedBy ? `?changedBy=${encodeURIComponent(changedBy)}` : ""
       }`,
