@@ -7,9 +7,6 @@ import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-r
 import { useNavigate } from "react-router-dom";
 
 /* ======= ProductPage (full) ======= */
-/* Paste đè vào file ProductPage.jsx, save và reload dev server */
-
-console.log("✅ ProductPage loaded");
 
 function Button({ children, className = "", variant = "default", ...props }) {
   const base = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none";
@@ -100,53 +97,53 @@ function ProductTable({ products, onOpenDetail, onNavigateAdd, navigate }) {
                       </button>
 
                       <button
-  className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
-  onClick={() => {
-    setSelectedDropdown(null);
-    navigate(`/admin/product/edit/${product.id}`);
-  }}
->
-  Sửa
-</button>
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        onClick={() => {
+                          setSelectedDropdown(null);
+                          navigate(`/admin/product/edit/${product.id}`);
+                        }}
+                      >
+                        Sửa
+                      </button>
 
 
 
                       <button
-  className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-100 flex items-center gap-2"
-  onClick={async () => {
-  setSelectedDropdown(null);
-  const confirmed = window.confirm(`Bạn có chắc muốn xóa sản phẩm "${product.name}" không?`);
-  if (!confirmed) return;
+                        className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-100 flex items-center gap-2"
+                        onClick={async () => {
+                          setSelectedDropdown(null);
+                          const confirmed = window.confirm(`Bạn có chắc muốn xóa sản phẩm "${product.name}" không?`);
+                            if (!confirmed) return;
 
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("⚠️ Thiếu token, vui lòng đăng nhập lại.");
-      return;
-    }
+                            try {
+                              const token = localStorage.getItem("token");
+                            if (!token) {
+                              alert("⚠️ Thiếu token, vui lòng đăng nhập lại.");
+                            return;
+                            }
 
-    const response = await axios.delete(`http://localhost:8080/api/products/${product.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+                          const response = await axios.delete(`http://localhost:8080/api/products/${product.id}`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                          });
 
-    if (response.status === 200 || response.status === 204) {
-      alert("✅ Xóa sản phẩm thành công!");
-      // Cập nhật lại danh sách sản phẩm (không cần reload trang)
-      setProducts((prev) => prev.filter((p) => p.id !== product.id));
-    } else {
-      alert(`⚠️ Xóa thất bại — Status: ${response.status}`);
-    }
-  } catch (error) {
-    console.error("❌ Lỗi khi xóa:", error);
-    alert(
-      `Xóa sản phẩm thất bại.\n${error.response?.data?.message || error.message}`
-    );
-  }
-}}
+                            if (response.status === 200 || response.status === 204) {
+                              alert("✅ Xóa sản phẩm thành công!");
+                              // Cập nhật lại danh sách sản phẩm (không cần reload trang)
+                              setProducts((prev) => prev.filter((p) => p.id !== product.id));
+                            } else {
+                              alert(`⚠️ Xóa thất bại — Status: ${response.status}`);
+                            }
+                            } catch (error) {
+                              console.error("❌ Lỗi khi xóa:", error);
+                              alert(
+                                `Xóa sản phẩm thất bại.\n${error.response?.data?.message || error.message}`
+                              );
+                              }
+                        }}
 
->
-  <Trash2 className="h-4 w-4" /> Xóa
-</button>
+                      >
+                      <Trash2 className="h-4 w-4" /> Xóa
+                      </button>
 
                     </div>
                   )}
