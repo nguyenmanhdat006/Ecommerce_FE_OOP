@@ -42,7 +42,6 @@ export function Sidebar() {
       submenu: [
         { label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
         { label: "Product List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST },
-        { label: "Product Detail", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_DETAIL },
         {
           label: "Add Product",
           icon: <ShoppingCart className="w-4 h-4" />,
