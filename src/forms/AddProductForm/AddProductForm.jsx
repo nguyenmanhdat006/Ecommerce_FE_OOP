@@ -120,7 +120,7 @@ export default function AddProductForm() {
       await dispatch(createProduct(data));
       toast.success("✅ Thêm sản phẩm mới thành công!");
     }
-    navigate("/admin/products"); // quay lại danh sách
+    navigate("/admin/product"); // quay lại danh sách
   } catch (err) {
     console.error("❌ Lỗi lưu sản phẩm:", err);
     toast.error("Lưu sản phẩm thất bại!");
