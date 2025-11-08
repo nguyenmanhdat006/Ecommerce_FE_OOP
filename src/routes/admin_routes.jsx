@@ -1,4 +1,4 @@
-import { ProductsPage } from "../pages/ProductPage/ProductPage.jsx";
+import ProductPage from "../pages/ProductPage/ProductPage.jsx";
 import { Dashboard } from "../pages/DashBoard/index.jsx";
 import AddProductForm from "@/forms/AddProductForm/AddProductForm.jsx";
 import { UsersPage } from "@/pages/UserManagement/UsersPage.jsx";
@@ -19,7 +19,7 @@ export const adminRouter = {
   children: [
     {
       path: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST,
-      element: <ProductsPage />,
+      element: <ProductPage />,
     },
     {
       path: ROUTE_CONSTANTS.ADMIN_PRODUCT_ADD,
@@ -41,10 +41,10 @@ export const adminRouter = {
       path: "order-detail",
       element: <OrderDetailPage />,
     },
-    {
-      path: "product-detail",
-      element: <ProductDetail />,
-    },
+    // {
+    //   path: "product-detail",
+    //   element: <ProductDetail />,
+    // },
     {
       path: "category-type-list",
       element: <CategoryTypePage />,
