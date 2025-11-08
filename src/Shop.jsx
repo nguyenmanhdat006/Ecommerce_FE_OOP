@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import { getToken, getUser } from "./utils/jwt-helper.js";
 import { logout, setCredentials } from "./store/authSlice.jsx";
 import { fetchCategories } from "./store/categorySlice.jsx";
+import OrderStatusToast from "./components/OrderStatusToast/OrderStatusToast.jsx";
 
 const Shop = () => {
   const dispatch = useDispatch();
@@ -32,6 +33,7 @@ const Shop = () => {
 
   return (
     <>
+      <OrderStatusToast />
       <HeroSection />
       <NewArrivals />
       {content?.pages?.shop?.sections &&

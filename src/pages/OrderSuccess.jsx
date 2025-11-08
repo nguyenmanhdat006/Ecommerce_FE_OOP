@@ -18,14 +18,14 @@ export default function OrderManagement() {
   ];
 
   useEffect(() => {
-    console.log("✅ Fetching orders...");
+    console.log("Fetching orders...");
     async function fetchOrders() {
       try {
         const res = await orderAPI.getAll();
-        console.log("✅ Orders:", res);
+        console.log("Orders:", res);
         setOrders(res);
       } catch (err) {
-        console.error("❌ Fetch orders failed:", err.response?.data || err.message);
+        console.error("Fetch orders failed:", err.response?.data || err.message);
         alert("Không lấy được danh sách đơn hàng");
       } finally {
         setLoading(false);
