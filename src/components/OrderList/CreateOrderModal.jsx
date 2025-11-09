@@ -1,9 +1,10 @@
 // src/components/CreateOrderModal.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import axios from "axios";
 import { cn } from "@/lib/utils";
 
 // shadcn/ui components
@@ -47,8 +48,13 @@ import {
   Mail,
   CalendarIcon,
   AlertCircle,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
+
+// Toast system (ví dụ: react-hot-toast)
+import { toast } from "react-hot-toast";
 
 // 1. Schema validation
 const orderFormSchema = z.object({
@@ -65,9 +71,8 @@ const orderFormSchema = z.object({
   dueDate: z.date({ required_error: "Ngày giao hàng không được bỏ trống." }),
 });
 
-type OrderFormValues = z.infer<typeof orderFormSchema>;
 
-// 2. Reusable FormField Component
+// 2. Reusable TextField
 const TextField = ({
   label,
   icon: Icon,
@@ -103,7 +108,7 @@ const TextField = ({
   </FormItem>
 );
 
-export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
+export default function CreateOrderModal({ isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form =
@@ -120,16 +125,50 @@ export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
       },
     };
 
-  const handleSubmit = async (data: OrderFormValues) => {
+  const firstInputRef = useRef < HTMLInputElement > null;
+
+  // Focus vào input đầu tiên khi mở modal
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => firstInputRef.current?.focus(), 200);
+    }
+  }, [isOpen]);
+
     setIsLoading(true);
-    console.log("Submitting:", data);
+    try {
+      // Ví dụ gọi API
+      await axios.post("/api/orders", data);
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.custom((t) => (
+        <div
+          className={cn(
+            "bg-green-500 text-white px-4 py-2 rounded-md",
+            t.visible ? "animate-enter" : "animate-leave"
+          )}
+        >
+          <CheckCircle className="inline mr-2 h-4 w-4" />
+          Order created successfully!
+        </div>
+      ));
 
-    onSubmit?.(data);
-    setIsLoading(false);
-    form.reset();
-    onClose?.();
+      form.reset();
+      onClose?.();
+    } catch (err) {
+      console.error(err);
+      toast.custom((t) => (
+        <div
+          className={cn(
+            "bg-red-500 text-white px-4 py-2 rounded-md",
+            t.visible ? "animate-enter" : "animate-leave"
+          )}
+        >
+          <XCircle className="inline mr-2 h-4 w-4" />
+          Failed to create order. Please try again.
+        </div>
+      ));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -156,7 +195,6 @@ export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
             className="space-y-6 pt-4"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Order Name */}
               <FormField
                 control={form.control}
                 name="orderName"
@@ -164,13 +202,12 @@ export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
                   <TextField
                     label="Order Name"
                     placeholder="e.g. Order #1234"
-                    field={field}
+                    field={{ ...field, ref: firstInputRef }}
                     disabled={isLoading}
                   />
                 )}
               />
 
-              {/* Order Type */}
               <FormField
                 control={form.control}
                 name="orderType"
@@ -198,7 +235,6 @@ export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
                 )}
               />
 
-              {/* Customer Name */}
               <FormField
                 control={form.control}
                 name="customerName"
@@ -213,7 +249,6 @@ export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
                 )}
               />
 
-              {/* Customer Email */}
               <FormField
                 control={form.control}
                 name="customerEmail"
@@ -229,7 +264,6 @@ export default function CreateOrderModal({ isOpen, onClose, onSubmit }) {
                 )}
               />
 
-              {/* Due Date */}
               <FormField
                 control={form.control}
                 name="dueDate"
