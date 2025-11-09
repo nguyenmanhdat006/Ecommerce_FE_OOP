@@ -19,4 +19,7 @@ export const orderAPI = {
       }`,
       { status: newStatus }
     ),
+
+  // PUT - cập nhật đơn hàng
+  update: (orderId, data) => axiosClient.put(`/api/orders/${orderId}`, data),
 };
