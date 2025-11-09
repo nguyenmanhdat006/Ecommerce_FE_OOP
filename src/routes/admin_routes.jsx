@@ -53,6 +53,9 @@ export const adminRouter = {
       path: "category-list",
       element: <CategoryPage />,
     },
-
+    {
+      path: "/admin/product/edit/:id",
+      element: <AddProductForm/>,
+    }
   ],
 };
