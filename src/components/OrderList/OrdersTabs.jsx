@@ -2,10 +2,12 @@
 
 const tabs = [
   { id: "all", label: "All" },
-  { id: "completed", label: "Completed" },
-  { id: "processed", label: "Processed" },
-  { id: "returned", label: "Returned" },
-  { id: "canceled", label: "Canceled" },
+  { id: "PENDING", label: "PENDING" },
+  { id: "SHIPPING", label: "SHIPPING" },
+  { id: "WAIT_DELIVER", label: "WAIT_DELIVER" },
+  { id: "PAID", label: "PAID" },
+  { id: "CANCELED", label: "CANCELED" },
+  { id: "REFUND", label: "REFUND" },
 ];
 
 export default function OrdersTabs({ activeTab, onTabChange }) {
