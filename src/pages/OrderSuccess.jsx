@@ -106,19 +106,20 @@ export default function OrderManagement() {
               • {dayjs(order.orderDate).format("DD/MM/YYYY HH:mm")}
             </div>
             <div className="flex items-center gap-2">
+              {/* Hiển thị trạng thái thanh toán */}
               {order.paymentMethod === "vnpay" && (
-                <span
-                  className={`px-2 py-1 text-xs rounded ${
-                    order.status === "PAID"
-                      ? "bg-green-100 text-green-700 border border-green-300"
-                      : "bg-yellow-100 text-yellow-700 border border-yellow-300"
-                  }`}
-                >
-                  {order.status === "PAID"
-                    ? "Đã thanh toán (VNPAY)"
-                    : "Chưa thanh toán"}
+                <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700 border border-green-300">
+                  Đã thanh toán (VNPAY)
                 </span>
               )}
+
+              {order.paymentMethod !== "vnpay" && order.status !== "PAID" && (
+                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700 border border-yellow-300">
+                  Chưa thanh toán
+                </span>
+              )}
+
+              {/* Trạng thái đơn hàng */}
               <span className="text-orange-600 font-medium text-sm">
                 {order.status === "PENDING"
                   ? "Chờ xác nhận"
@@ -136,6 +137,7 @@ export default function OrderManagement() {
               </span>
             </div>
           </div>
+
 
           {/* Sản phẩm */}
           <div className="p-4 space-y-3">

@@ -12,7 +12,7 @@ export default function Checkout() {
   const [shippingFee] = useState(10000);
   const [showVoucherList, setShowVoucherList] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("shopeePay");
+  const [paymentMethod, setPaymentMethod] = useState();
   const [selectedBank, setSelectedBank] = useState(null);
 
   const vouchers = [
@@ -282,8 +282,9 @@ export default function Checkout() {
                 totalAmount: totalPayment,
                 // status: paymentMethod === "cod" ? "PENDING" : "UNPAID",
                 status: "PENDING",
+                paymentStatus: paymentMethod === "vnpay" ? "PAID" : "UNPAID",
                 paymentMethod,
-                shippingAddress: 'Ngõ 3 Cúc Phố, Xã Vinh Quang, Huyện Vĩnh Bảo, Hải Phòng',
+                shippingAddress: 'Thanh Lương, Hải Phòng',
                 notes: '',
                 customerId: user.id,
                 orderItems,
