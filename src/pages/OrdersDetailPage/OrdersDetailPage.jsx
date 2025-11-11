@@ -20,7 +20,7 @@ const OrderDetailPage = ({
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await orderAPI.getById(orderId); // 👉 gọi API thực tế
+        const res = await orderAPI.getById(orderId); 
         setOrder(res);
         setNote(res.data?.notes || "");
       } catch (err) {
