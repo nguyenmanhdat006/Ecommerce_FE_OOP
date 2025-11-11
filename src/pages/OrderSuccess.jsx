@@ -18,13 +18,14 @@ export default function OrderManagement() {
   ];
 
   useEffect(() => {
+    console.log("Fetching orders...");
     async function fetchOrders() {
       try {
         const res = await orderAPI.getAll();
         console.log("Orders:", res);
         setOrders(res);
       } catch (err) {
-        console.error(err);
+        console.error("Fetch orders failed:", err.response?.data || err.message);
         alert("Không lấy được danh sách đơn hàng");
       } finally {
         setLoading(false);
@@ -35,9 +36,10 @@ export default function OrderManagement() {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await orderAPI.updateStatus(orderId, newStatus);
+      // gửi changedBy = "admin" (hoặc user đang đăng nhập)
+      const updatedOrder = await orderAPI.updateStatus(orderId, newStatus, "admin");
       setOrders(prev =>
-        prev.map(o => (o.id === orderId ? { ...o, status: newStatus } : o))
+        prev.map(o => (o.id === orderId ? updatedOrder : o))
       );
     } catch (err) {
       console.error(err);
@@ -45,17 +47,12 @@ export default function OrderManagement() {
     }
   };
 
-  // Xác định trạng thái kế tiếp khi ấn "Xác nhận"
   const getNextStatus = current => {
     switch (current) {
-      case "PENDING":
-        return "SHIPPING";
-      case "SHIPPING":
-        return "WAIT_DELIVER";
-      case "WAIT_DELIVER":
-        return "PAID";
-      default:
-        return current; // các trạng thái khác giữ nguyên
+      case "PENDING": return "SHIPPING";
+      case "SHIPPING": return "WAIT_DELIVER";
+      case "WAIT_DELIVER": return "PAID";
+      default: return current;
     }
   };
 
@@ -65,11 +62,7 @@ export default function OrderManagement() {
       : orders.filter(o => o.status === selectedStatus);
 
   if (loading)
-    return (
-      <div className="p-6 text-gray-600">
-        Đang tải danh sách đơn hàng...
-      </div>
-    );
+    return <div className="p-6 text-gray-600">Đang tải danh sách đơn hàng...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -113,19 +106,20 @@ export default function OrderManagement() {
               • {dayjs(order.orderDate).format("DD/MM/YYYY HH:mm")}
             </div>
             <div className="flex items-center gap-2">
+              {/* Hiển thị trạng thái thanh toán */}
               {order.paymentMethod === "vnpay" && (
-                <span
-                  className={`px-2 py-1 text-xs rounded ${
-                    order.status === "PAID"
-                      ? "bg-green-100 text-green-700 border border-green-300"
-                      : "bg-yellow-100 text-yellow-700 border border-yellow-300"
-                  }`}
-                >
-                  {order.status === "PAID"
-                    ? "Đã thanh toán (VNPAY)"
-                    : "Chưa thanh toán"}
+                <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700 border border-green-300">
+                  Đã thanh toán (VNPAY)
                 </span>
               )}
+
+              {order.paymentMethod !== "vnpay" && order.status !== "PAID" && (
+                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700 border border-yellow-300">
+                  Chưa thanh toán
+                </span>
+              )}
+
+              {/* Trạng thái đơn hàng */}
               <span className="text-orange-600 font-medium text-sm">
                 {order.status === "PENDING"
                   ? "Chờ xác nhận"
@@ -137,10 +131,13 @@ export default function OrderManagement() {
                   ? "Hoàn thành"
                   : order.status === "CANCELED"
                   ? "Đã hủy"
+                  : order.status === "REFUND"
+                  ? "Trả hàng/Hoàn tiền"
                   : "Khác"}
               </span>
             </div>
           </div>
+
 
           {/* Sản phẩm */}
           <div className="p-4 space-y-3">
@@ -153,6 +150,7 @@ export default function OrderManagement() {
                   <span>• Sản phẩm #{idx + 1}</span>
                   <span>Số lượng: {item.quantity}</span>
                   <span>Đơn giá: {item.unitPrice.toLocaleString()}₫</span>
+                  <span>SKU: {item.productVariant?.color} / {item.productVariant?.size}</span>
                 </div>
                 <div className="text-right font-medium text-gray-900">
                   {item.totalPrice.toLocaleString()}₫
@@ -177,7 +175,6 @@ export default function OrderManagement() {
 
           {/* Nút thao tác */}
           <div className="flex justify-end gap-3 px-4 py-3 bg-white border-t">
-            {/* Nút xác nhận ở mọi trạng thái */}
             <button
               className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm"
               onClick={() =>
@@ -192,7 +189,6 @@ export default function OrderManagement() {
               Xác nhận
             </button>
 
-            {/* Nút hủy */}
             {order.status !== "CANCELED" && order.status !== "PAID" && (
               <button
                 className="bg-gray-200 text-gray-700 px-4 py-1 rounded hover:bg-gray-300 text-sm"
