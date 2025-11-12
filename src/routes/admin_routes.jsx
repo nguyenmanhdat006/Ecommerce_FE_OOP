@@ -10,6 +10,7 @@ import OrderDetailPage from "@/pages/OrdersDetailPage/OrdersDetailPage.jsx";
 import ProductDetail from "@/forms/ProductDetail/ProductDetail.jsx";
 import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx";
 import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
+import AdminChat from "@/pages/AdminChat/AdminChat.jsx";
 
 
 
@@ -56,6 +57,10 @@ export const adminRouter = {
     {
       path: "/admin/product/edit/:id",
       element: <AddProductForm/>,
+    },
+    {
+      path: ROUTE_CONSTANTS.ADMIN_CHAT,
+      element: <AdminChat />,
     }
   ],
 };

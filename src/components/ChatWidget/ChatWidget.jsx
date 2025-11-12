@@ -1,19 +1,28 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { getUser } from "@/utils/jwt-helper";
-import WebSocketManager from "@/lib/websocketManager";
+import { getUser, getToken } from "@/utils/jwt-helper";
+import { chatWebSocket } from "@/lib/chatWebSocket";
+import { messageAPI } from "@/api/message.api";
+import { selectUserId, loadUserProfile } from "@/store/userProfileSlice";
 
 const ChatWidget = () => {
+  const dispatch = useDispatch();
+  const currentUserId = useSelector(selectUserId);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const socketRef = useRef(null);
+  const [connectionStatus, setConnectionStatus] = useState("disconnected");
+  const ADMIN_ID = "ca271b76-eb75-4d15-9ebc-e863f2068649"; // Admin ID cố định
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const listenerId = "chat-widget";
+  const hasLoadedRef = useRef(false);
 
-  const currentUser = getUser()?.id; // người dùng hiện tại
+  const currentUser = getUser()?.id || currentUserId; // người dùng hiện tại
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,63 +32,138 @@ const ChatWidget = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Load chat history with admin
+  const loadChatData = useCallback(async () => {
+    if (hasLoadedRef.current) return;
+    
+    try {
+      setLoading(true);
+      hasLoadedRef.current = true;
+      
+      // Load current user profile if not loaded
+      if (!currentUserId) {
+        await dispatch(loadUserProfile()).unwrap();
+      }
+      
+      // Load chat history with admin (using fixed admin ID)
+      const historyResponse = await messageAPI.getChatHistory(ADMIN_ID);
+      const historyMessages = Array.isArray(historyResponse) 
+        ? historyResponse 
+        : (historyResponse?.data || []);
+      
+      // Convert to widget format
+      const formattedMessages = historyMessages.map(msg => ({
+        from: msg.senderId === currentUser ? currentUser : msg.senderId,
+        message: msg.content,
+        timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date(),
+        senderId: msg.senderId,
+        receiverId: msg.receiverId,
+      }));
+      
+      setMessages(formattedMessages);
+      
+      // Mark messages as read
+      try {
+        await messageAPI.markAsRead(ADMIN_ID);
+      } catch (err) {
+        console.error("Failed to mark as read:", err);
+      }
+      
+      setTimeout(() => scrollToBottom(), 100);
+    } catch (error) {
+      console.error("Error loading chat data:", error);
+      hasLoadedRef.current = false; // Reset on error to allow retry
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId, currentUser, dispatch]);
+
+  // Handle WebSocket messages
+  const handleWebSocketMessage = useCallback((type, data) => {
+    if (type === "status") {
+      setConnectionStatus(data.status);
+      if (data.status === "connected") {
+        console.log("WebSocket connected");
+      } else if (data.status === "disconnected") {
+        console.log("WebSocket disconnected");
+      }
+    } else if (type === "message") {
+      // Only add if message is from admin
+      if (data.senderId === ADMIN_ID) {
+        const msg = {
+          from: data.senderId,
+          message: data.content,
+          timestamp: data.createdAt ? new Date(data.createdAt) : new Date(),
+          senderId: data.senderId,
+          receiverId: data.receiverId,
+        };
+        setMessages((prev) => [...prev, msg]);
+        setTimeout(() => scrollToBottom(), 0);
+        
+        // Mark as read
+        messageAPI.markAsRead(data.senderId).catch(console.error);
+      }
+    } else if (type === "error") {
+      console.error("WebSocket error:", data);
+    }
+  }, []);
+
+  // Setup WebSocket when widget opens
   useEffect(() => {
-    if (isOpen && !socketRef.current) {
-      const url = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/chat`;
-      const manager = new WebSocketManager(url, {
-        autoReconnect: true,
-        reconnectInterval: 2000,
-      });
-      socketRef.current = manager;
-
-      manager.on('open', () => console.log('WebSocket connected'));
-
-      manager.on('message', (event) => {
-        try {
-          const msg = JSON.parse(event.data);
-          setMessages((prev) => [...prev, { ...msg, timestamp: new Date() }]);
-        } catch (err) {
-          console.error('Invalid message payload', err);
-        }
-      });
-
-      manager.on('error', (err) => console.error('WebSocket error:', err));
-
-      manager.on('close', () => {
-        console.log('WebSocket disconnected');
-        // manager will attempt reconnect automatically based on settings
-      });
-
-      manager.connect();
+    if (!isOpen) {
+      hasLoadedRef.current = false; // Reset when closed to allow reload on next open
+      return;
     }
 
+    const token = getToken();
+    if (!token) {
+      console.error("No token available for WebSocket");
+      return;
+    }
+
+    // Add listener
+    chatWebSocket.addListener(listenerId, handleWebSocketMessage);
+
+    // Connect if not already connected
+    if (!chatWebSocket.isConnected() && !chatWebSocket.getIsConnecting()) {
+      chatWebSocket.connect(token).catch(console.error);
+    }
+
+    // Load chat history when widget opens
+    loadChatData();
+
     return () => {
-      if (socketRef.current) {
-        try {
-          socketRef.current.close();
-        } catch (err) {
-          // ignore
-        }
-        socketRef.current = null;
-      }
+      // Only remove listener, don't disconnect (singleton)
+      chatWebSocket.removeListener(listenerId);
     };
-  }, [isOpen]);
+  }, [isOpen, handleWebSocketMessage, loadChatData]);
 
   const sendMessage = (e) => {
     e.preventDefault();
-    if (!text.trim() || !socketRef.current) return;
+    if (!text.trim()) return;
 
-    const msg = {
-      from: currentUser ?? "userA",
-      message: text.trim(),
-    };
+    if (!chatWebSocket.isConnected()) {
+      console.error("WebSocket is not connected");
+      return;
+    }
 
-    try {
-  // WebSocketManager#send will stringify objects
-  socketRef.current.send(msg);
+    const messageContent = text.trim();
+    const success = chatWebSocket.sendMessage(ADMIN_ID, messageContent);
+
+    if (success) {
+      // Add message to UI optimistically
+      const msg = {
+        from: currentUser ?? "userA",
+        message: messageContent,
+        timestamp: new Date(),
+        senderId: currentUser,
+        receiverId: adminId,
+      };
+      setMessages((prev) => [...prev, msg]);
       setText("");
-    } catch (error) {
-      console.error("Failed to send message:", error);
+      setTimeout(() => scrollToBottom(), 0);
+    } else {
+      console.error("Failed to send message");
     }
   };
 
@@ -123,7 +207,16 @@ const ChatWidget = () => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-5 bg-gray-50 dark:bg-gray-900 space-y-3">
-          {messages.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-full text-center px-5">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center mb-5 shadow-lg shadow-pink-500/30 animate-pulse">
+                <MessageCircle className="w-10 h-10" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Đang tải tin nhắn...
+              </p>
+            </div>
+          ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-5">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center mb-5 shadow-lg shadow-pink-500/30">
                 <MessageCircle className="w-10 h-10" />
@@ -137,7 +230,11 @@ const ChatWidget = () => {
             </div>
           ) : (
             messages.map((msg, index) => {
-              const isMe = msg.from === currentUser;
+              // Determine if message is sent by current user
+              const isMe = msg.from === currentUser || 
+                          msg.senderId === currentUser ||
+                          (msg.receiverId === ADMIN_ID && msg.senderId === currentUser);
+              
               return (
                 <div
                   key={index}
@@ -148,7 +245,7 @@ const ChatWidget = () => {
                 >
                   {!isMe && (
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-white text-xs mr-2">
-                      {msg.from[0].toUpperCase()}
+                      {msg.from?.[0]?.toUpperCase() || "A"}
                     </div>
                   )}
                   <div
