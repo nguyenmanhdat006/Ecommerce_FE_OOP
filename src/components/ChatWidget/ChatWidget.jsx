@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getUser } from "@/utils/jwt-helper";
+import WebSocketManager from "@/lib/websocketManager";
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,29 +25,41 @@ const ChatWidget = () => {
 
   useEffect(() => {
     if (isOpen && !socketRef.current) {
-      socketRef.current = new WebSocket(
-        `${import.meta.env.VITE_WEBSOCKET_URL}/ws/chat`
-      );
+      const url = `${import.meta.env.VITE_WEBSOCKET_URL}/ws/chat`;
+      const manager = new WebSocketManager(url, {
+        autoReconnect: true,
+        reconnectInterval: 2000,
+      });
+      socketRef.current = manager;
 
-      socketRef.current.onopen = () => console.log("WebSocket connected");
+      manager.on('open', () => console.log('WebSocket connected'));
 
-      socketRef.current.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        setMessages((prev) => [...prev, { ...msg, timestamp: new Date() }]);
-      };
+      manager.on('message', (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          setMessages((prev) => [...prev, { ...msg, timestamp: new Date() }]);
+        } catch (err) {
+          console.error('Invalid message payload', err);
+        }
+      });
 
-      socketRef.current.onerror = (error) =>
-        console.error("WebSocket error:", error);
+      manager.on('error', (err) => console.error('WebSocket error:', err));
 
-      socketRef.current.onclose = () => {
-        console.log("WebSocket disconnected");
-        socketRef.current = null;
-      };
+      manager.on('close', () => {
+        console.log('WebSocket disconnected');
+        // manager will attempt reconnect automatically based on settings
+      });
+
+      manager.connect();
     }
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.close();
+        try {
+          socketRef.current.close();
+        } catch (err) {
+          // ignore
+        }
         socketRef.current = null;
       }
     };
@@ -62,7 +75,8 @@ const ChatWidget = () => {
     };
 
     try {
-      socketRef.current.send(JSON.stringify(msg));
+  // WebSocketManager#send will stringify objects
+  socketRef.current.send(msg);
       setText("");
     } catch (error) {
       console.error("Failed to send message:", error);
