@@ -4,6 +4,7 @@ import {
   ShoppingCart,
   BarChart3,
   Users,
+  MessageSquare,
   ItalicIcon as AnalyticsIcon,
   FolderOpen,
   Zap,
@@ -63,6 +64,11 @@ export function Sidebar() {
       label: "User Management",
       icon: <Users className="w-5 h-5" />,
       route: ROUTE_CONSTANTS.ADMIN_USER_LIST,
+    },
+    {
+      label: "Chat",
+      icon: <MessageSquare className="w-5 h-5" />,
+      route: ROUTE_CONSTANTS.ADMIN_CHAT,
     },
   ];
 

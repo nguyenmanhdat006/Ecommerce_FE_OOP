@@ -26,9 +26,9 @@ export function FormSelect({
         {label}
       </label>
       {useRegister ? (
-        <select
-          {...register(name)}
-          className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 ${
+      <select
+        {...register(name)}
+        className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 ${
             error ? "border-red-500 ring-red-500" : "border-input ring-ring"
           }`}
         >
@@ -45,14 +45,14 @@ export function FormSelect({
           value={value}
           className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 ${
             error ? "border-red-500 ring-red-500" : "border-input ring-ring"
-          }`}
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        }`}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
       )}
       {error && (
         <p className="text-red-500 text-sm mt-1">{error.message}</p>
