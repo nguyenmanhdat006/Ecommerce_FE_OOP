@@ -115,10 +115,10 @@ export default function AddProductForm() {
       await axios.put(`http://localhost:8080/api/products/${id}`, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success("✅ Cập nhật sản phẩm thành công!");
+      toast.success(" Cập nhật sản phẩm thành công!");
     } else {
       await dispatch(createProduct(data));
-      toast.success("✅ Thêm sản phẩm mới thành công!");
+      toast.success(" Thêm sản phẩm mới thành công!");
     }
     navigate("/admin/product"); // quay lại danh sách
   } catch (err) {
