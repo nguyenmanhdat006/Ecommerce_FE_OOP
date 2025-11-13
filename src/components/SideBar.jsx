@@ -4,6 +4,7 @@ import {
   ShoppingCart,
   BarChart3,
   Users,
+  MessageSquare,
   ItalicIcon as AnalyticsIcon,
   FolderOpen,
   Zap,
@@ -21,7 +22,7 @@ export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation(); // lấy route hiện tại
   const user = useSelector((state) => state.authSlice.user);
-  console.log('Sidebar User:', user);
+  console.log("Sidebar User:", user);
   const toggleExpand = (label) => {
     setExpandedItems((prev) =>
       prev.includes(label)
@@ -41,17 +42,41 @@ export function Sidebar() {
       icon: <ShoppingCart className="w-5 h-5" />,
       submenu: [
         { label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-        { label: "Product List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST },
+        {
+          label: "Product List",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          route: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST,
+        },
         {
           label: "Add Product",
           icon: <ShoppingCart className="w-4 h-4" />,
           route: ROUTE_CONSTANTS.ADMIN_PRODUCT_ADD,
         },
-        { label: "Order List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_ORDER_LIST },
-        { label: "Order Detail", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL },
-        { label: "Category Type List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_CATEGORY_TYPE_LIST },
-        { label: "Category List", icon: <ShoppingCart className="w-4 h-4" />, route: ROUTE_CONSTANTS.ADMIN_CATEGORY_LIST },
-
+        {
+          label: "Order List",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          route: ROUTE_CONSTANTS.ADMIN_ORDER_LIST,
+        },
+        {
+          label: "Order Detail",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          route: ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL,
+        },
+        {
+          label: "Category Type List",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          route: ROUTE_CONSTANTS.ADMIN_CATEGORY_TYPE_LIST,
+        },
+        {
+          label: "Category List",
+          icon: <ShoppingCart className="w-4 h-4" />,
+          route: ROUTE_CONSTANTS.ADMIN_CATEGORY_LIST,
+        },
+        {
+          label: "Inventory",
+          icon: <FolderOpen className="w-4 h-4" />,
+          route: ROUTE_CONSTANTS.ADMIN_INVENTORY_MANAGEMENT,
+        },
       ],
     },
     {
@@ -64,12 +89,21 @@ export function Sidebar() {
       icon: <Users className="w-5 h-5" />,
       route: ROUTE_CONSTANTS.ADMIN_USER_LIST,
     },
+    {
+      label: "Chat",
+      icon: <MessageSquare className="w-5 h-5" />,
+      route: ROUTE_CONSTANTS.ADMIN_CHAT,
+    },
   ];
 
   // Mở submenu nếu route hiện tại nằm trong nó
   useEffect(() => {
     const expanded = navItems
-      .filter((item) => item.submenu && item.submenu.some((sub) => sub.route === location.pathname))
+      .filter(
+        (item) =>
+          item.submenu &&
+          item.submenu.some((sub) => sub.route === location.pathname)
+      )
       .map((item) => item.label);
     setExpandedItems(expanded);
   }, [location.pathname]);
@@ -83,7 +117,9 @@ export function Sidebar() {
 
         <nav className="space-y-1">
           {navItems.map((item) => {
-            const isActive = item.route === location.pathname || item.submenu?.some((sub) => sub.route === location.pathname);
+            const isActive =
+              item.route === location.pathname ||
+              item.submenu?.some((sub) => sub.route === location.pathname);
             return (
               <div key={item.label}>
                 <button
@@ -102,7 +138,11 @@ export function Sidebar() {
                   <span className="flex-1 text-left">{item.label}</span>
                   {item.submenu && (
                     <span>
-                      {expandedItems.includes(item.label) ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      {expandedItems.includes(item.label) ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
                     </span>
                   )}
                 </button>
@@ -114,7 +154,9 @@ export function Sidebar() {
                       return (
                         <button
                           key={subitem.label}
-                          onClick={() => subitem.route && navigate(subitem.route)}
+                          onClick={() =>
+                            subitem.route && navigate(subitem.route)
+                          }
                           className={cn(
                             "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
                             subActive
@@ -142,11 +184,16 @@ export function Sidebar() {
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-sm font-semibold text-primary">{(user && (user.firstName?.[0] + (user.lastName?.[0] || ""))) || "U"}</span>
+            <span className="text-sm font-semibold text-primary">
+              {(user && user.firstName?.[0] + (user.lastName?.[0] || "")) ||
+                "U"}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Guest"}
+              {user
+                ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+                : "Guest"}
             </p>
             <p className="text-xs text-sidebar-foreground/70 truncate">
               {user ? user.email : "Not signed in"}

@@ -10,8 +10,8 @@ import OrderDetailPage from "@/pages/OrdersDetailPage/OrdersDetailPage.jsx";
 import ProductDetail from "@/forms/ProductDetail/ProductDetail.jsx";
 import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx";
 import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
-
-
+import { InventoryManagement } from "@/components/InventoryManagement/InventoryManagement.jsx";
+import AdminChat from "@/pages/AdminChat/AdminChat.jsx";
 
 export const adminRouter = {
   path: "/admin",
@@ -53,6 +53,14 @@ export const adminRouter = {
       path: "category-list",
       element: <CategoryPage />,
     },
-
+    { path: "inventory-management", element: <InventoryManagement /> },
+    {
+      path: "/admin/product/edit/:id",
+      element: <AddProductForm />,
+    },
+    {
+      path: ROUTE_CONSTANTS.ADMIN_CHAT,
+      element: <AdminChat />,
+    },
   ],
 };

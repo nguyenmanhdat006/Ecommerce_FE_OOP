@@ -13,13 +13,12 @@ export const orderAPI = {
 
   // PUT 
   updateStatus: (orderId, newStatus, changedBy) =>
-    axiosClient.put(
+    axiosClient.patch(
       `/api/orders/${orderId}/status${
         changedBy ? `?changedBy=${encodeURIComponent(changedBy)}` : ""
       }`,
       { status: newStatus }
     ),
 
-  // PUT 
   update: (orderId, data) => axiosClient.put(`/api/orders/${orderId}`, data),
 };

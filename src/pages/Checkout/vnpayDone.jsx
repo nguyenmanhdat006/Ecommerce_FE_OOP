@@ -185,7 +185,7 @@ export default function OrderVnpSuccess() {
 
                 {/* Nút */}
                 <button
-                  onClick={() => navigate("/order-management")}
+                  onClick={() => navigate("/order-success")}
                   className="mt-6 px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-all"
                 >
                   Quay về danh sách đơn hàng

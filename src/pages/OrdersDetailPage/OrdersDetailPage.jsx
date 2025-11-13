@@ -32,7 +32,7 @@ const OrderDetailPage = () => {
 
     const fetchOrder = async () => {
       try {
-        const res = await orderAPI.getById(orderId); // 👉 gọi API thực tế
+        const res = await orderAPI.getById(orderId); 
         setOrder(res);
         // Chỉ set ghi chú từ API nếu chưa có trong localStorage
         if (!savedNote) {

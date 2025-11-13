@@ -1,329 +1,435 @@
-/* eslint-disable no-unused-vars */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-hot-toast';
-import _ from 'lodash';
+"use client";
 
-// Components
-import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
-import Rating from '../../components/Rating/Rating';
-import SizeFilter from '../../components/Filters/SizeFilter';
-import ProductColors from './ProductColors';
-import SvgCreditCard from '../../components/common/SvgCreditCard';
-import SvgCloth from '../../components/common/SvgCloth';
-import SvgShipping from '../../components/common/SvgShipping';
-import SvgReturn from '../../components/common/SvgReturn';
-import SectionHeading from '../../components/Sections/SectionsHeading/SeactionHeading';
-import ProductCard from '../ProductListPage/ProductCard';
-import Spinner from '../../components/Spinner/Spinner';
+import { QRCodeCanvas } from "qrcode.react";
+import { useState, useEffect } from "react";
+import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-// Store & API
-import { addToCart } from '../../store/features/cart';
-import { cartAPI } from '../../api/cart.api';
-import { getAllProducts } from '../../api/fetchProducts';
-import { getUser } from '../../utils/jwt-helper';
+// =================== Helper UI components ===================
+function Button({ children, className = "", variant, size, ...props }) {
+  const base =
+    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const variants = {
+    default: "bg-blue-600 text-white hover:bg-blue-700",
+    outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
+    ghost: "text-gray-700 hover:bg-gray-100",
+  };
+  return (
+    <button className={`${base} ${variants[variant] || ""} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+}
 
-const extraSections = [
-  {
-    icon: <SvgCreditCard />,
-    label: 'Secure payment',
-  },
-  {
-    icon: <SvgCloth />,
-    label: 'Size & Fit',
-  },
-  {
-    icon: <SvgShipping />,
-    label: 'Free shipping',
-  },
-  {
-    icon: <SvgReturn />,
-    label: 'Free Shipping & Returns',
-  },
-];
+function Input({ className = "", ...props }) {
+  return (
+    <input
+      className={`border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+      {...props}
+    />
+  );
+}
 
-const ProductDetails = () => {
-  const { product } = useLoaderData();
-  const [image, setImage] = useState();
-  const [breadCrumbLinks, setBreadCrumbLink] = useState([]);
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cartState?.cart);
-  const currentUser = getUser();
-  const navigate = useNavigate();
-  const [similarProduct, setSimilarProducts] = useState([]);
-  const [loadingSimilar, setLoadingSimilar] = useState(false);
-  const categories = useSelector((state) => state?.categoryState?.categories);
+function Card({ children, className = "" }) {
+  return <div className={`rounded-lg border bg-white shadow-sm ${className}`}>{children}</div>;
+}
 
-  // Tìm category hiện tại của sản phẩm
-  const productCategory = useMemo(() => {
-    return categories?.find((category) => category?.id === product?.categoryId);
-  }, [product, categories]);
-
-  // Fetch các sản phẩm tương tự
-  useEffect(() => {
-    if (!product?.categoryId) return;
-    setLoadingSimilar(true);
-    getAllProducts(product?.categoryId, product?.categoryTypeId)
-      .then((res) => {
-        const excludedProduct = res?.filter((item) => item?.id !== product?.id);
-        setSimilarProducts(excludedProduct);
-      })
-      .catch(() => {
-        // ignore
-      })
-      .finally(() => setLoadingSimilar(false));
-  }, [product?.categoryId, product?.categoryTypeId, product?.id]);
-
-  //  Thiết lập breadcrumb
-  useEffect(() => {
-    setImage(product?.thumbnail);
-    setBreadCrumbLink([]);
-    const arrayLinks = [
-      { title: 'Shop', path: '/' },
-      {
-        title: productCategory?.name,
-        path: productCategory?.name,
-      },
-    ];
-    const productType = productCategory?.categoryTypes?.find(
-      (item) => item?.id === product?.categoryTypeId
+function Avatar({ src, alt, className = "" }) {
+  if (!src) {
+    return (
+      <div className={`rounded-full overflow-hidden bg-gray-200 text-gray-600 text-sm font-medium ${className} flex items-center justify-center`}>
+        U
+      </div>
     );
+  }
+  return (
+    <div className={`rounded-full overflow-hidden ${className}`}>
+      <img src={src} alt={alt} className="w-full h-full object-cover" />
+    </div>
+  );
+}
 
-    if (productType) {
-      arrayLinks?.push({
-        title: productType?.name,
-        path: productType?.name,
-      });
-    }
-    setBreadCrumbLink(arrayLinks);
-  }, [productCategory, product]);
+// =================== ProductTable (list) ===================
+function ProductTable({ products, setSelectedProductId, setDetailOpen, refreshProducts }) {
+  const [selectedDropdown, setSelectedDropdown] = useState(null);
+  const [origin, setOrigin] = useState("");
 
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-
-  // Hàm thêm sản phẩm vào giỏ hàng
-  const addItemToCart = useCallback(async () => {
-    if (!product) return;
-
-    // tìm variant theo size (hoặc fallback)
-    const variant =
-      product?.variants?.find((v) => v.size === selectedSize) ||
-      product?.variants?.[0] ||
-      null;
-
-    const payload = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: quantity,
-      thumbnail: product.thumbnail,
-      variant: variant,
-      subTotal: product.price * quantity,
-    };
-
-    // cần login
-    if (!currentUser) {
-      toast.error('Please login to add items to cart');
-      navigate('/v1/login');
-      return;
-    }
-
-    // Cập nhật local store trước (optimistic update)
-    dispatch(addToCart(payload));
-
-    try {
-      const body = {
-        quantity: quantity,
-        userId: currentUser?.id ?? null,
-        productId: product.id,
-        productVariantId: variant?.id || null,
-      };
-
-      await cartAPI.addToCart(body);
-      toast.success('Added to cart');
-    } catch (err) {
-      console.error('Add to cart API error', err);
-      toast.error(err?.message || 'Failed to add to cart');
-    }
-  }, [dispatch, product, selectedSize, quantity, currentUser, navigate]);
-
-  // Danh sách màu và size
-  const colors = useMemo(() => {
-    return _.uniq(_.map(product?.variants, 'color'));
-  }, [product]);
-
-  const sizes = useMemo(() => {
-    return _.uniq(_.map(product?.variants, 'size'));
-  }, [product]);
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
 
   return (
-    <>
-      {loadingSimilar ? (
-        <div className="flex justify-center items-center min-h-[300px]">
-          <Spinner />
-        </div>
-      ) : (
-        <>
-          {/* MAIN CONTENT */}
-          <div className="flex flex-col md:flex-row px-10">
-            {/* LEFT: Images */}
-            <div className="w-[100%] lg:w-[50%] md:w-[40%]">
-              <div className="flex flex-col md:flex-row">
-                <div className="w-[100%] md:w-[20%] justify-center h-[40px] md:h-[420px]">
-                  <div className="flex flex-row md:flex-col justify-center h-full">
-                    {product?.productResources?.map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setImage(item?.url)}
-                        className="rounded-lg w-fit p-2 mb-2"
-                      >
-                        <img
-                          src={item?.url}
-                          className="h-[60px] w-[60px] rounded-lg bg-cover bg-center hover:scale-105 hover:border"
-                          alt={'sample-' + index}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="w-full md:w-[80%] flex justify-center md:pt-0 pt-10">
-                  <img
-                    src={image}
-                    className="h-full w-full max-h-[520px] border rounded-lg cursor-pointer object-cover"
-                    alt={product?.name}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="w-[60%] px-10">
-              <Breadcrumb links={breadCrumbLinks} />
-              <p className="text-3xl pt-4">{product?.name}</p>
-              <Rating rating={product?.rating} />
-              <p className="text-xl bold py-2">${product?.price}</p>
-
-              {/* Size */}
-              <div className="flex flex-col py-2">
-                <div className="flex gap-2">
-                  <p className="text-sm bold">Select Size</p>
-                  <Link
-                    className="text-sm text-gray-500 hover:text-gray-900"
-                    to="https://en.wikipedia.org/wiki/Clothing_sizes"
-                    target="_blank"
-                  >
-                    {'Size Guide ->'}
-                  </Link>
-                </div>
-              </div>
-              <div className="mt-2">
-                <SizeFilter
-                  sizes={sizes}
-                  hidleTitle
-                  multi={false}
-                  onChange={(v) => setSelectedSize(v?.[0] ?? null)}
-                />
-              </div>
-
-              {/* Quantity */}
-              <div className="flex items-center gap-2 py-2">
-                <label className="text-sm">Quantity</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) =>
-                    setQuantity(Math.max(1, Number(e.target.value || 1)))
-                  }
-                  className="w-[80px] border rounded px-2 py-1"
-                />
-              </div>
-
-              {/* Colors */}
-              <div>
-                <p className="text-lg bold">Colors Available</p>
-                <ProductColors colors={colors} />
-              </div>
-
-              {/* Add to Cart */}
-              <div className="flex py-4">
-                {(() => {
-                  const inCart = cartItems?.some(
-                    (it) => it?.id === product?.id
-                  );
-                  if (!inCart) {
-                    return (
-                      <button
-                        onClick={addItemToCart}
-                        className="bg-black rounded-lg hover:bg-gray-700"
-                      >
-                        <div className="flex h-[42px] rounded-lg w-[150px] px-2 items-center justify-center bg-black text-white hover:bg-gray-700">
-                          <svg
-                            width="17"
-                            height="16"
-                            viewBox="0 0 17 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M1.5 1.33325H2.00526C2.85578 1.33325 3.56986 1.97367 3.6621 2.81917L4.3379 9.014C4.43014 9.8595 5.14422 10.4999 5.99474 10.4999H13.205C13.9669 10.4999 14.6317 9.98332 14.82 9.2451L15.9699 4.73584C16.2387 3.68204 15.4425 2.65733 14.355 2.65733H4.5"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          Add to cart
-                        </div>
-                      </button>
-                    );
-                  }
-                  return (
+    <Card className="overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">ID</th>
+              <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Ảnh</th>
+              <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Tên</th>
+              <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Thương hiệu</th>
+              <th className="text-right px-4 py-2 text-sm font-semibold text-gray-700">Giá</th>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700">QR</th>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product) => (
+              <tr key={product.id} className="border-b hover:bg-gray-50">
+                <td className="px-4 py-2 text-sm text-gray-600">{product.id}</td>
+                <td className="px-4 py-2">
+                  {product.thumbnail ? (
+                    <img src={product.thumbnail} alt={product.name} className="w-14 h-14 rounded-md object-cover border" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500">No image</div>
+                  )}
+                </td>
+                <td className="px-4 py-2 text-sm text-gray-700">{product.name}</td>
+                <td className="px-4 py-2 text-sm text-gray-700">{product.brand || "—"}</td>
+                <td className="px-4 py-2 text-sm text-gray-700 text-right font-medium">{product.price?.toLocaleString("vi-VN")} VNĐ</td>
+                <td className="px-4 py-2">
+                  {origin && <QRCodeCanvas value={`${origin}/qr?id=${product.id}`} size={60} />}
+                </td>
+                <td className="px-4 py-2">
+                  <div className="relative inline-block text-left">
                     <button
-                      className="bg-gray-300 rounded-lg px-4 py-2"
-                      disabled
+                      className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md hover:bg-gray-100"
+                      onClick={() => setSelectedDropdown(selectedDropdown === product.id ? null : product.id)}
                     >
-                      In cart
+                      <MoreVertical className="h-4 w-4 text-gray-600" />
                     </button>
-                  );
-                })()}
+
+                    {selectedDropdown === product.id && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                        <button
+                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                          onClick={() => {
+                            setSelectedProductId(product.id);
+                            setDetailOpen(true);
+                            setSelectedDropdown(null);
+                          }}
+                        >
+                          Chi tiết
+                        </button>
+
+                        <button className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100">Sửa</button>
+
+                        <button className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-100 flex items-center gap-2">
+                          <Trash2 className="h-4 w-4" /> Xóa
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+// =================== Detail Modal (scroll single page) ===================
+function ProductDetailModal({ productId, open, onClose }) {
+  const [loading, setLoading] = useState(false);
+  const [product, setProduct] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [resources, setResources] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+
+  useEffect(() => {
+    if (!open || !productId) return;
+
+    const token = localStorage.getItem("token");
+    const headers = { Authorization: token ? `Bearer ${token}` : undefined };
+
+    setLoading(true);
+    Promise.all([
+      axios.get(`http://localhost:8080/api/products/${productId}`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`http://localhost:8080/api/product-variants?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`http://localhost:8080/api/products/${productId}/resources`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`http://localhost:8080/api/product-statuses?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
+    ])
+      .then(([resP, resV, resR, resS]) => {
+        if (resP?.error) {
+          console.error("Error loading product:", resP.error);
+          setProduct(null);
+        } else setProduct(resP.data);
+
+        if (resV?.error) {
+          console.error("Error loading variants:", resV.error);
+          setVariants([]);
+        } else setVariants(resV.data || []);
+
+        if (resR?.error) {
+          console.error("Error loading resources:", resR.error);
+          setResources([]);
+        } else setResources(resR.data || []);
+
+        if (resS?.error) {
+          console.error("Error loading statuses:", resS.error);
+          setStatuses([]);
+        } else setStatuses(resS.data || []);
+      })
+      .finally(() => setLoading(false));
+  }, [open, productId]);
+
+  function computeVariantSummary(vars) {
+    const colors = Array.from(new Set(vars.map((v) => v.color).filter(Boolean)));
+    const sizes = Array.from(new Set(vars.map((v) => v.size).filter(Boolean)));
+    const totalStock = vars.reduce((s, v) => s + (Number(v.stockQuantity) || 0), 0);
+    const inStockCount = vars.filter((v) => Number(v.stockQuantity) > 0).length;
+    const outOfStockCount = vars.filter((v) => Number(v.stockQuantity) === 0).length;
+    const lowStockCount = vars.filter((v) => Number(v.stockQuantity) > 0 && Number(v.stockQuantity) < 5).length;
+    return { colors, sizes, totalStock, inStockCount, outOfStockCount, lowStockCount };
+  }
+
+  const summary = computeVariantSummary(variants);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-lg w-4/5 max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex justify-between items-start">
+          <h2 className="text-2xl font-bold">Chi tiết sản phẩm</h2>
+          <button className="text-gray-500" onClick={onClose}>Đóng ✕</button>
+        </div>
+
+        {loading ? (
+          <div className="py-10 text-center">Đang tải...</div>
+        ) : product ? (
+          <div className="space-y-6 mt-4">
+            {/* Section 1: Basic info */}
+            <section className="flex gap-6">
+              <div className="w-48 h-48 rounded-lg overflow-hidden border">
+                {resources.find((r) => r.isPrimary && r.url) ? (
+                  <img src={resources.find((r) => r.isPrimary && r.url).url} alt={product.name} className="w-full h-full object-cover" />
+                ) : product.thumbnail ? (
+                  <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-500">No image</div>
+                )}
               </div>
 
-              {/* Extra sections */}
-              <div className="grid md:grid-cols-2 gap-4 pt-4">
-                {extraSections?.map((section, index) => (
-                  <div key={index} className="flex items-center">
-                    {section?.icon}
-                    <p className="px-2">{section?.label}</p>
-                  </div>
-                ))}
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold">{product.name}</h3>
+                <p className="text-sm text-gray-500 mt-1">ID: {product.id}</p>
+                <div className="mt-3 flex items-center gap-4">
+                  <div className="text-2xl font-bold">{product.price?.toLocaleString("vi-VN")} VNĐ</div>
+                  {product.newArrival && <div className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Mới</div>}
+                </div>
+                <p className="mt-3 text-gray-700">{product.description}</p>
+                <p className="mt-2 text-sm text-gray-600">Thương hiệu: {product.brand || "—"}</p>
+                <p className="mt-1 text-sm text-gray-600">Category: {product.categoryName || "—"}</p>
               </div>
+            </section>
+
+            {/* Section 2: Variants summary + table */}
+            <section>
+              <h4 className="text-lg font-semibold mb-2">Biến thể</h4>
+
+              <div className="flex gap-4 items-center mb-3">
+                <div className="text-sm text-gray-500">Màu:</div>
+                <div className="flex gap-2">
+                  {summary.colors.length ? summary.colors.map((c) => (
+                    <div key={c} className="px-2 py-1 bg-gray-100 rounded text-xs">{c}</div>
+                  )) : <div className="text-xs text-gray-400">Không có</div>}
+                </div>
+
+                <div className="ml-6 text-sm text-gray-500">Sizes:</div>
+                <div className="flex gap-2">
+                  {summary.sizes.length ? summary.sizes.map((s) => (
+                    <div key={s} className="px-2 py-1 bg-gray-100 rounded text-xs">{s}</div>
+                  )) : <div className="text-xs text-gray-400">Không có</div>}
+                </div>
+
+                <div className="ml-auto text-sm text-gray-600">Tổng tồn: <span className="font-medium">{summary.totalStock}</span></div>
+              </div>
+
+              <div className="overflow-x-auto border rounded">
+                <table className="w-full min-w-[600px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm text-gray-600">Màu</th>
+                      <th className="px-4 py-2 text-left text-sm text-gray-600">Size</th>
+                      <th className="px-4 py-2 text-right text-sm text-gray-600">Tồn kho</th>
+                      <th className="px-4 py-2 text-left text-sm text-gray-600">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variants.length ? variants.map((v) => {
+                      const qty = Number(v.stockQuantity) || 0;
+                      const status = qty === 0 ? "Hết hàng" : qty < 5 ? "Tồn kho thấp" : "Còn hàng";
+                      const colorClass = qty === 0 ? "text-red-600" : qty < 5 ? "text-amber-600" : "text-green-600";
+                      return (
+                        <tr key={v.id} className="border-t">
+                          <td className="px-4 py-2 text-sm text-gray-700">{v.color || "—"}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{v.size || "—"}</td>
+                          <td className="px-4 py-2 text-sm text-right">{qty}</td>
+                          <td className={`px-4 py-2 text-sm ${colorClass}`}>{status}</td>
+                        </tr>
+                      );
+                    }) : (
+                      <tr><td colSpan={4} className="px-4 py-6 text-center text-gray-400">Không có biến thể</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Section 3: Resources */}
+            <section>
+              <h4 className="text-lg font-semibold mb-2">Hình ảnh & Tài nguyên</h4>
+              <div className="grid grid-cols-4 gap-3">
+                {resources.length ? resources.map((r) => (
+                  <div key={r.id} className={`border rounded overflow-hidden ${r.isPrimary ? "ring-2 ring-yellow-300" : ""}`}>
+                    {r.url ? (
+                      <img src={r.url} alt={r.name} className="w-full h-28 object-cover" />
+                    ) : (
+                      <div className="w-full h-28 flex items-center justify-center text-sm text-gray-400">No image</div>
+                    )}
+                  </div>
+                )) : (
+                  <div className="text-sm text-gray-400">Không có tài nguyên</div>
+                )}
+              </div>
+            </section>
+
+            {/* Section 4: Status history */}
+            <section>
+              <h4 className="text-lg font-semibold mb-2">Lịch sử trạng thái</h4>
+              <div className="space-y-2">
+                {statuses.length ? statuses.map((s) => (
+                  <div key={s.id} className="text-sm text-gray-700 border rounded p-2">
+                    <div className="text-xs text-gray-500">{new Date(s.createdAt || s.timestamp || s.date || 0).toLocaleString()}</div>
+                    <div className="mt-1">{s.status || s.note || "—"}</div>
+                  </div>
+                )) : (
+                  <div className="text-sm text-gray-400">Không có lịch sử trạng thái</div>
+                )}
+              </div>
+            </section>
+
+          </div>
+        ) : (
+          <div className="py-10 text-center text-gray-500">Không tìm thấy sản phẩm</div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// =================== Main Page ===================
+export default function ProductPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [products, setProducts] = useState([]);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:8080/api/products", {
+          headers: { Authorization: token ? `Bearer ${token}` : undefined },
+        });
+        setProducts(res.data || []);
+      } catch (err) {
+        console.error("Lỗi khi tải products:", err);
+        setProducts([]);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // dynamic stats
+  const totalProducts = products.length;
+  const inStock = products.filter(p => p.variants?.some(v => Number(v.stockQuantity) > 0)).length;
+  const outOfStock = products.filter(p => p.variants?.every(v => Number(v.stockQuantity) === 0)).length;
+  const lowStock = products.filter(p => p.variants?.some(v => Number(v.stockQuantity) > 0 && Number(v.stockQuantity) < 5)).length;
+
+  const stats = [
+    { label: "Tổng sản phẩm", value: totalProducts, description: "Tổng số mặt hàng trong kho" },
+    { label: "Còn hàng", value: inStock, description: "Sản phẩm sẵn sàng bán" },
+    { label: "Tồn kho thấp", value: lowStock, description: "Cần nhập thêm hàng" },
+    { label: "Hết hàng", value: outOfStock, description: "Không còn sản phẩm" },
+  ];
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <main className="flex-1 overflow-auto">
+        <header className="border-b bg-white p-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input placeholder="Tìm kiếm sản phẩm..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/admin/product/add')}>
+              <Plus className="h-4 w-4" /> Thêm sản phẩm
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        </header>
+
+        <div className="p-6 space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold mb-4">Tổng quan sản phẩm</h1>
+            <div className="grid grid-cols-4 gap-4">
+              {stats.map((s, i) => (
+                <Card key={i} className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-sm text-gray-500">{s.label}</span>
+                  </div>
+                  <div className="text-3xl font-bold mb-1">{s.value}</div>
+                  <p className="text-xs text-gray-500">{s.description}</p>
+                </Card>
+              ))}
             </div>
           </div>
 
-          {/* Description */}
-          <SectionHeading title="Product Description" />
-          <div className="md:w-[50%] w-full p-2">
-            <p className="px-8">{product?.description}</p>
-          </div>
-
-          {/* Similar Products */}
-          <SectionHeading title="Similar Products" />
-          <div className="flex px-10">
-            {similarProduct?.length ? (
-              <div className="pt-4 grid grid-cols-1 lg:grid-cols-4 md:grid-cols-3 gap-8 px-2 pb-10">
-                {similarProduct.map((item, index) => (
-                  <ProductCard key={index} {...item} />
-                ))}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Danh sách sản phẩm</h2>
+              <div className="flex items-center gap-2">
+                <Button className="gap-2" onClick={() => navigate('/admin/product/add')}>
+                  <Plus className="h-4 w-4" /> Thêm sản phẩm mới
+                </Button>
               </div>
-            ) : (
-              <p>No Products Found!</p>
-            )}
-          </div>
-        </>
-      )}
-    </>
-  );
-};
+            </div>
 
-export default ProductDetails;
+            <ProductTable
+              products={products.filter(p =>
+                p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || p.id?.toLowerCase().includes(searchTerm.toLowerCase())
+              )}
+              setSelectedProductId={setSelectedProductId}
+              setDetailOpen={setDetailOpen}
+              refreshProducts={async () => {
+                try {
+                  const token = localStorage.getItem("token");
+                  const res = await axios.get("http://localhost:8080/api/products", { headers: { Authorization: token ? `Bearer ${token}` : undefined } });
+                  setProducts(res.data || []);
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+            />
+          </div>
+        </div>
+      </main>
+
+      <ProductDetailModal productId={selectedProductId} open={detailOpen} onClose={() => setDetailOpen(false)} />
+    </div>
+  );
+}
