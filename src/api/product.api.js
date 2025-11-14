@@ -12,4 +12,7 @@ export const productAPI = {
 
   update: (id, data) => 
     axiosClient.put(`api/products/${id}`, data),
+
+  search: (params) => 
+    axiosClient.get("api/products/search", { params }),
 };

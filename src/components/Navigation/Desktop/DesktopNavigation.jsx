@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { UserDropdown } from "../components/UserDropdown";
 import { ActionLink } from "../components/ActionLink";
 import { NavLinkItem } from "../components/NavLinkItem";
+import { SearchBar } from "../components/SearchBar";
 import { User } from "lucide-react";
 import { getToken } from "@/utils/jwt-helper";
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
@@ -43,8 +44,11 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
         ))}
       </nav>
 
+      {/* Search Bar */}
+
       {/* Actions */}
       <div className="hidden md:flex items-center gap-5">
+        <SearchBar />
         {isAuthenticated ? (
           <>
             <Button variant="ghost" size="icon" className="h-11 w-11">
