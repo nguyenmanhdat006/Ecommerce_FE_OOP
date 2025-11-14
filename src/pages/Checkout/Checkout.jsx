@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { orderAPI } from '@/api/order.api';
+import { paymentAPI } from '@/api/payment.api';
 import { MapPin, Store, MessageCircle, Ticket, Truck, Coins, Check } from "lucide-react";
 import { getUser } from '@/utils/jwt-helper';
 import { useNavigate } from "react-router-dom";
@@ -298,36 +299,30 @@ export default function Checkout() {
               switch (paymentMethod) {
                 case "vnpay":
                   {
-                    const res = await fetch("http://localhost:8080/api/vnpay/create-payment", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ orderId, amount: totalPayment }),
-                    });
-                    const paymentUrl = await res.text();
-                    window.location.href = paymentUrl; // Redirect sang VNPAY
+                    // Use paymentAPI which uses axiosClient and automatically includes auth header
+                    const paymentUrl = await paymentAPI.createVnPay({ orderId, amount: totalPayment });
+                    // axiosClient response interceptor returns response.data; for text response we set responseType so data is text
+                    window.location.href = paymentUrl;
                   }
                   break;
 
                 // case "shopeePay":
                 case "creditCard":
                 case "googlePay":
-                case "napas":
-                  {
-                    // Giả lập redirect đến cổng tương ứng
-                    const res = await fetch(`http://localhost:8080/api/payment/${paymentMethod}`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ orderId, amount: totalPayment, bankId: selectedBank || null }),
-                    });
-                    const { paymentUrl } = await res.json();
-                    if (paymentUrl) window.location.href = paymentUrl;
-                    else {
-                      alert('Thanh toán thành công'); // Trường hợp thử nghiệm
-                      localStorage.removeItem('checkoutItems');
-                      setCartItems([]);
-                    }
-                  }
-                  break;
+                // case "napas":
+                //   {
+                //     // Giả lập redirect đến cổng tương ứng
+                //     // Use paymentAPI to create a payment and redirect if a paymentUrl is returned
+                //     const resp = await paymentAPI.createPaymentMethod(paymentMethod, { orderId, amount: totalPayment, bankId: selectedBank || null });
+                //     const paymentUrl = resp?.paymentUrl || resp?.data?.paymentUrl;
+                //     if (paymentUrl) window.location.href = paymentUrl;
+                //     else {
+                //       alert('Thanh toán thành công'); // Trường hợp thử nghiệm
+                //       localStorage.removeItem('checkoutItems');
+                //       setCartItems([]);
+                //     }
+                //   }
+                //   break;
 
                 case "cod":
                   {

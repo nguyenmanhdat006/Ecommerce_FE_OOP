@@ -10,6 +10,7 @@ import { NavLinkItem } from "../components/NavLinkItem";
 import { ActionLink } from "../components/ActionLink";
 import { UserInfoCard } from "../components/UserInfoCard";
 import { UserMenuItems } from "../components/UserMenuItems";
+import { SearchBar } from "../components/SearchBar";
 
 export default function MobileNavigation({
   name,
@@ -45,6 +46,12 @@ export default function MobileNavigation({
           <Link to={homeUrl} className="text-2xl font-bold">
             {name}
           </Link>
+          
+          {/* Search Bar for Mobile */}
+          <div className="w-full">
+            <SearchBar />
+          </div>
+
           {isAuthenticated ? (
             <div className="mt-6 space-y-4">
               <UserInfoCard user={user} />

@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from 'react'
 import { loadUserProfile } from '@/store/userProfileSlice'
 import { getToken, getUser } from '@/utils/jwt-helper'
+import OrderStatusToast from '@/components/OrderStatusToast/OrderStatusToast'
 
 const ShopApplicationWrapper = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ const ShopApplicationWrapper = () => {
   const isLoading = useSelector((state)=> state?.userProfile?.loadingProfile);
   return (
     <div>
+        <OrderStatusToast />
         <Navigation />
         <Outlet />
         {isLoading && <Spinner />}
