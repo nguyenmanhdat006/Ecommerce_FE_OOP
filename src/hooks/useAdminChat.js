@@ -12,6 +12,7 @@ import {
   setSearchQuery,
   addMessage,
   updateUserLastMessage,
+  markAsRead,
 } from "@/store/adminChatSlice";
 import {
   initSocket,
@@ -79,8 +80,8 @@ export function useAdminChat() {
         if (selectedUser && selId === data.senderId) {
           dispatch(addMessage(newMsg));
           // Mark as read
-          import("@/api/message.api").then(({ messageAPI }) => {
-            messageAPI.markAsRead(data.senderId);
+          markAsRead(data.senderId).unwrap().catch(() => {
+            toast.error("Failed to mark as read");
           });
         } else {
           toast.success("New message received");

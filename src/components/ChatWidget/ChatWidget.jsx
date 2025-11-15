@@ -157,7 +157,7 @@ const ChatWidget = () => {
         message: messageContent,
         timestamp: new Date(),
         senderId: currentUser,
-        receiverId: adminId,
+        receiverId: ADMIN_ID,
       };
       setMessages((prev) => [...prev, msg]);
       setText("");

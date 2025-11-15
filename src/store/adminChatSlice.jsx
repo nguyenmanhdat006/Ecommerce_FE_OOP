@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { messageAPI } from "@/api/message.api";
-import { getToken } from "@/utils/jwt-helper";
 import { getUserId } from "@/utils/auth";
 
 // Initial state
@@ -50,6 +49,18 @@ export const loadChatHistory = createAsyncThunk(
       return { user, messages: msgs, userId };
     } catch (err) {
       return rejectWithValue(err?.response?.data || err.message || "Failed to load chat history");
+    }
+  }
+);
+
+export const markAsRead = createAsyncThunk(
+  "adminChat/markAsRead",
+  async (senderId, { rejectWithValue }) => {
+    try {
+      await messageAPI.markAsRead(senderId);
+      return senderId;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err.message || "Failed to mark as read");
     }
   }
 );
@@ -122,7 +133,15 @@ const adminChatSlice = createSlice({
       .addCase(loadChatHistory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error?.message;
-      });
+      })
+      .addCase(markAsRead.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(markAsRead.fulfilled, (state, action) => {
+        state.loading = false;
+        delete state.unreadCounts[action.payload];
+      })
   },
 });
 
