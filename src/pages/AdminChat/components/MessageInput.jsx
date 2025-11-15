@@ -4,7 +4,7 @@ export default function MessageInput({
   messageText,
   setMessageText,
   sendMessage,
-  connectionStatus,
+  // connectionStatus,
   handleKeyPress
 }) {
   return (
@@ -15,7 +15,7 @@ export default function MessageInput({
         value={messageText}
         onChange={(e) => setMessageText(e.target.value)}
         onKeyPress={handleKeyPress}
-        disabled={connectionStatus !== "connected"}
+        // disabled={connectionStatus !== "connected"}
         className="flex-1 px-4 py-3 border border-gray-300 rounded-full 
           focus:border-blue-600 focus:ring-2 focus:ring-blue-100 
           disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -23,7 +23,7 @@ export default function MessageInput({
 
       <button
         onClick={sendMessage}
-        disabled={!messageText.trim() || connectionStatus !== "connected"}
+        // disabled={!messageText.trim() || connectionStatus !== "connected"}
         className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center 
           hover:bg-blue-700 active:scale-95 disabled:bg-gray-300"
       >
