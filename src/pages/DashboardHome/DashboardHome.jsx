@@ -92,13 +92,6 @@ const DashboardHome = () => {
       time: new Date().toLocaleTimeString('vi-VN')
     };
     setNotifications(prev => [notification, ...prev].slice(0, 5));
-    if (payload.newStatus === 'PAID') {
-      try {
-        await dashboardAPI.refresh();
-      } catch (error) {
-        console.error('Failed to refresh dashboard charts:', error);
-      }
-    }
 
   }, []);
 
