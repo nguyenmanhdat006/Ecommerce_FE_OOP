@@ -285,7 +285,7 @@ export default function Checkout() {
                 status: "PENDING",
                 paymentStatus: paymentMethod === "vnpay" ? "PAID" : "UNPAID",
                 paymentMethod,
-                shippingAddress: 'Thanh Lương, Hải Phòng',
+                shippingAddress: 'demo dia chi 123',
                 notes: '',
                 customerId: user.id,
                 orderItems,
