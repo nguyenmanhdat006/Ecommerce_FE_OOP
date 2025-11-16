@@ -1,51 +1,74 @@
-import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-import { getToken } from "@/utils/jwt-helper";
 import { getUserId } from "@/utils/auth";
 import { formatTime, formatDate } from "@/utils/date";
 import {
+  // Thunks
   loadChatUsers,
   loadChatHistory,
+  // Actions
   setMessageText,
   setViewMode,
-  setSearchQuery,
+  setSearch,
   addMessage,
-  updateUserLastMessage,
-} from "@/store/adminChatSlice";
+  updateLastMessage,
+  // Selectors
+  selectChatUsers,
+  selectSelectedUser,
+  selectMessages,
+  selectMessageText,
+  selectConnectionStatus,
+  selectUnreadCounts,
+  selectUsersLoading,
+  selectUsersLoaded,
+  selectMessagesLoading,
+  selectViewMode,
+  selectSearchQuery,
+  selectFilteredUsers,
+} from "@/store/chat";
 import { messageAPI } from "@/api/message.api";
 
 import {
-  initSocket,
-  addListener,
-  removeListener,
   sendMessage,
   isConnected,
 } from "@/sockets";
+import { useChatWebSocket } from "./useChatSocket";
+
 
 export function useAdminChat() {
   const dispatch = useDispatch();
-  const {
-    users,
-    selectedUser,
-    messages,
-    messageText,
-    connectionStatus,
-    unreadCounts,
-    loading,
-    viewMode,
-    searchQuery,
-  } = useSelector((state) => state.adminChatSlice);
+  
+  // Use individual selectors from the new chat reducer
+  const users = useSelector(selectChatUsers);
+  const selectedUser = useSelector(selectSelectedUser);
+  const messages = useSelector(selectMessages);
+  const messageText = useSelector(selectMessageText);
+  const connectionStatus = useSelector(selectConnectionStatus);
+  const unreadCounts = useSelector(selectUnreadCounts);
+  const usersLoading = useSelector(selectUsersLoading);
+  const usersLoaded = useSelector(selectUsersLoaded);
+  const messagesLoading = useSelector(selectMessagesLoading);
+  const viewMode = useSelector(selectViewMode);
+  const searchQuery = useSelector(selectSearchQuery);
+  const filteredUsers = useSelector(selectFilteredUsers);
+  
+  // Combined loading state for backward compatibility
+  const loading = usersLoading || messagesLoading;
 
   const messagesEndRef = useRef(null);
   const currentUserId = useRef(null);
 
-  // Load users from API
-  const fetchUsers = useCallback(() => {
-    dispatch(loadChatUsers(viewMode)).unwrap().catch(() => {
+  // Load users from API - chỉ load nếu chưa loaded hoặc force refresh
+  const fetchUsers = useCallback((forceRefresh = false) => {
+    if (!forceRefresh && usersLoaded) {
+      return; // Đã load rồi, không cần load lại
+    }
+    
+    dispatch(loadChatUsers()).unwrap().catch(() => {
       toast.error("Failed to load users");
     });
-  }, [dispatch, viewMode]);
+  }, [dispatch, usersLoaded]);
 
   // Load chat history for a selected user
   const fetchChatHistory = useCallback(
@@ -91,7 +114,7 @@ export function useAdminChat() {
 
         // Update user's last message
         dispatch(
-          updateUserLastMessage({
+          updateLastMessage({
             userId: data.senderId,
             content: data.content,
             createdAt: data.createdAt,
@@ -103,19 +126,9 @@ export function useAdminChat() {
   );
 
   // Initialize WebSocket
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      toast.error("Please login first");
-      return;
-    }
-    const wsUrl = `${import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8080"}/ws/chat?token=${token}`;
-    initSocket(wsUrl);
-    addListener("admin-chat", handleSocketMessage);
-    return () => removeListener("admin-chat");
-  }, [handleSocketMessage]);
+  useChatWebSocket(handleSocketMessage, "admin-chat");
 
-  // Load users on mount / viewMode change
+  // Load users on mount - chỉ load 1 lần duy nhất
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
@@ -144,18 +157,6 @@ export function useAdminChat() {
   }, [dispatch, messageText, selectedUser]);
 
   // Filter users based on search query
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase();
-      const uid = getUserId(u);
-      return (
-        u.name?.toLowerCase().includes(q) ||
-        u.email?.toLowerCase().includes(q) ||
-        String(uid).toLowerCase().includes(q)
-      );
-    });
-  }, [users, searchQuery]);
 
   return {
     users,
@@ -166,14 +167,16 @@ export function useAdminChat() {
     messageText,
     connectionStatus,
     unreadCounts,
-    loading,
+    loading,                    // Combined loading (backward compatibility)
+    usersLoading,               // Loading riêng cho users
+    messagesLoading,            // Loading riêng cho messages
     viewMode,
     searchQuery,
 
     // setters
     setMessageText: (text) => dispatch(setMessageText(text)),
     setViewMode: (mode) => dispatch(setViewMode(mode)),
-    setSearchQuery: (query) => dispatch(setSearchQuery(query)),
+    setSearchQuery: (query) => dispatch(setSearch(query)),
 
     // actions
     loadChatHistory: fetchChatHistory,
