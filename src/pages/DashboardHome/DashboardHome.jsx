@@ -92,6 +92,13 @@ const DashboardHome = () => {
       time: new Date().toLocaleTimeString('vi-VN')
     };
     setNotifications(prev => [notification, ...prev].slice(0, 5));
+    // if (payload.newStatus === 'PAID') {
+    //   try {
+    //     await dashboardAPI.refresh();
+    //   } catch (error) {
+    //     console.error('Failed to refresh dashboard charts:', error);
+    //   }
+    // }
 
   }, []);
 
@@ -131,6 +138,7 @@ const DashboardHome = () => {
 
         case 'HOURLY_REVENUE':
           setHourlyRevenue(message.payload);
+          // console.log('LOG Hourly Revenue:', message.payload);
           break;
 
         case 'ORDER_STATUS_DISTRIBUTION':
@@ -153,8 +161,15 @@ const DashboardHome = () => {
   useEffect(() => {
     // Fetch initial data
     fetchInitialData();
+  //     const interval = setInterval(async () => {
+  //   try {
+  //     await dashboardAPI.refresh();
+  //   } catch (error) {
+  //     console.error("Failed to refresh dashboard charts:", error);
+  //   }
+  // }, 5000);
+  
 
-    // Create WebSocket connection với auto-reconnect
   const ws = new WebSocketManager(dashboardAPI.wsUrl(), {
       autoReconnect: true,
       reconnectInterval: 3000,
@@ -187,11 +202,13 @@ const DashboardHome = () => {
 
     // Cleanup
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-    };
+      console.log("close websocket");
+
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+  };
   }, [handleWebSocketMessage]);
 
   return (
