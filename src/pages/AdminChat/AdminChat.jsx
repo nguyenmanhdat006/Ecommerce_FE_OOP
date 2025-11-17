@@ -14,7 +14,7 @@ export default function AdminChat() {
     <ChatLayout
       sidebar={
         <Sidebar
-          loading={chat.loading}
+          loading={chat.usersLoading}
           viewMode={chat.viewMode}
           setViewMode={chat.setViewMode}
           searchQuery={chat.searchQuery}
@@ -44,6 +44,7 @@ export default function AdminChat() {
             selectedUserId={chat.selectedUserId}
             formatTime={chat.formatTime}
             messagesEndRef={chat.messagesEndRef}
+            loading={chat.messagesLoading}
           />
         )
       }

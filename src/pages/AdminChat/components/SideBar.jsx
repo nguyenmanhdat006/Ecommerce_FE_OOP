@@ -22,9 +22,10 @@ export default function Sidebar({
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Chat</h3>
           <button 
-            onClick={loadChatUsers}
+            onClick={() => loadChatUsers(true)}
             disabled={loading}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh users list"
           >
             <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
           </button>

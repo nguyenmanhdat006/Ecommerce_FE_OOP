@@ -29,5 +29,6 @@ export const ROUTE_CONSTANTS = {
   ADMIN_CATEGORY_EDIT: "/admin/category-edit/:id",
   ADMIN_CATEGORY_DELETE: "/admin/category-delete/:id",
 
+  ADMIN_INVENTORY_MANAGEMENT: "/admin/inventory-management",
   ADMIN_CHAT: "/admin/chat",
 };

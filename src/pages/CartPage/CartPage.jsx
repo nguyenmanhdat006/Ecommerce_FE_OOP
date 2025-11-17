@@ -4,102 +4,61 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Minus, MessageCircle } from "lucide-react";
-import { cartAPI } from "@/api/cart.api";
-import { getUser } from "@/utils/jwt-helper";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUserCarts, selectCartItems } from '@/store/features/cart';
 import { useNavigate } from "react-router-dom"; 
+import { cartAPI } from "@/api/cart.api";
+
+// Recommendation images
+import rec1 from '@/assets/img/category-men-hoodies.png';
+import rec2 from '@/assets/img/category-men-jeans.jpg';
+import rec3 from '@/assets/img/category-women-shorts.jpg';
+import rec4 from '@/assets/img/category-women-tshirts.png';
+import rec5 from '@/assets/img/category-women-coats.jpg';
 
 const formatVND = (n) =>
   n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-// Mock data cho phần "Có thể bạn cũng thích"
 const recommendations = [
-  {
-    id: 1,
-    name: "Quạt mini cầm tay M2 5000mAh di động",
-    price: 39900,
-    sold: "Đã bán 20k+",
-    discount: "-29%",
-    rating: 4.6,
-    image:
-      "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lr2r3fl6m7up26",
-  },
-  {
-    id: 2,
-    name: "Loa Bluetooth hát karaoke mini",
-    price: 38000,
-    sold: "Đã bán 1k+",
-    discount: "-3%",
-    rating: 4.6,
-    image:
-      "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lqzmyfsyc8f812",
-  },
-  {
-    id: 3,
-    name: "Lược chải tóc mát xa da đầu",
-    price: 11695,
-    sold: "Đã bán 10k+",
-    discount: "-42%",
-    rating: 4.8,
-    image:
-      "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lqzmyzxy5hcx7a",
-  },
-  {
-    id: 4,
-    name: "Ốp lưng iPhone Hello Kitty",
-    price: 2920,
-    sold: "Đã bán 8k+",
-    discount: "-37%",
-    rating: 4.7,
-    image:
-      "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lqzmyzxy5hcx7b",
-  },
-  {
-    id: 5,
-    name: "Máy massage mini cầm tay",
-    price: 30000,
-    sold: "Đã bán 5k+",
-    discount: "-14%",
-    rating: 4.8,
-    image:
-      "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lqzmyzxy5hcx7c",
-  },
+  { id: 1, name: "Áo hoodies Unisex thu đông hoodie phiên bản hàn quốc", price: 39900, sold: "Đã bán 20k+", discount: "-29%", rating: 4.6, image: rec1 },
+  { id: 2, name: "Loa Bluetooth hát karaoke mini", price: 38000, sold: "Đã bán 1k+", discount: "-3%", rating: 4.6, image: rec2 },
+  { id: 3, name: "Lược chải tóc mát xa da đầu", price: 11695, sold: "Đã bán 10k+", discount: "-42%", rating: 4.8, image: rec3 },
+  { id: 4, name: "Ốp lưng iPhone Hello Kitty", price: 2920, sold: "Đã bán 8k+", discount: "-37%", rating: 4.7, image: rec4 },
+  { id: 5, name: "Máy massage mini cầm tay", price: 30000, sold: "Đã bán 5k+", discount: "-14%", rating: 4.8, image: rec5 },
 ];
 
-export default function ShopeeCartPage() {
+export default function CartPage() {
   const [products, setProducts] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const storeCart = useSelector(selectCartItems);
   const navigate = useNavigate();
 
+  // Load cart từ backend
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const currentUser = getUser();
-        const res = await cartAPI.getUserCarts();
-        const filtered = Array.isArray(res)
-          ? res.filter((c) => currentUser && c.userId === currentUser.id)
-          : [];
+    setLoading(true);
+    dispatch(fetchUserCarts()).finally(() => setLoading(false));
+  }, [dispatch]);
 
-        const mapped = filtered.map((c) => ({
-          id: c.id,
-          productId: c.product?.id || null,
-          productVariantId: c.productVariant?.id || null,
-          name: c.product?.name || "Sản phẩm",
-          price: c.product?.price || 0,
-          qty: c.quantity || 1,
-          shop: c.product?.brand || "Shopease - Official Store",
-          img: c.product?.thumbnail || "https://via.placeholder.com/120",
-          size: c.productVariant?.size || "-",
-          color: c.productVariant?.color || "-",
-        }));
-        setProducts(mapped);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  // Đồng bộ products state với storeCart
+  useEffect(() => {
+    if (Array.isArray(storeCart) && storeCart.length > 0) {
+      const mapped = storeCart.map((c) => ({
+        id: c.id,
+        productId: c.product?.id || null,
+        productVariantId: c.productVariant?.id || null,
+        name: c.product?.name || "Sản phẩm",
+        price: c.product?.price || 0,
+        qty: c.quantity || 1,
+        shop: c.product?.brand || "Shopease - Official Store",
+        img: c.product?.thumbnail || "https://via.placeholder.com/120",
+        size: c.productVariant?.size || "-",
+        color: c.productVariant?.color || "-",
+      }));
+      setProducts(mapped);
+    }
+  }, [storeCart]);
 
   const toggleCheck = (id) => {
     setCheckedItems((prev) =>
@@ -115,7 +74,16 @@ export default function ShopeeCartPage() {
     );
   };
 
-  const remove = (id) => setProducts((prev) => prev.filter((p) => p.id !== id));
+  // --- HOÀN THIỆN XÓA SẢN PHẨM ---
+  const remove = async (id) => {
+    try {
+      await cartAPI.deleteCart(id); // gọi API xóa
+      setProducts((prev) => prev.filter((p) => p.id !== id)); // cập nhật state local
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+      alert("Xóa sản phẩm thất bại!");
+    }
+  };
 
   const total = products
     .filter((p) => checkedItems.includes(p.id))
@@ -127,7 +95,6 @@ export default function ShopeeCartPage() {
       alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!");
       return;
     }
-
     localStorage.setItem("checkoutItems", JSON.stringify(selected));
     navigate("/checkout");
   };
@@ -229,7 +196,7 @@ export default function ShopeeCartPage() {
                 <Button
                   variant="link"
                   className="text-red-500 text-sm p-0"
-                  onClick={() => remove(p.id)}
+                  onClick={() => remove(p.id)} // nút xóa hoàn thiện
                 >
                   Xóa
                 </Button>

@@ -1,17 +1,17 @@
 import axiosClient from "./axiosClient";
 
 export const orderAPI = {
-  // POST /api/orders
+  // POST 
   create: (data) => axiosClient.post("/api/orders", data),
 
   // GET
   getById: (id) => axiosClient.get(`/api/orders/${id}`),
   getAll: () => axiosClient.get("/api/orders"),
 
-  // DELETE - xóa đơn hàng
+  // DELETE 
   delete: (orderId) => axiosClient.delete(`/api/orders/${orderId}`),
 
-  // PUT - cập nhật trạng thái đơn hàng
+  // PUT 
   updateStatus: (orderId, newStatus, changedBy) =>
     axiosClient.patch(
       `/api/orders/${orderId}/status${
