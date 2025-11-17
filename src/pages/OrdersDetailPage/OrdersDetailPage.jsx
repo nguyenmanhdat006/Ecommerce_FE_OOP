@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -9,20 +10,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Clock, CreditCard, Package, User, Mail } from "lucide-react";
 import { orderAPI } from "@/api/order.api";
 
-const OrderDetailPage = ({
-  orderId = "9c6560e7-2e13-49ae-9f52-58fb0a663929",
-}) => {
+const OrderDetailPage = () => {
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("orderId");
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState("");
 
-  // 🔹 Gọi API khi load trang
+  // 🔹 Gọi API khi load trang và load ghi chú từ localStorage
   useEffect(() => {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+
+    // Load ghi chú từ localStorage trước
+    const savedNote = localStorage.getItem(`order_note_${orderId}`);
+    if (savedNote) {
+      setNote(savedNote);
+    }
+
     const fetchOrder = async () => {
       try {
         const res = await orderAPI.getById(orderId); 
         setOrder(res);
-        setNote(res.data?.notes || "");
+        // Chỉ set ghi chú từ API nếu chưa có trong localStorage
+        if (!savedNote) {
+          setNote(res.data?.notes || "");
+        }
       } catch (err) {
         console.error("Lỗi khi tải đơn hàng:", err);
       } finally {
@@ -32,7 +47,25 @@ const OrderDetailPage = ({
     fetchOrder();
   }, [orderId]);
 
+  // 🔹 Hàm lưu ghi chú vào localStorage
+  const handleSaveNote = () => {
+    if (!orderId) {
+      alert("Không tìm thấy ID đơn hàng!");
+      return;
+    }
+
+    try {
+      localStorage.setItem(`order_note_${orderId}`, note);
+      alert("Đã lưu ghi chú thành công!");
+    } catch (error) {
+      console.error("Lỗi khi lưu ghi chú:", error);
+      alert("Không thể lưu ghi chú. Vui lòng thử lại.");
+    }
+  };
+
   if (loading) return <p className="p-6">Đang tải dữ liệu...</p>;
+  if (!orderId)
+    return <p className="p-6 text-red-500">Không tìm thấy ID đơn hàng.</p>;
   if (!order)
     return <p className="p-6 text-red-500">Không tìm thấy đơn hàng.</p>;
 
@@ -177,7 +210,9 @@ const OrderDetailPage = ({
             placeholder="Nhập ghi chú..."
             className="min-h-24"
           />
-          <Button className="mt-3">Lưu ghi chú</Button>
+          <Button className="mt-3" onClick={handleSaveNote}>
+            Lưu ghi chú
+          </Button>
         </CardContent>
       </Card>
 
