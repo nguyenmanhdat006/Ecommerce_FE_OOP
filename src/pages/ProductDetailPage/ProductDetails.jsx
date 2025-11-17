@@ -429,7 +429,4 @@ export default function ProductPage() {
         </div>
       </main>
 
-      <ProductDetailModal productId={selectedProductId} open={detailOpen} onClose={() => setDetailOpen(false)} />
-    </div>
-  );
-}
+export default ProductDetails;

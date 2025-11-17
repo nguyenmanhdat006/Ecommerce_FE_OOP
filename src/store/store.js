@@ -13,6 +13,7 @@ import categorySlice from "./categorySlice";
 import adminUserSlice from "./adminUserSlice";
 import categoryTypeSlice from "./categoryTypeSlice";
 import userProfileSlice from "./userProfileSlice";
+import chatSlice from "./chat";
 
 const rootReducer = combineReducers({
   productState: productReducer,
@@ -29,6 +30,8 @@ const rootReducer = combineReducers({
   adminUsers: adminUserSlice,
   categoryTypeSlice: categoryTypeSlice,
   userProfileSlice: userProfileSlice,
+
+  chat: chatSlice,
 });
 
 const store = configureStore({

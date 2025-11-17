@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { QRCodeCanvas } from "qrcode.react";
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
@@ -27,7 +25,7 @@ function Input({ className = "", ...props }) {
 }
 
 /* ProductTable: list with dropdown */
-function ProductTable({ products, onOpenDetail, onNavigateAdd, navigate }) {
+function ProductTable({ products, onOpenDetail, navigate }) {
   const [selectedDropdown, setSelectedDropdown] = useState(null);
   const [origin, setOrigin] = useState("");
 
@@ -81,6 +79,9 @@ function ProductTable({ products, onOpenDetail, onNavigateAdd, navigate }) {
                   >
                     <MoreVertical className="h-4 w-4 text-gray-600" />
                   </button>
+
+                  
+
 
                   {selectedDropdown === product.id && (
                     <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
@@ -191,7 +192,7 @@ function ProductDetailModal({ productId, open, onClose }) {
 
     Promise.all([
       axios.get(`http://localhost:8080/api/products/${productId}`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`http://localhost:8080/api/product-variants/productId=${productId}`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`http://localhost:8080/api/product-variants?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
       axios.get(`http://localhost:8080/api/products/${productId}/resources`, { headers }).catch((e) => ({ error: e })),
       axios.get(`http://localhost:8080/api/product-statuses?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
     ])
@@ -365,6 +366,15 @@ export default function ProductPageMain() {
     };
     fetchProducts();
   }, []);
+
+
+  console.table(products.map(p => ({
+  name: p.name,
+  variantsType: typeof p.variants,
+  variants: p.variants,
+})));
+
+
 
   // stats
   const totalProducts = products.length;

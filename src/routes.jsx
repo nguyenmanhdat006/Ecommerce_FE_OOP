@@ -15,6 +15,7 @@ import CheckoutPage from "./pages/Checkout/Checkout.jsx";
 import OrderSuccess from "./pages/OrderSuccess.jsx";
 import OrderVnpSuccess from "./pages/Checkout/vnpayDone.jsx";
 import Chat from "./pages/Chat.jsx";
+import SearchResultsPage from "./pages/SearchResultsPage/SearchResultsPage.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
       {
         path: "/chat",
         element: <Chat />,
+      },
+      {
+        path: "/search",
+        element: <SearchResultsPage />,
       },
       {
         path: "/profile",

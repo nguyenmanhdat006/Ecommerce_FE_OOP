@@ -12,6 +12,7 @@ import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx"
 import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
 import { InventoryManagement } from "@/components/InventoryManagement/InventoryManagement.jsx";
 import AdminChat from "@/pages/AdminChat/AdminChat.jsx";
+import DashboardHome from "@/pages/DashboardHome/DashboardHome.jsx";
 
 export const adminRouter = {
   path: "/admin",
@@ -54,13 +55,17 @@ export const adminRouter = {
       element: <CategoryPage />,
     },
     { path: "inventory-management", element: <InventoryManagement /> },
+
     {
       path: "/admin/product/edit/:id",
-      element: <AddProductForm />,
+      element: <AddProductForm/>,
+    },
+    { path: "/admin/dashboard", 
+      element: <DashboardHome />, 
     },
     {
       path: ROUTE_CONSTANTS.ADMIN_CHAT,
       element: <AdminChat />,
-    },
+    }
   ],
 };

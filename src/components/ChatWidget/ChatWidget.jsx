@@ -8,6 +8,7 @@ import { getUser, getToken } from "@/utils/jwt-helper";
 import { chatWebSocket } from "@/lib/chatWebSocket";
 import { messageAPI } from "@/api/message.api";
 import { selectUserId, loadUserProfile } from "@/store/userProfileSlice";
+import FloatingButton from "./FloatingButton";
 
 const ChatWidget = () => {
   const dispatch = useDispatch();
@@ -15,6 +16,8 @@ const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+
+  // eslint-disable-next-line no-unused-vars
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const ADMIN_ID = "ca271b76-eb75-4d15-9ebc-e863f2068649"; // Admin ID cố định
   const [loading, setLoading] = useState(false);
@@ -157,7 +160,7 @@ const ChatWidget = () => {
         message: messageContent,
         timestamp: new Date(),
         senderId: currentUser,
-        receiverId: adminId,
+        receiverId: ADMIN_ID,
       };
       setMessages((prev) => [...prev, msg]);
       setText("");
@@ -306,18 +309,10 @@ const ChatWidget = () => {
       </div>
 
       {/* Floating Button */}
-      <button
+      <FloatingButton
         onClick={toggleChat}
-        className={cn(
-          "fixed bottom-6 right-6 w-[60px] h-[60px] rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40 hover:shadow-xl hover:shadow-pink-500/50 flex items-center justify-center transition-all duration-300 z-[9998] hover:scale-110",
-          isOpen && "scale-0 opacity-0 pointer-events-none"
-        )}
-      >
-        <MessageCircle className="w-7 h-7" />
-        <span className="absolute -top-1 -right-1 w-6 h-6 bg-rose-600 text-white text-xs font-semibold rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-          1
-        </span>
-      </button>
+        show={!isOpen}
+      />
     </>
   );
 };

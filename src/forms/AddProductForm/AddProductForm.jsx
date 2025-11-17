@@ -19,7 +19,7 @@ import { uploadSingleFile } from "@/store/uploadSlice";
 
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { productAPI } from "@/api/product.api";
 
 export default function AddProductForm() {
   const form = useForm({
@@ -58,26 +58,25 @@ export default function AddProductForm() {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-
-  useEffect(() => {
+  useEffect(async () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
+  // TODO: check this
   useEffect(() => {
-  if (isEdit) {
-    const token = localStorage.getItem("token");
-    axios
-      .get(`http://localhost:8080/api/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        console.log("✅ Dữ liệu sản phẩm:", res.data);
-        reset(res.data); // nạp dữ liệu vào form react-hook-form
-      })
-      .catch((err) => console.error("❌ Lỗi tải sản phẩm:", err));
-  }
-}, [id, isEdit, reset]);
+    if (isEdit && id) {
+      const fetchProduct = async () => {
+        try {
+          const res = await productAPI.getById(id);
+          reset(res);
+        } catch (error) {
+          console.error("Failed to fetch product:", error);
+        }
+      };
 
+      fetchProduct();
+    }
+  }, [id, isEdit, reset]);
 
   const categories = useSelector((state) => state.categoryState?.categories);
 
@@ -109,24 +108,23 @@ export default function AddProductForm() {
   const handleSaveDraft = () => toast.success("Draft saved!");
   const handleDiscard = () => reset();
   const onSubmit = async (data) => {
-  const token = localStorage.getItem("token");
-  try {
-    if (isEdit) {
-      await axios.put(`http://localhost:8080/api/products/${id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("✅ Cập nhật sản phẩm thành công!");
-    } else {
-      await dispatch(createProduct(data));
-      toast.success("✅ Thêm sản phẩm mới thành công!");
+    const token = localStorage.getItem("token");
+    try {
+      if (isEdit) {
+        await axios.put(`http://localhost:8080/api/products/${id}`, data, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success(" Cập nhật sản phẩm thành công!");
+      } else {
+        await dispatch(createProduct(data));
+        toast.success(" Thêm sản phẩm mới thành công!");
+      }
+      navigate("/admin/product"); // quay lại danh sách
+    } catch (err) {
+      console.error("❌ Lỗi lưu sản phẩm:", err);
+      toast.error("Lưu sản phẩm thất bại!");
     }
-    navigate("/admin/product"); // quay lại danh sách
-  } catch (err) {
-    console.error("❌ Lỗi lưu sản phẩm:", err);
-    toast.error("Lưu sản phẩm thất bại!");
-  }
-};
-
+  };
 
   const handleUploadThumbnail = async (e) => {
     const file = e.target.files[0];
@@ -143,11 +141,11 @@ export default function AddProductForm() {
 
   return (
     <FormLayout
-  title={isEdit ? "Edit Product" : "Add Product"}
-  onDiscard={handleDiscard}
-  onSaveDraft={handleSaveDraft}
-  onPublish={handleSubmit(onSubmit)}
-  >
+      title={isEdit ? "Edit Product" : "Add Product"}
+      onDiscard={handleDiscard}
+      onSaveDraft={handleSaveDraft}
+      onPublish={handleSubmit(onSubmit)}
+    >
       {/* Left Column */}
       <div className="col-span-2 space-y-6">
         <ProductDetailsSection
