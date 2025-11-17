@@ -108,16 +108,21 @@ export default function AddProductForm() {
   const handleSaveDraft = () => toast.success("Draft saved!");
   const handleDiscard = () => reset();
   const onSubmit = async (data) => {
-  const token = localStorage.getItem("token");
-  try {
-    if (isEdit) {
-      await axios.put(`http://localhost:8080/api/products/${id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success(" Cập nhật sản phẩm thành công!");
-    } else {
-      await dispatch(createProduct(data));
-      toast.success(" Thêm sản phẩm mới thành công!");
+    const token = localStorage.getItem("token");
+    try {
+      if (isEdit) {
+        await axios.put(`http://localhost:8080/api/products/${id}`, data, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success(" Cập nhật sản phẩm thành công!");
+      } else {
+        await dispatch(createProduct(data));
+        toast.success(" Thêm sản phẩm mới thành công!");
+      }
+      navigate("/admin/product"); // quay lại danh sách
+    } catch (err) {
+      console.error("❌ Lỗi lưu sản phẩm:", err);
+      toast.error("Lưu sản phẩm thất bại!");
     }
   };
 

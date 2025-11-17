@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { QRCodeCanvas } from "qrcode.react";
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
@@ -27,7 +25,7 @@ function Input({ className = "", ...props }) {
 }
 
 /* ProductTable: list with dropdown */
-function ProductTable({ products, onOpenDetail, onNavigateAdd, navigate }) {
+function ProductTable({ products, onOpenDetail, navigate }) {
   const [selectedDropdown, setSelectedDropdown] = useState(null);
   const [origin, setOrigin] = useState("");
 
