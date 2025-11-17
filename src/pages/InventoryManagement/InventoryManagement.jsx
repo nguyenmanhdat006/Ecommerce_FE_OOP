@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import InventoryHeader from "./InventoryHeader";
 import InventoryTable from "./InventoryTable";
 import AddMovementModal from "./AddMovementModal";
-import { inventoryAPI } from "@/api/inventory.api";
+import { stockAPI } from "@/api/stocks.api";
 
 export function InventoryManagement() {
   const [movements, setMovements] = useState([]);
@@ -18,7 +18,7 @@ export function InventoryManagement() {
     setLoading(true);
     setError(null);
     try {
-      const response = await inventoryAPI.getAll();
+      const response = await stockAPI.getAll();
       setMovements(Array.isArray(response?.data) ? response.data : []);
     } catch (err) {
       setError(
@@ -49,7 +49,7 @@ export function InventoryManagement() {
           : new Date().toISOString(),
       };
 
-      await inventoryAPI.create(payload);
+      await stockAPI.create(payload);
       await fetchMovements();
       setIsModalOpen(false);
     } catch (err) {

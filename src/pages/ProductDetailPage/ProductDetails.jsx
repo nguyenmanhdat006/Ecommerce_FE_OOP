@@ -429,4 +429,6 @@ export default function ProductPage() {
         </div>
       </main>
 
-export default ProductDetails;
+    </div>
+  );
+}
