@@ -175,11 +175,16 @@ export default function OrderManagement() {
 
           {/* Nút thao tác */}
           <div className="flex justify-end gap-3 px-4 py-3 bg-white border-t">
-            <button
-              className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm"
-              onClick={() =>
-                handleStatusChange(order.id, getNextStatus(order.status))
-              }
+             {order.status === "PAID" ? (
+                  <span className="px-4 py-1 rounded bg-green-100 text-green-700 text-sm font-medium">
+                    Hoàn thành
+                  </span>
+                ) : (
+                  <button
+                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm"
+                    onClick={() =>
+                      handleStatusChange(order.id, getNextStatus(order.status))
+                    }
               disabled={
                 order.status === "PAID" ||
                 order.status === "CANCELED" ||
@@ -188,8 +193,9 @@ export default function OrderManagement() {
             >
               Xác nhận
             </button>
+          )}
 
-            {order.status !== "CANCELED" && order.status !== "PAID" && (
+            {!["CANCELED", "PAID", "SHIPPING", "WAIT_DELIVER"].includes(order.status) && (
               <button
                 className="bg-gray-200 text-gray-700 px-4 py-1 rounded hover:bg-gray-300 text-sm"
                 onClick={() => handleStatusChange(order.id, "CANCELED")}

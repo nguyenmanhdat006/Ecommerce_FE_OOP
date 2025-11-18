@@ -1,4 +1,4 @@
-import { getToken } from '@/utils/jwt-helper';
+import { getToken, getUser } from '@/utils/jwt-helper';
 
 const buildUrl = (path) => `${import.meta.env.VITE_API_URL}${path}`;
 
@@ -12,7 +12,11 @@ const defaultHeaders = () => {
 export const cartAPI = {
   // GET /api/carts - get carts for current authenticated user
   getUserCarts: async () => {
-    const res = await fetch(buildUrl('/api/carts'), {
+    const user = getUser();
+    const userId = user?.id || user?._id || localStorage.getItem('userId');
+    console.log('User ID in cartAPI:', userId);
+    const path = userId ? `/api/carts/user/${userId}` : '/api/carts';
+    const res = await fetch(buildUrl(path), {
       method: 'GET',
       headers: defaultHeaders(),
     });
@@ -36,4 +40,16 @@ export const cartAPI = {
     }
     return res.json();
   },
+
+  deleteCart: async (cartId) => {
+    const res = await fetch(buildUrl(`/api/carts/${cartId}`), {
+      method: 'DELETE',
+      headers: defaultHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw err;
+    }
+    return true;
+  }
 };
