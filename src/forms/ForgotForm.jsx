@@ -2,16 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
-
-export default function ForgotForm({ onSwitch }) {
+import { useNavigate } from "react-router-dom";
+  
+export default function ForgotForm() {
+  const navigate = useNavigate();
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="space-y-6">
         <div className="space-y-2 text-center">
           <Button
-            variant="ghost"
-            onClick={() => onSwitch("login")}
-            className="absolute left-8 top-8 p-2 hover:bg-gray-100 cursor-pointer"
+            variant="link"
+            onClick={() => navigate(-1) || navigate("/")}
+            className="absolute left-8 top-8 p-2 hover:bg-gray-100 cursor-pointer lg:hidden"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

@@ -1,6 +1,8 @@
 import { Warp } from "@paper-design/shaders-react";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthLayout({ children }) {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex font-sans">
       {/* Left Banner */}
@@ -35,7 +37,7 @@ export default function AuthLayout({ children }) {
 
         <div className="relative z-10 flex flex-col justify-between w-full px-12 py-12">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
             <img
               src="https://www.launchuicomponents.com/favicon.svg"
               alt="Logo"
