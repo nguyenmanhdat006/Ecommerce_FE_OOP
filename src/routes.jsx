@@ -16,6 +16,10 @@ import OrderSuccess from "./pages/OrderSuccess.jsx";
 import OrderVnpSuccess from "./pages/Checkout/vnpayDone.jsx";
 import Chat from "./pages/Chat.jsx";
 import SearchResultsPage from "./pages/SearchResultsPage/SearchResultsPage.jsx";
+import LoginV2 from "./pages/Login/LoginV2.jsx";
+import LoginForm from "./forms/LoginForm.jsx";
+import RegisterForm from "./forms/RegisterForm.jsx";
+import ForgotForm from "./forms/ForgotForm.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -76,11 +80,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "login",
-        element: <Login />,
+        element: <LoginForm />,
       },
       {
         path: "register",
-        element: <Register />,
+        element: <RegisterForm />,
+      },
+      {
+        path: "forgot",
+        element: <ForgotForm />,
       },
       {
         path: "oauth2/callback",
