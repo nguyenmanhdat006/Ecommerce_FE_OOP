@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../store/authSlice";
 import { loadUserProfile } from "../store/userProfileSlice";
 import { getToken } from "../utils/jwt-helper";
+import Splash from "@/components/Splash"
 
 const OAuth2LoginCallback = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const OAuth2LoginCallback = () => {
     }
   }, [loadingProfile, user, urlToken, localToken, navigate, dispatch]);
 
-  return <div>Đang đăng nhập...</div>;
+  return <Splash onFinish={() => navigate("/")} />;
 };
 
 export default OAuth2LoginCallback;

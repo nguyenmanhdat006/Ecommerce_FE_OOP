@@ -20,6 +20,7 @@ import LoginV2 from "./pages/Login/LoginV2.jsx";
 import LoginForm from "./forms/LoginForm.jsx";
 import RegisterForm from "./forms/RegisterForm.jsx";
 import ForgotForm from "./forms/ForgotForm.jsx";
+import Splash from "./components/Splash.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
         element: <OrderVnpSuccess />,
       },
     ],
+  },
+  {
+    path: "/splash",
+    element: <Splash />,
   },
   {
     path: "/v1/",

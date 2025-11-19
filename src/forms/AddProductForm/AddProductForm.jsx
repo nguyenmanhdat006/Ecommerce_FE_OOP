@@ -58,7 +58,7 @@ export default function AddProductForm() {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-  useEffect(async () => {
+  useEffect( () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
