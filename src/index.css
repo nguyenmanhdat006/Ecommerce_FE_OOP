@@ -16,7 +16,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@font-face {
+/* @font-face {
   font-family: "Inter";
   font-style: normal;
   font-weight: 200;
@@ -42,7 +42,7 @@ body {
   font-style: normal;
   font-weight: 700;
   src: url(assets/fonts/Inter-Bold.ttf);
-}
+} */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
