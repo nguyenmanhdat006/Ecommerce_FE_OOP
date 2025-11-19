@@ -2,6 +2,7 @@ export const DEFAULT_NAVIGATION_LINKS = [
   { text: "Shop", href: "/" },
   { text: "Men", href: "/men" },
   { text: "Women", href: "/women" },
+  { text: "Kids", href: "/kids" },
 ]
 
 export const DEFAULT_ACTIONS = [

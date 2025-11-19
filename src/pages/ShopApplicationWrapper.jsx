@@ -8,6 +8,8 @@ import { loadUserProfile } from '@/store/userProfileSlice'
 import { getToken, getUser } from '@/utils/jwt-helper'
 import OrderStatusToast from '@/components/OrderStatusToast/OrderStatusToast'
 import Splash from '@/components/Splash'
+import Footer from '../components/Footer/Footer'
+import content from '../data/content.json'
 
 const ShopApplicationWrapper = () => {
   const dispatch = useDispatch();
@@ -28,6 +30,7 @@ const ShopApplicationWrapper = () => {
         <Outlet />
         {isLoading && <Splash />}
         {getUser()?.id && <ChatWidget />}
+        <Footer content={content?.footer} />
     </div>
   )
 }
