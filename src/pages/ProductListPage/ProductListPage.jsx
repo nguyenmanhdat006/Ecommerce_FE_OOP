@@ -18,6 +18,7 @@ const ProductListPage = ({ categoryType }) => {
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.productSlice?.loading);
   const [products, setProducts] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   const categoryContent = useMemo(() => {
     return categories?.find((category) => category.code === categoryType);
@@ -36,10 +37,47 @@ const ProductListPage = ({ categoryType }) => {
 
   return (
     <div>
-      {/* Sử dụng flex để chia cột */}
-      <div className="flex">
-        {/* Cột trái: Filters */}
-        <div className="w-[20%] p-[10px] border rounded-lg m-[20px] min-w-[250px]">
+      {/* Button hiển thị Filter trên mobile */}
+      <div className="lg:hidden p-4">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 px-4 py-2 border rounded-lg bg-white shadow-sm hover:bg-gray-50"
+        >
+          <FilterIcon />
+          <span className="text-[16px] text-gray-600">
+            {showFilters ? 'Ẩn Filter' : 'Hiện Filter'}
+          </span>
+        </button>
+      </div>
+
+      {/* Filters trên mobile (có thể mở/đóng) */}
+      {showFilters && (
+        <div className="lg:hidden p-[10px] border rounded-lg mx-[20px] mb-[20px]">
+          <div className="flex justify-between">
+            <p className="text-[16px] text-gray-600">Filter</p>
+            <FilterIcon />
+          </div>
+
+          <div>
+            <p className="text-[16px] text-black mt-5">Categories</p>
+            <Categories types={categoryContent?.types} />
+            <hr />
+          </div>
+
+          <PriceFilter />
+          <hr />
+
+          <ColorsFilter colors={categoryContent?.meta_data?.colors} />
+          <hr />
+
+          <SizeFilter sizes={categoryContent?.meta_data?.sizes} />
+        </div>
+      )}
+
+      {/* Layout chính */}
+      <div className="flex flex-col lg:flex-row">
+        {/* Cột trái: Filters - chỉ hiện trên desktop */}
+        <div className="hidden lg:block lg:w-[20%] p-[10px] border rounded-lg m-[20px] min-w-[250px]">
           <div className="flex justify-between">
             <p className="text-[16px] text-gray-600">Filter</p>
             <FilterIcon />
@@ -61,21 +99,23 @@ const ProductListPage = ({ categoryType }) => {
         </div>
 
         {/* Cột phải: Products */}
-        <div className="p-[15px] flex-grow">
+        <div className="p-[15px] flex-grow w-full">
           <p className="text-black text-lg">{category?.description}</p>
 
-          {/* Products Row: 1 hàng 5 sản phẩm */}
-          <div className="pt-4 flex flex-row flex-nowrap gap-4 overflow-x-auto px-2">
+          {/* Products Grid: Responsive - 1 đến 5 cột */}
+          <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-2">
             {loading ? (
-              <Spinner />
+              <div className="col-span-full flex justify-center">
+                <Spinner />
+              </div>
             ) : products?.length > 0 ? (
-              products?.slice(0, 5).map((item, index) => (
-                <div key={item?.id + '_' + index} className="flex-shrink-0 w-1/5">
+              products.map((item, index) => (
+                <div key={item?.id + '_' + index}>
                   <ProductCard {...item} title={item?.name} />
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-10 w-full">
+              <p className="col-span-full text-center text-gray-500 py-10">
                 Không tìm thấy sản phẩm nào.
               </p>
             )}
