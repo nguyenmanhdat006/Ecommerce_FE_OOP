@@ -1,27 +1,44 @@
-import SvgFavourite from "../../components/common/SvgFavourite"
+import SvgFavourite from "../../components/common/SvgFavourite";
 import { Link } from "react-router-dom";
 
 // eslint-disable-next-line no-unused-vars
 const ProductCard = ({ id, title, description, price, discount, rating, brand, thumbnail, slug }) => {
   return (
-    <div className='flex flex-col hover:scale-105 relative'>
+    <div
+      className="flex flex-col relative border rounded-lg bg-white
+                 transition-transform duration-300 ease-out transform
+                 hover:-translate-y-1 hover:shadow-lg"
+    >
       <Link to={`/product/${slug}`}>
-      <img className='h-[320px] w-[280px] border rounded-lg cursor-pointer object-cover block' src={thumbnail} alt='Jeans'/>
+        <div className="overflow-hidden rounded-t-lg">
+          <img
+            className="h-[320px] w-[280px] cursor-pointer object-cover block"
+            src={thumbnail}
+            alt={title}
+          />
+        </div>
       </Link>
-      <div className='flex justify-between items-center'>
-        <div className='flex flex-col pt-2'>
-          <p className='text-[16px] p-1'>{title}</p>
+
+      <div className="flex justify-between items-center p-2">
+        <div className="flex flex-col">
+          <p className="text-[16px]">{title}</p>
           {description && (
-              <p className='text-[12px] px-1 text-gray-600'>{brand}</p>
-            )}
+            <p className="text-[12px] text-gray-600">{brand}</p>
+          )}
         </div>
         <div>
           <p>${price}</p>
         </div>
       </div>
-        <button onClick={() => console.log("Add to favourites")} className="absolute top-0 right-0 pt-4 pr-4"><SvgFavourite /></button>
-    </div>
-  )
-}
 
-export default ProductCard
+      <button
+        onClick={() => console.log("Add to favourites")}
+        className="absolute top-0 right-0 p-2"
+      >
+        <SvgFavourite />
+      </button>
+    </div>
+  );
+};
+
+export default ProductCard;
