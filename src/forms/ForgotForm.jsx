@@ -8,11 +8,10 @@ export default function ForgotForm() {
   const navigate = useNavigate();
   return (
     <div className="w-full max-w-md space-y-8">
-
       <div className="space-y-6">
         <div className="space-y-2 text-center">
           <Button
-            variant="button"
+            variant="link"
             onClick={() => navigate(-1) || navigate("/")}
             className="absolute left-8 top-8 p-2 hover:bg-gray-100 cursor-pointer lg:hidden"
           >

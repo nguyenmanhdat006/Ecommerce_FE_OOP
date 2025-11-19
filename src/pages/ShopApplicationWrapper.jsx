@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 import { loadUserProfile } from '@/store/userProfileSlice'
 import { getToken, getUser } from '@/utils/jwt-helper'
 import OrderStatusToast from '@/components/OrderStatusToast/OrderStatusToast'
+import Splash from '@/components/Splash'
 
 const ShopApplicationWrapper = () => {
   const dispatch = useDispatch();
@@ -25,7 +26,7 @@ const ShopApplicationWrapper = () => {
         <OrderStatusToast />
         <Navigation />
         <Outlet />
-        {isLoading && <Spinner />}
+        {isLoading && <Splash />}
         {getUser()?.id && <ChatWidget />}
     </div>
   )

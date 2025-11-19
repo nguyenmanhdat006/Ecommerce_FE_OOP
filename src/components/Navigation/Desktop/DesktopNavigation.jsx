@@ -48,7 +48,9 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
 
       {/* Actions */}
       <div className="hidden md:flex items-center gap-5">
-        <SearchBar />
+        <div className="block sm:hidden md:hidden lg:block">
+          <SearchBar />
+        </div>
         {isAuthenticated ? (
           <>
             <Button variant="ghost" size="icon" className="h-11 w-11">

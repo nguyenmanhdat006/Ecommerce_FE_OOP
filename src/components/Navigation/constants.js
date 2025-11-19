@@ -2,8 +2,6 @@ export const DEFAULT_NAVIGATION_LINKS = [
   { text: "Shop", href: "/" },
   { text: "Men", href: "/men" },
   { text: "Women", href: "/women" },
-  { text: "Kids", href: "/kids" },
-  { text: "Sale", href: "/sale" },
 ]
 
 export const DEFAULT_ACTIONS = [
@@ -12,7 +10,7 @@ export const DEFAULT_ACTIONS = [
 ]
 
 export const DEFAULT_NAVIGATION_CONFIG = {
-  logo: "🛍️",
+  logo: "https://www.launchuicomponents.com/favicon.svg",
   name: "ShopEase",
   homeUrl: "/",
   links: DEFAULT_NAVIGATION_LINKS,
