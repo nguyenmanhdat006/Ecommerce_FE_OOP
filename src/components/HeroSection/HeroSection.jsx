@@ -18,7 +18,7 @@ const HeroSection = () => {
       style={{ backgroundImage: `url(${HeroImg})` }}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div className="absolute inset-0 bg-transparent"></div>
 
       {/* TEXT + BUTTON WRAPPER */}
       <main
