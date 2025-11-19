@@ -2,7 +2,7 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function Splash({ onFinish }) {
   return (
-    <div className="fixed top-0 left-0 w-screen h-screen bg-white flex items-center justify-center z-[9999]">
+<div className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center z-[9999]" style={{ backgroundColor: "#fea0b0" }}>
       <DotLottieReact
         src="/animations/shopping_girl.json"
         autoplay
