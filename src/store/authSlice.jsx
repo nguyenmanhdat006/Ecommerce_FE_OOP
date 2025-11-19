@@ -13,6 +13,7 @@ export const login = createAsyncThunk(
   "auth/login",
   async (data, { rejectWithValue }) => {
     try {
+      console.log("Login data:", data);
       const res = await authAPI.login(data);
       console.log("Login res:", res);
       console.log("Login res.data:", res.token);

@@ -12,19 +12,17 @@ import { API_BASE_URL } from "@/api/constant";
 import { FcGoogle } from "react-icons/fc"; // Google color icon
 import { FaFacebookF } from "react-icons/fa"; // Facebook icon
 
-
 export default function LoginForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
 
   const handleGoogleLogin = useCallback(() => {
     window.location.href = API_BASE_URL + "/oauth2/authorization/google";
   }, []);
 
   const [values, setValues] = useState({
-    email: "",
-    password: ""
+    userName: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -70,7 +68,7 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-8">
       <Button
-        variant="link"
+        variant="button"
         onClick={() => navigate(-1) || navigate("/")}
         className="absolute left-8 top-8 p-2 hover:bg-gray-100 cursor-pointer lg:hidden"
       >
@@ -96,14 +94,17 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-foreground">
+            <Label
+              htmlFor="email"
+              className="text-sm font-medium text-foreground"
+            >
               Email
             </Label>
             <Input
-              id="email"
-              name="email"
+              id="userName"
+              name="userName"
               type="email"
-              value={values.email}
+              value={values.userName}
               onChange={handleChange}
               placeholder="user@company.com"
               className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
@@ -113,7 +114,10 @@ export default function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-foreground">
+            <Label
+              htmlFor="password"
+              className="text-sm font-medium text-foreground"
+            >
               Password
             </Label>
             <div className="relative">
@@ -159,7 +163,8 @@ export default function LoginForm() {
               </Label>
             </div>
             <Button
-              variant="link"
+              variant="button"
+              type="button"
               className="p-0 h-auto text-sm hover:text-opacity-80 cursor-pointer"
               style={{ color: "#fea0b0" }}
               onClick={() => navigate("/v1/forgot")}
@@ -178,18 +183,14 @@ export default function LoginForm() {
           </Button>
         </form>
 
-        {error && (
-          <p className="text-lg text-red-700">
-            {typeof error === "string" ? error : error?.message || "Invalid Credentials!"}
-          </p>
-        )}
-
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-muted-foreground">Or Login With</span>
+            <span className="bg-white px-2 text-muted-foreground">
+              Or Login With
+            </span>
           </div>
         </div>
 
@@ -212,7 +213,8 @@ export default function LoginForm() {
         <div className="text-center text-sm text-muted-foreground">
           Don't Have An Account?{" "}
           <Button
-            variant="link"
+            variant="button"
+            type="button"
             className="p-0 h-auto text-sm hover:text-opacity-80 font-medium cursor-pointer"
             style={{ color: "#fea0b0" }}
             onClick={() => navigate("/v1/register")}
