@@ -61,7 +61,7 @@ export default function Checkout() {
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-md shadow-sm p-6 text-gray-800 mb-10">
       <div className="border-b border-gray-200 pb-4 mb-4">
-        <h2 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-black flex items-center gap-2">
           <MapPin className="w-5 h-5" />
           <span>Địa Chỉ Nhận Hàng</span>
         </h2>
@@ -145,7 +145,7 @@ export default function Checkout() {
 
         <div className="text-right mt-4 font-semibold text-sm">
           Tổng số tiền ({cartItems.length} sản phẩm):
-          <span className="text-orange-600 text-base ml-1">{totalPayment.toLocaleString()}₫</span>
+          <span className="text-black text-base ml-1">{totalPayment.toLocaleString()}₫</span>
         </div>
       </div>
 
@@ -234,7 +234,7 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between font-semibold pt-2 border-t">
                   <span>Tổng thanh toán</span>
-                  <span className="text-orange-600">{totalPayment.toLocaleString()}₫</span>
+                  <span className="text-black">{totalPayment.toLocaleString()}₫</span>
                 </div>
               </div>
             </div>
@@ -257,7 +257,7 @@ export default function Checkout() {
             <span>-{discount.toLocaleString()}₫</span>
           </div>
         )}
-        <div className="flex justify-between items-center text-lg font-semibold text-orange-600 mt-2">
+        <div className="flex justify-between items-center text-lg font-semibold text-black mt-2">
           <span>Tổng thanh toán</span>
           <span>{totalPayment.toLocaleString()}₫</span>
         </div>
