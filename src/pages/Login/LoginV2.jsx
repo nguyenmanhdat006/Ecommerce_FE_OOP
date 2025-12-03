@@ -9,6 +9,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { login, clearAuthError } from "@/store/authSlice";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
+import { FcGoogle } from "react-icons/fc"; // Google color icon
+import { FaFacebookF } from "react-icons/fa"; // Facebook icon
 
 export default function LoginV2() {
   const [showPassword, setShowPassword] = useState(false);
@@ -184,15 +186,17 @@ export default function LoginV2() {
       <div className="grid grid-cols-2 gap-4">
         <Button
           variant="outline"
-          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer"
+          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer flex items-center justify-center gap-2"
         >
+          <FcGoogle className="h-5 w-5" />
           Google
         </Button>
         <Button
           variant="outline"
-          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer"
+          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer flex items-center justify-center gap-2"
         >
-          Apple
+          <FaFacebookF className="h-5 w-5 text-blue-600" />
+          Facebook
         </Button>
       </div>
 
