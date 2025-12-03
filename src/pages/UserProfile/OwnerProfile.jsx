@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ProfileLayout from "@/layout/ProfileLayout";
 import ProfileSidebar from "./components/ProfileSidebar";
 import ProfileForm from "@/forms/ProfileForm/ProfileForm";
+import AddressManagement from "./components/AddressManagement";
 import { Section } from "./components/Section";
 import { loadUserProfile, selectUserProfile } from "@/store/userProfileSlice";
 
@@ -33,7 +34,7 @@ export default function OwnerProfile() {
       <ProfileForm userId={userProfile?.id} initialData={initialData} />
     ),
     orders: <Section title="My Orders">No orders yet.</Section>,
-    address: <Section title="Manage Address">No addresses saved.</Section>,
+    address: <AddressManagement />,
     payment: (
       <Section title="Payment Methods">No payment methods saved.</Section>
     ),

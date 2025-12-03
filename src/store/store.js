@@ -13,6 +13,7 @@ import categorySlice from "./categorySlice";
 import adminUserSlice from "./adminUserSlice";
 import categoryTypeSlice from "./categoryTypeSlice";
 import userProfileSlice from "./userProfileSlice";
+import addressSlice from "./addressSlice";
 import chatSlice from "./chat";
 
 const rootReducer = combineReducers({
@@ -30,6 +31,7 @@ const rootReducer = combineReducers({
   adminUsers: adminUserSlice,
   categoryTypeSlice: categoryTypeSlice,
   userProfileSlice: userProfileSlice,
+  addressState: addressSlice,
 
   chat: chatSlice,
 });
