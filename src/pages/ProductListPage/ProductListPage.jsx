@@ -26,6 +26,9 @@ const ProductListPage = ({ categoryType }) => {
     return categoryData?.find((element) => element?.code === categoryType);
   }, [categoryData, categoryType]);
 
+  const storeProducts = useSelector((state) => state.productState?.products || []);
+  const storeLoaded = useSelector((state) => state.productState?.loaded);
+
   // Filters state
   const [filters, setFilters] = useState({
     categoryId: null,
@@ -40,81 +43,11 @@ const ProductListPage = ({ categoryType }) => {
 
   // Update categoryId when category changes
   useEffect(() => {
-    if (category?.id) {
-      setFilters(prev => ({ ...prev, categoryId: category.id }));
-    }
-  }, [category?.id]);
-
-  // Fetch products with filters
-  const fetchFilteredProducts = useCallback(async () => {
-    if (!filters.categoryId) return;
-    
-    setLoading(true);
-    try {
-      // Clean up params - remove null/undefined values
-      const cleanParams = Object.entries(filters).reduce((acc, [key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
-
-      const response = await productAPI.search(cleanParams);
-      
-      setProducts(response.products || []);
-      
-      // Extract unique brands from results
-      const brands = [...new Set(response.products?.map(p => p.brand).filter(Boolean))];
-      setAvailableBrands(brands);
-    } catch (error) {
-      console.error('Fetch products error:', error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    fetchFilteredProducts();
-  }, [fetchFilteredProducts]);
-
-  // Filter handlers
-  const handleFilterChange = (updates) => {
-    setFilters(prev => ({ ...prev, ...updates }));
-  };
-
-  const handlePriceChange = ({ minPrice, maxPrice }) => {
-    handleFilterChange({ minPrice, maxPrice });
-  };
-
-  const handleRatingChange = (minRating) => {
-    handleFilterChange({ minRating });
-  };
-
-  const handleSortChange = (sortBy, sortDirection) => {
-    handleFilterChange({ sortBy, sortDirection });
-  };
-
-  const handleNewArrivalChange = (isNewArrival) => {
-    handleFilterChange({ isNewArrival });
-  };
-
-  const handleBrandChange = (brand) => {
-    handleFilterChange({ brand });
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      categoryId: category?.id || null,
-      minPrice: null,
-      maxPrice: null,
-      minRating: null,
-      isNewArrival: false,
-      sortBy: 'name',
-      sortDirection: 'asc',
-      brand: null,
-    });
-  };
+    if (!category?.id) return;
+    dispatch(fetchProducts({ categoryId: category.id }))
+      .then((res) => setProducts(res.payload || []))
+      .catch(() => {});
+  }, [category?.id, dispatch]);
 
   return (
     <div>

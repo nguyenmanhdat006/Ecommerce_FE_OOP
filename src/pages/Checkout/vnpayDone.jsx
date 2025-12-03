@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from '@/api/constant';
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function OrderVnpSuccess() {
@@ -51,8 +52,9 @@ export default function OrderVnpSuccess() {
       const token = localStorage.getItem("access_token");
 
       try {
+        const base = API_BASE_URL || 'http://localhost:8080';
         const res = await axios.get(
-          `http://localhost:8080/api/vnpay/return${searchParams}`,
+          `${base}/api/vnpay/return${searchParams}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
