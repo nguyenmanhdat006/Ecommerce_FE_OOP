@@ -7,6 +7,7 @@ import {
   clearTokens,
   clearUser,
 } from "@/utils/jwt-helper";
+import { normalizeUser } from "@/utils/roleNormalizer";
 
 // LOGIN
 export const login = createAsyncThunk(
@@ -18,8 +19,10 @@ export const login = createAsyncThunk(
       console.log("Login res:", res);
       console.log("Login res.data:", res.token);
       saveToken(res.token);
-      saveUser(res.user);
-      return res;
+      // Normalize user before saving
+      const normalizedUser = normalizeUser(res.user);
+      saveUser(normalizedUser);
+      return { ...res, user: normalizedUser };
     } catch (err) {
       return rejectWithValue(err.response?.data || "Login failed");
     }
@@ -84,7 +87,8 @@ const authSlice = createSlice({
       state.error = null;
     },
     setCredentials(state, action) {
-      state.user = action.payload.user || null;
+      // Normalize user before setting
+      state.user = action.payload.user ? normalizeUser(action.payload.user) : null;
       state.accessToken = action.payload.accessToken || null;
       state.refreshToken = action.payload.refreshToken || null;
       state.isAuthenticated = !!action.payload.accessToken;
@@ -117,8 +121,8 @@ const authSlice = createSlice({
     })
     .addCase(register.fulfilled, (state, action) => {
       state.loading = false;
-      // tùy backend trả gì, thường trả user + token
-      state.user = action.payload?.user;
+      // tùy backend trả gì, thường trả user + token - normalize user
+      state.user = action.payload?.user ? normalizeUser(action.payload.user) : null;
     })
     .addCase(register.rejected, (state, action) => {
       state.loading = false;
