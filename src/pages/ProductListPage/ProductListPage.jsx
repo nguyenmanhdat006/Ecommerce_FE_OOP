@@ -1,24 +1,22 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import FilterIcon from '../../components/common/FilterIcon';
 import content from '../../data/content.json';
-import Categories from '../../components/Filters/Categories';
-import PriceFilter from '../../components/Filters/PriceFilter';
-import ColorsFilter from '../../components/Filters/ColorsFilter';
-import SizeFilter from '../../components/Filters/SizeFilter';
 import ProductCard from './ProductCard';
-import { fetchProducts } from '../../store/productSlice';
+import { productAPI } from '@/api/product.api';
 import Spinner from '../../components/Spinner/Spinner';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import FilterSidebar from '@/components/Filters/FilterSidebar';
+import '@/components/Filters/priceFillter.css';
 
 const categories = content?.categories;
 
 const ProductListPage = ({ categoryType }) => {
   const categoryData = useSelector((state) => state?.categoryState?.categories);
-  const dispatch = useDispatch();
-  const loading = useSelector((state) => state.productSlice?.loading);
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [availableBrands, setAvailableBrands] = useState([]);
 
   const categoryContent = useMemo(() => {
     return categories?.find((category) => category.code === categoryType);
@@ -31,18 +29,25 @@ const ProductListPage = ({ categoryType }) => {
   const storeProducts = useSelector((state) => state.productState?.products || []);
   const storeLoaded = useSelector((state) => state.productState?.loaded);
 
+  // Filters state
+  const [filters, setFilters] = useState({
+    categoryId: null,
+    minPrice: null,
+    maxPrice: null,
+    minRating: null,
+    isNewArrival: false,
+    sortBy: 'name',
+    sortDirection: 'asc',
+    brand: null,
+  });
+
+  // Update categoryId when category changes
   useEffect(() => {
     if (!category?.id) return;
-    // Only fetch if store has no products or not loaded
-    if (!storeLoaded || !storeProducts || storeProducts.length === 0) {
-      dispatch(fetchProducts({ categoryId: category.id }))
-        .then((res) => setProducts(res.payload || []))
-        .catch(() => {});
-    } else {
-      // Use cached products filtered by category if available
-      setProducts(storeProducts.filter(p => p.categoryId === category.id));
-    }
-  }, [category?.id, dispatch, storeProducts, storeLoaded]);
+    dispatch(fetchProducts({ categoryId: category.id }))
+      .then((res) => setProducts(res.payload || []))
+      .catch(() => {});
+  }, [category?.id, dispatch]);
 
   return (
     <div>
@@ -61,50 +66,36 @@ const ProductListPage = ({ categoryType }) => {
 
       {/* Filters trên mobile (có thể mở/đóng) */}
       {showFilters && (
-        <div className="lg:hidden p-[10px] border rounded-lg mx-[20px] mb-[20px]">
-          <div className="flex justify-between">
-            <p className="text-[16px] text-gray-600">Filter</p>
-            <FilterIcon />
-          </div>
-
-          <div>
-            <p className="text-[16px] text-black mt-5">Categories</p>
-            <Categories types={categoryContent?.types} />
-            <hr />
-          </div>
-
-          <PriceFilter />
-          <hr />
-
-          <ColorsFilter colors={categoryContent?.meta_data?.colors} />
-          <hr />
-
-          <SizeFilter sizes={categoryContent?.meta_data?.sizes} />
+        <div className="lg:hidden mx-[20px] mb-[20px]">
+          <FilterSidebar
+            filters={filters}
+            availableBrands={availableBrands}
+            onPriceChange={handlePriceChange}
+            onRatingChange={handleRatingChange}
+            onSortChange={handleSortChange}
+            onNewArrivalChange={handleNewArrivalChange}
+            onBrandChange={handleBrandChange}
+            onClearFilters={handleClearFilters}
+          />
         </div>
       )}
 
       {/* Layout chính */}
       <div className="flex flex-col lg:flex-row">
         {/* Cột trái: Filters - chỉ hiện trên desktop */}
-        <div className="hidden lg:block lg:w-[20%] p-[10px] border rounded-lg m-[20px] min-w-[250px]">
-          <div className="flex justify-between">
-            <p className="text-[16px] text-gray-600">Filter</p>
-            <FilterIcon />
+        <div className="hidden lg:block lg:w-[20%] m-[20px] min-w-[250px]">
+          <div className="sticky top-20">
+            <FilterSidebar
+              filters={filters}
+              availableBrands={availableBrands}
+              onPriceChange={handlePriceChange}
+              onRatingChange={handleRatingChange}
+              onSortChange={handleSortChange}
+              onNewArrivalChange={handleNewArrivalChange}
+              onBrandChange={handleBrandChange}
+              onClearFilters={handleClearFilters}
+            />
           </div>
-
-          <div>
-            <p className="text-[16px] text-black mt-5">Categories</p>
-            <Categories types={categoryContent?.types} />
-            <hr />
-          </div>
-
-          <PriceFilter />
-          <hr />
-
-          <ColorsFilter colors={categoryContent?.meta_data?.colors} />
-          <hr />
-
-          <SizeFilter sizes={categoryContent?.meta_data?.sizes} />
         </div>
 
         {/* Cột phải: Products */}
@@ -114,7 +105,7 @@ const ProductListPage = ({ categoryType }) => {
           {/* Products Grid: Responsive - 1 đến 5 cột */}
           <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-2">
             {loading ? (
-              <div className="col-span-full flex justify-center">
+              <div className="col-span-full flex justify-center py-20">
                 <Spinner />
               </div>
             ) : products?.length > 0 ? (
