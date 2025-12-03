@@ -66,7 +66,7 @@ axiosClient.interceptors.response.use(
         return axiosClient(originalRequest);
       } catch {
         clearTokens();
-        window.location.href = "/v1/login"; // auto logout
+        window.location.href = "/v2/login"; // auto logout
       } finally {
         isRefreshing = false;
       }

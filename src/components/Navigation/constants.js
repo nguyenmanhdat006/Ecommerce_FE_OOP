@@ -3,16 +3,15 @@ export const DEFAULT_NAVIGATION_LINKS = [
   { text: "Men", href: "/men" },
   { text: "Women", href: "/women" },
   { text: "Kids", href: "/kids" },
-  { text: "Sale", href: "/sale" },
 ]
 
 export const DEFAULT_ACTIONS = [
-  { text: "Login", href: "/v1/login", isButton: false },
-  { text: "Sign up", href: "/v1/register", isButton: true },
+  { text: "Login", href: "/v2/login", isButton: false },
+  { text: "Sign up", href: "/v2/register", isButton: true },
 ]
 
 export const DEFAULT_NAVIGATION_CONFIG = {
-  logo: "🛍️",
+  logo: "https://www.launchuicomponents.com/favicon.svg",
   name: "ShopEase",
   homeUrl: "/",
   links: DEFAULT_NAVIGATION_LINKS,

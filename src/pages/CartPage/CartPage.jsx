@@ -35,11 +35,25 @@ export default function CartPage() {
   const storeCart = useSelector(selectCartItems);
   const navigate = useNavigate();
 
-  // Load cart từ backend
+  // Load cart từ backend only when store cart is empty (cache)
   useEffect(() => {
-    setLoading(true);
-    dispatch(fetchUserCarts()).finally(() => setLoading(false));
-  }, [dispatch]);
+    let mounted = true;
+    const loadCart = async () => {
+      try {
+        // If there is already data in Redux store, reuse it
+        if (!storeCart || storeCart.length === 0) {
+          if (mounted) setLoading(true);
+          await dispatch(fetchUserCarts());
+        }
+      } catch (err) {
+        console.error("Failed to load cart:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    loadCart();
+    return () => (mounted = false);
+  }, [dispatch, storeCart?.length]);
 
   // Đồng bộ products state với storeCart
   useEffect(() => {
@@ -99,7 +113,26 @@ export default function CartPage() {
     navigate("/checkout");
   };
 
-  if (loading) return <p className="text-center mt-10">Đang tải giỏ hàng...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center gap-4 bg-white border border-border rounded-lg px-6 py-4 shadow-sm">
+          <svg
+            className="w-8 h-8 text-black animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <div>
+            <div className="text-sm font-medium text-gray-900">Đang tải giỏ hàng</div>
+            <div className="text-xs text-gray-500">Vui lòng chờ trong giây lát...</div>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="bg-[#f5f5f5] py-6">
@@ -132,12 +165,12 @@ export default function CartPage() {
             </div>
 
             {/* --- Mua kèm --- */}
-            <div className="bg-[#fff3ec] px-4 py-2 text-sm text-gray-600 border-b">
-              <span className="text-red-500 font-medium">Mua Kèm</span> Mua tối
+            <div className="bg-gray-100 px-4 py-2 text-sm text-black border-b">
+              <span className="text-black font-medium">Mua Kèm</span> Mua tối
               thiểu <span className="font-semibold">349.000₫</span> để nhận quà
               <Button
                 variant="link"
-                className="text-orange-500 font-medium ml-1 p-0 h-auto"
+                className="text-black font-medium ml-1 p-0 h-auto"
               >
                 Mua thêm &gt;
               </Button>
@@ -164,7 +197,7 @@ export default function CartPage() {
                 <div className="text-gray-400 line-through text-sm">
                   {formatVND(p.price * 1.1)}
                 </div>
-                <div className="text-red-500 font-semibold">
+                <div className="text-black font-semibold">
                   {formatVND(p.price)}
                 </div>
               </div>
@@ -189,13 +222,13 @@ export default function CartPage() {
                   <Plus size={14} />
                 </Button>
               </div>
-              <div className="w-40 text-right">
-                <div className="text-red-500 font-semibold mb-1">
+                <div className="w-40 text-right">
+                <div className="text-black font-semibold mb-1">
                   {formatVND(p.price * p.qty)}
                 </div>
                 <Button
                   variant="link"
-                  className="text-red-500 text-sm p-0"
+                  className="text-black text-sm p-0"
                   onClick={() => remove(p.id)} // nút xóa hoàn thiện
                 >
                   Xóa
@@ -221,11 +254,11 @@ export default function CartPage() {
                 )
               }
             />
-            <span className="text-sm text-gray-700">Chọn tất cả</span>
+            <span className="text-sm text-black">Chọn tất cả</span>
             <Button
               variant="ghost"
               size="sm"
-              className="text-red-500"
+              className="text-black"
               onClick={() => setProducts([])}
             >
               Xóa
@@ -233,14 +266,14 @@ export default function CartPage() {
           </div>
 
           <div className="text-right">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-black">
               Tổng cộng ({checkedItems.length} sản phẩm):{" "}
-              <span className="text-xl text-orange-500 font-bold">
+              <span className="text-xl text-black font-bold">
                 {formatVND(total)}
               </span>
             </div>
             <Button
-              className="bg-pink-500 hover:bg-pink-600 text-white mt-2 px-10"
+              className="bg-black hover:bg-gray-800 text-white mt-2 px-10"
               onClick={handleCheckout}
             >
               Mua hàng
@@ -251,10 +284,10 @@ export default function CartPage() {
         {/* --- Có thể bạn cũng thích --- */}
         <div className="bg-white rounded-md shadow-sm border mt-10 p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-black">
               CÓ THỂ BẠN CŨNG THÍCH
             </h2>
-            <Button variant="link" className="text-red-500 p-0">
+            <Button variant="link" className="text-black p-0">
               Xem Tất Cả &gt;
             </Button>
           </div>

@@ -1,4 +1,4 @@
-import { Heart, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -11,6 +11,7 @@ import { NavLinkItem } from "../components/NavLinkItem";
 import { SearchBar } from "../components/SearchBar";
 import { User } from "lucide-react";
 import { getToken } from "@/utils/jwt-helper";
+import { countCartItems } from '@/store/features/cart';
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
 
 export default function DesktopNavigation({ links, actions, isActiveLink }) {
@@ -18,6 +19,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
   const dispatch = useDispatch();
   const isAuthenticated = getToken();
   const user = useSelector((state) => state.userProfile?.profile);
+  const cartCount = useSelector(countCartItems) || 0;
 
   const handleLogout = async () => {
     try {
@@ -48,21 +50,21 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
 
       {/* Actions */}
       <div className="hidden md:flex items-center gap-5">
-        <SearchBar />
+        <div className="block sm:hidden md:hidden lg:block">
+          <SearchBar />
+        </div>
         {isAuthenticated ? (
           <>
-            <Button variant="ghost" size="icon" className="h-11 w-11">
-              <Heart size={22} />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              onClick={() => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST)}
-            >
-              <User size={22} />
-            </Button>
+            {user?.role === "ADMIN" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11"
+                onClick={() => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST)}
+              >
+                <User size={22} />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -71,7 +73,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
             >
               <ShoppingCart size={22} />
               <span className="absolute -top-1 -right-1 bg-primary text-white rounded-full text-[11px] w-5 h-5 flex items-center justify-center">
-                2
+                {cartCount}
               </span>
             </Button>
             <UserDropdown user={user} onLogout={handleLogout} />

@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import productReducer from "./features/product";
+import orderReducer from "./features/order";
 import cartReducer from "./features/cart";
 // import categoryReducer from "./features/category";
 import commonReducer from "./features/common";
@@ -13,10 +14,12 @@ import categorySlice from "./categorySlice";
 import adminUserSlice from "./adminUserSlice";
 import categoryTypeSlice from "./categoryTypeSlice";
 import userProfileSlice from "./userProfileSlice";
+import addressSlice from "./addressSlice";
 import chatSlice from "./chat";
 
 const rootReducer = combineReducers({
   productState: productReducer,
+  orderState: orderReducer,
   cartState: cartReducer,
   categoryState: categorySlice,
   commonState: commonReducer,
@@ -30,6 +33,7 @@ const rootReducer = combineReducers({
   adminUsers: adminUserSlice,
   categoryTypeSlice: categoryTypeSlice,
   userProfileSlice: userProfileSlice,
+  addressState: addressSlice,
 
   chat: chatSlice,
 });

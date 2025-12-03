@@ -24,7 +24,7 @@ export default function UserProfile() {
       dispatch(loadUserProfile());
     } else if (!token) {
       console.log("No token found, redirecting to login");
-      navigate("/v1/login");
+      navigate("/v2/login");
     }
   }, [dispatch, navigate, user]);
 
@@ -59,7 +59,7 @@ export default function UserProfile() {
             <button
               onClick={() => {
                 localStorage.removeItem("accessToken");
-                navigate("/v1/login");
+                navigate("/v2/login");
               }}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
             >
@@ -78,7 +78,7 @@ export default function UserProfile() {
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md">
           <p className="text-sm text-yellow-800 mb-3">You are not signed in.</p>
           <button
-            onClick={() => navigate("/v1/login")}
+            onClick={() => navigate("/v2/login")}
             className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
           >
             Go to Login

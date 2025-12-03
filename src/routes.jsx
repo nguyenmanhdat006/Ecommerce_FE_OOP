@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Shop from "./Shop";
 import ProductListPage from "./pages/ProductListPage/ProductListPage.jsx";
 import ProductDetails from "./pages/ProductDetailPage/ProductDetails.jsx";
@@ -16,6 +16,14 @@ import OrderSuccess from "./pages/OrderSuccess.jsx";
 import OrderVnpSuccess from "./pages/Checkout/vnpayDone.jsx";
 import Chat from "./pages/Chat.jsx";
 import SearchResultsPage from "./pages/SearchResultsPage/SearchResultsPage.jsx";
+import LoginV2 from "./pages/Login/LoginV2.jsx";
+import RegisterV2 from "./pages/Register/RegisterV2.jsx";
+import ForgotPasswordV2 from "./pages/ForgotPassword/ForgotPasswordV2.jsx";
+import AuthenticationWrapperV2 from "./pages/AuthenticationWrapperV2.jsx";
+import LoginForm from "./forms/LoginForm.jsx";
+import RegisterForm from "./forms/RegisterForm.jsx";
+import ForgotForm from "./forms/ForgotForm.jsx";
+import Splash from "./components/Splash.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +56,10 @@ export const router = createBrowserRouter([
         element: <ProductListPage categoryType="MEN" />,
       },
       {
+        path: "/kids",
+        element: <ProductListPage categoryType="KIDS" />,
+      },
+      {
         path: "/product/:slug",
         loader: loadProductBySlug,
         element: <ProductDetails />,
@@ -71,21 +83,38 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "/v1/",
-    element: <AuthenticationWrapper />,
+    path: "/splash",
+    element: <Splash />,
+  },
+  // Redirect /login to /v2/login
+  {
+    path: "/login",
+    element: <Navigate to="/v2/login" replace />,
+  },
+  {
+    path: "/v2/",
+    element: <AuthenticationWrapperV2 />,
     children: [
       {
         path: "login",
-        element: <Login />,
+        element: <LoginV2 />,
       },
       {
         path: "register",
-        element: <Register />,
+        element: <RegisterV2 />,
       },
       {
-        path: "oauth2/callback",
-        element: <OAuth2LoginCallback />,
+        path: "forgot-password",
+        element: <ForgotPasswordV2 />,
       },
     ],
+  },
+  {
+    path: "/v2/oauth2/callback",
+    element: <OAuth2LoginCallback />,
+  },
+  {
+    path: "/v1/oauth2/callback",
+    element: <OAuth2LoginCallback />,
   },
 ]);

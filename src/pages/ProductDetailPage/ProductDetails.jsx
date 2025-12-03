@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import _ from 'lodash';
 
-// Components
 import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import Rating from '../../components/Rating/Rating';
 import SizeFilter from '../../components/Filters/SizeFilter';
@@ -18,27 +17,27 @@ import SectionHeading from '../../components/Sections/SectionsHeading/SeactionHe
 import ProductCard from '../ProductListPage/ProductCard';
 import Spinner from '../../components/Spinner/Spinner';
 
-// Store & API
 import { addToCart } from '../../store/features/cart';
 import { cartAPI } from '../../api/cart.api';
 import { getAllProducts } from '../../api/fetchProducts';
 import { getUser } from '../../utils/jwt-helper';
 
+// Icons cho phần Extra sections
 const extraSections = [
   {
-    icon: <SvgCreditCard />,
+    icon: <SvgCreditCard className="w-5 h-5" />,
     label: 'Secure payment',
   },
   {
-    icon: <SvgCloth />,
+    icon: <SvgCloth className="w-5 h-5" />,
     label: 'Size & Fit',
   },
   {
-    icon: <SvgShipping />,
+    icon: <SvgShipping className="w-5 h-5" />,
     label: 'Free shipping',
   },
   {
-    icon: <SvgReturn />,
+    icon: <SvgReturn className="w-5 h-5" />,
     label: 'Free Shipping & Returns',
   },
 ];
@@ -75,7 +74,6 @@ const ProductDetails = () => {
       .finally(() => setLoadingSimilar(false));
   }, [product?.categoryId, product?.categoryTypeId, product?.id]);
 
-  //  Thiết lập breadcrumb
   useEffect(() => {
     setImage(product?.thumbnail);
     setBreadCrumbLink([]);
@@ -100,7 +98,7 @@ const ProductDetails = () => {
   }, [productCategory, product]);
 
   const [selectedSize, setSelectedSize] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(1); 
 
   // Hàm thêm sản phẩm vào giỏ hàng
   const addItemToCart = useCallback(async () => {
@@ -125,7 +123,7 @@ const ProductDetails = () => {
     // cần login
     if (!currentUser) {
       toast.error('Please login to add items to cart');
-      navigate('/v1/login');
+      navigate('/v2/login');
       return;
     }
 
@@ -156,173 +154,223 @@ const ProductDetails = () => {
   const sizes = useMemo(() => {
     return _.uniq(_.map(product?.variants, 'size'));
   }, [product]);
+  
+  // Tab hiện tại cho phần mô tả
+  const [activeTab, setActiveTab] = useState('Description');
 
   return (
-    <>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {loadingSimilar ? (
         <div className="flex justify-center items-center min-h-[300px]">
           <Spinner />
         </div>
       ) : (
         <>
-          {/* MAIN CONTENT */}
-          <div className="flex flex-col md:flex-row px-10">
-            {/* LEFT: Images */}
-            <div className="w-[100%] lg:w-[50%] md:w-[40%]">
-              <div className="flex flex-col md:flex-row">
-                <div className="w-[100%] md:w-[20%] justify-center h-[40px] md:h-[420px]">
-                  <div className="flex flex-row md:flex-col justify-center h-full">
-                    {product?.productResources?.map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setImage(item?.url)}
-                        className="rounded-lg w-fit p-2 mb-2"
-                      >
-                        <img
-                          src={item?.url}
-                          className="h-[60px] w-[60px] rounded-lg bg-cover bg-center hover:scale-105 hover:border"
-                          alt={'sample-' + index}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="w-full md:w-[80%] flex justify-center md:pt-0 pt-10">
-                  <img
-                    src={image}
-                    className="h-full w-full max-h-[520px] border rounded-lg cursor-pointer object-cover"
-                    alt={product?.name}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="w-[60%] px-10">
-              <Breadcrumb links={breadCrumbLinks} />
-              <p className="text-3xl pt-4">{product?.name}</p>
-              <Rating rating={product?.rating} />
-              <p className="text-xl bold py-2">${product?.price}</p>
-
-              {/* Size */}
-              <div className="flex flex-col py-2">
-                <div className="flex gap-2">
-                  <p className="text-sm bold">Select Size</p>
-                  <Link
-                    className="text-sm text-gray-500 hover:text-gray-900"
-                    to="https://en.wikipedia.org/wiki/Clothing_sizes"
-                    target="_blank"
+          {/* MAIN CONTENT - PRODUCT DETAIL */}
+          <div className="flex flex-col lg:flex-row mt-4">
+            
+            {/* LEFT: Images & Thumbnails */}
+            <div className="w-full lg:w-1/2 flex gap-4">
+              {/* Thumbnails */}
+              <div className="hidden md:flex flex-col gap-2 overflow-y-auto max-h-[500px]">
+                {product?.productResources?.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setImage(item?.url)}
+                    className={`p-1 rounded-lg ${
+                      image === item?.url ? 'border-2 border-black' : 'border'
+                    }`}
                   >
-                    {'Size Guide ->'}
-                  </Link>
-                </div>
-              </div>
-              <div className="mt-2">
-                <SizeFilter
-                  sizes={sizes}
-                  hidleTitle
-                  multi={false}
-                  onChange={(v) => setSelectedSize(v?.[0] ?? null)}
-                />
-              </div>
-
-              {/* Quantity */}
-              <div className="flex items-center gap-2 py-2">
-                <label className="text-sm">Quantity</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) =>
-                    setQuantity(Math.max(1, Number(e.target.value || 1)))
-                  }
-                  className="w-[80px] border rounded px-2 py-1"
-                />
-              </div>
-
-              {/* Colors */}
-              <div>
-                <p className="text-lg bold">Colors Available</p>
-                <ProductColors colors={colors} />
-              </div>
-
-              {/* Add to Cart */}
-              <div className="flex py-4">
-                {(() => {
-                  const inCart = cartItems?.some(
-                    (it) => it?.id === product?.id
-                  );
-                  if (!inCart) {
-                    return (
-                      <button
-                        onClick={addItemToCart}
-                        className="bg-black rounded-lg hover:bg-gray-700"
-                      >
-                        <div className="flex h-[42px] rounded-lg w-[150px] px-2 items-center justify-center bg-black text-white hover:bg-gray-700">
-                          <svg
-                            width="17"
-                            height="16"
-                            viewBox="0 0 17 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M1.5 1.33325H2.00526C2.85578 1.33325 3.56986 1.97367 3.6621 2.81917L4.3379 9.014C4.43014 9.8595 5.14422 10.4999 5.99474 10.4999H13.205C13.9669 10.4999 14.6317 9.98332 14.82 9.2451L15.9699 4.73584C16.2387 3.68204 15.4425 2.65733 14.355 2.65733H4.5"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          Add to cart
-                        </div>
-                      </button>
-                    );
-                  }
-                  return (
-                    <button
-                      className="bg-gray-300 rounded-lg px-4 py-2"
-                      disabled
-                    >
-                      In cart
-                    </button>
-                  );
-                })()}
-              </div>
-
-              {/* Extra sections */}
-              <div className="grid md:grid-cols-2 gap-4 pt-4">
-                {extraSections?.map((section, index) => (
-                  <div key={index} className="flex items-center">
-                    {section?.icon}
-                    <p className="px-2">{section?.label}</p>
-                  </div>
+                    <img
+                      src={item?.url}
+                      className="h-20 w-20 rounded-lg object-cover"
+                      alt={'sample-' + index}
+                    />
+                  </button>
                 ))}
               </div>
+
+              {/* Main Image */}
+              <div className="w-full md:w-[80%] flex justify-center">
+                <img
+                  src={image}
+                  className="w-full max-h-[500px] object-cover rounded-lg shadow-lg"
+                  alt={product?.name}
+                />
+              </div>
+            </div>
+
+            {/* RIGHT: Details, Controls, & Price */}
+            <div className="w-full lg:w-1/2 pt-6 lg:pt-0 lg:pl-10">
+                
+                {/* Breadcrumb CHUẨN */}
+                <Breadcrumb links={breadCrumbLinks} /> 
+
+                <div className="mt-2">
+                    
+                    {/* Product Name */}
+                    <h1 className="text-3xl font-semibold mb-2">{product?.name}</h1>
+
+                    {/* Rating */}
+                    <div className="flex items-center mb-4">
+                        <Rating rating={product?.rating} />
+                        <span className="text-sm text-gray-500 ml-2">
+                            {product?.reviewsCount || 120} comment
+                        </span>
+                    </div>
+                </div>
+
+
+                {/* Size Selector */}
+                <div className="mb-4">
+                    <div className="flex items-center gap-4 mb-2">
+                        <p className="text-sm font-semibold">Select Size</p>
+                        <Link
+                            className="text-sm text-gray-500 hover:text-gray-900 underline"
+                            to="https://en.wikipedia.org/wiki/Clothing_sizes"
+                            target="_blank"
+                        >
+                            Size Guide
+                        </Link>
+                    </div>
+                    <SizeFilter
+                        sizes={sizes}
+                        hidleTitle
+                        multi={false}
+                        onChange={(v) => setSelectedSize(v?.[0] ?? null)}
+                        className="space-x-2"
+                        buttonClass="w-10 h-10 border rounded-lg flex items-center justify-center font-medium"
+                        activeClass="border-black text-black bg-white"
+                    />
+                </div>
+
+                {/* Colors */}
+                <div className="mb-6">
+                    <p className="text-sm font-semibold mb-2">Colors Available</p>
+                    <ProductColors colors={colors} />
+                </div>
+
+                {/* Price & Add to Cart */}
+                <div className="flex items-center gap-4 mb-6 pt-2">
+                    {(() => {
+                        const inCart = cartItems?.some((it) => it?.id === product?.id);
+                        return (
+                            <>
+                                {/* Add to Cart Button */}
+                                <button
+                                    onClick={addItemToCart}
+                                    className="flex items-center justify-center bg-black text-white font-medium h-10 w-40 rounded-lg hover:bg-gray-800 transition duration-300"
+                                    disabled={inCart}
+                                >
+                                    Add to cart
+                                </button>
+
+                                {/* Price Display */}
+                                <p className="text-2xl font-bold text-gray-800">${product?.price}</p>
+                            </>
+                        );
+                    })()}
+                </div>
+
+                {/* Extra sections - Secured Payment, etc. */}
+                <div className="grid grid-cols-2 gap-y-4 border-t pt-6">
+                    {extraSections?.map((section, index) => (
+                        <div key={index} className="flex items-center">
+                            {section?.icon}
+                            <p className="ml-2 text-sm text-gray-600">{section?.label}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          </div>
+          
+          <hr className="my-10" />
+
+          {/* DESCRIPTION & VIDEO SECTION */}
+          <div className="mt-12 flex flex-col lg:flex-row gap-8">
+            {/* LEFT: Product Description & Tabs */}
+            <div className="w-full lg:w-1/2">
+                
+                {/* Tabs for Description, Comments, Q&A */}
+                <div className="border-b mb-4">
+                    <div className="flex space-x-6">
+                        {/* Giả lập các tab với state activeTab */}
+                        {['Description', 'User comments (1)', 'Question & Answer (4)'].map((tabTitle) => (
+                            <button
+                                key={tabTitle}
+                                onClick={() => setActiveTab(tabTitle.split(' ')[0])}
+                                className={`pb-2 text-sm font-medium ${
+                                    activeTab === tabTitle.split(' ')[0]
+                                        ? 'border-b-2 border-black text-black'
+                                        : 'text-gray-500 hover:text-black'
+                                }`}
+                            >
+                                {tabTitle}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Nội dung Description */}
+                {activeTab === 'Description' && (
+                    <div className="pt-2">
+                        <p className="text-sm text-gray-600 mb-6">
+                            {product?.description || "No description available for this product."}
+                        </p>
+
+                    </div>
+                )}
+            </div>
+
+            {/* RIGHT: Video Placeholder */}
+            <div className="w-full lg:w-1/2">
+              <div className=" relative overflow-hidden rounded-lg shadow-lg aspect-video bg-black">
+                <img
+                  src={product?.thumbnail} 
+                  alt="Product Video Thumbnail"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center cursor-pointer">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-8 h-8 text-black ml-1"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.5 5.653c0-1.426 1.529-2.38 2.875-1.667l11.54 6.348c1.24 1.24 1.24 3.242 0 4.482l-11.54 6.348c-1.346.713-2.875-.24-2.875-1.667V5.653z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="absolute bottom-2 right-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded text-xs">
+                    1:00 M
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Description */}
-          <SectionHeading title="Product Description" />
-          <div className="md:w-[50%] w-full p-2">
-            <p className="px-8">{product?.description}</p>
-          </div>
+          <hr className="my-10" />
 
           {/* Similar Products */}
           <SectionHeading title="Similar Products" />
-          <div className="flex px-10">
+          <div className="pt-4 pb-10">
             {similarProduct?.length ? (
-              <div className="pt-4 grid grid-cols-1 lg:grid-cols-4 md:grid-cols-3 gap-8 px-2 pb-10">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {similarProduct.map((item, index) => (
                   <ProductCard key={index} {...item} />
                 ))}
               </div>
             ) : (
-              <p>No Products Found!</p>
+              <p className="text-center text-gray-500">No Similar Products Found!</p>
             )}
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 

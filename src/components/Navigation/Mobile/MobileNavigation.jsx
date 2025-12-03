@@ -13,8 +13,8 @@ import { UserMenuItems } from "../components/UserMenuItems";
 import { SearchBar } from "../components/SearchBar";
 
 export default function MobileNavigation({
-  name,
-  homeUrl,
+  // name,
+  // homeUrl,
   links,
   actions,
   isActiveLink,
@@ -43,26 +43,15 @@ export default function MobileNavigation({
       </SheetTrigger>
       <SheetContent side="right" className="bg-background">
         <nav className="grid gap-6 text-lg font-semibold mt-6">
-          <Link to={homeUrl} className="text-2xl font-bold">
-            {name}
-          </Link>
-          
-          {/* Search Bar for Mobile */}
-          <div className="w-full">
-            <SearchBar />
-          </div>
-
           {isAuthenticated ? (
             <div className="mt-6 space-y-4">
               <UserInfoCard user={user} />
             </div>
-          ) : (
-            <div className="mt-6 grid gap-3">
-              {actions.map((action, i) => (
-                <ActionLink key={i} action={action} variant="mobile" />
-              ))}
-            </div>
-          )}
+          ) : null}
+          {/* Search Bar for Mobile */}
+          <div className="w-full">
+            <SearchBar />
+          </div>
 
           {links.map((link, i) => (
             <NavLinkItem
@@ -74,7 +63,15 @@ export default function MobileNavigation({
             />
           ))}
 
-          <UserMenuItems onLogout={handleLogout} />
+          <UserMenuItems onLogout={handleLogout} isAuthenticated={isAuthenticated} />
+
+          {!isAuthenticated ? (
+            <div className="mt-6 grid gap-3">
+              {actions.map((action, i) => (
+                <ActionLink key={i} action={action} variant="mobile" />
+              ))}
+            </div>
+          ) : null}
         </nav>
       </SheetContent>
     </Sheet>

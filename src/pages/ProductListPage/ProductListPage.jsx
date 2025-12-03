@@ -1,91 +1,242 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import FilterIcon from '../../components/common/FilterIcon';
 import content from '../../data/content.json';
-import Categories from '../../components/Filters/Categories';
-import PriceFilter from '../../components/Filters/PriceFilter';
-import ColorsFilter from '../../components/Filters/ColorsFilter';
-import SizeFilter from '../../components/Filters/SizeFilter';
 import ProductCard from './ProductCard';
-import { fetchProducts } from '../../store/productSlice';
+import { productAPI } from '@/api/product.api';
 import Spinner from '../../components/Spinner/Spinner';
-import { useDispatch, useSelector } from 'react-redux';
-import { setLoading } from '../../store/features/common'
+import { useSelector } from 'react-redux';
+import FilterSidebar from '@/components/Filters/FilterSidebar';
+import { fetchProducts } from '@/store/productSlice';
+import { useDispatch } from 'react-redux';
+import '@/components/Filters/priceFillter.css';
+
 const categories = content?.categories;
 
-const ProductListPage = ({categoryType}) => {
-
-  const categoryData = useSelector((state)=> {
-    return state?.categoryState?.categories});
+const ProductListPage = ({ categoryType }) => {
+  const categoryData = useSelector((state) => state?.categoryState?.categories);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [availableBrands, setAvailableBrands] = useState([]);
   const dispatch = useDispatch();
-  const loading = useSelector((state) => state.productSlice?.loading);
-  const [products,setProducts] = useState([]);
-
-  const categoryContent = useMemo(()=>{
-    return categories?.find((category)=> category.code === categoryType);
-  },[categoryType]);
   
-  const productListItems = useMemo(()=>{
-    return content?.products?.filter((product)=> product?.category_id === categoryContent?.id );
-  },[categoryContent]);
+  const categoryContent = useMemo(() => {
+    return categories?.find((category) => category.code === categoryType);
+  }, [categoryType]);
 
-  // chỉ chạy lại khi categoryData hoặc categoryType thay đổi chứ không phải mỗi lần render
-  const category = useMemo(()=>{
-    return categoryData?.find(element => element?.code === categoryType);
-  },[categoryData, categoryType]); // nếu đang ở women page thì sẽ hiện thị category women
+  const category = useMemo(() => {
+    return categoryData?.find((element) => element?.code === categoryType);
+  }, [categoryData, categoryType]);
 
-  useEffect(()=>{
+  const storeProducts = useSelector((state) => state.productState?.products || []);
+  const storeLoaded = useSelector((state) => state.productState?.loaded);
+
+  // Filters state
+  const [filters, setFilters] = useState({
+    categoryId: null,
+    minPrice: null,
+    maxPrice: null,
+    minRating: null,
+    isNewArrival: false,
+    sortBy: 'name',
+    sortDirection: 'asc',
+    brand: null,
+  });
+
+  // Fetch products when category changes
+  useEffect(() => {
     if (!category?.id) return;
-    dispatch(fetchProducts({ categoryId: category.id })).then((res) => {
-      setProducts(res.payload || []);
-    }).catch(() => {});
-  },[category?.id, dispatch]);
+    setLoading(true);
+    setFilters(prev => ({ ...prev, categoryId: category.id }));
+    dispatch(fetchProducts({ categoryId: category.id }))
+      .then((res) => {
+        setProducts(res.payload || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [category?.id, dispatch]);
 
+  // Extract available brands from products
+  useEffect(() => {
+    if (products && products.length > 0) {
+      const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
+      setAvailableBrands(brands);
+    }
+  }, [products]);
+
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = [...products];
+
+    // Apply price filter
+    if (filters.minPrice !== null && filters.minPrice !== '') {
+      result = result.filter(p => p.price >= Number(filters.minPrice));
+    }
+    if (filters.maxPrice !== null && filters.maxPrice !== '') {
+      result = result.filter(p => p.price <= Number(filters.maxPrice));
+    }
+
+    // Apply rating filter
+    if (filters.minRating !== null && filters.minRating !== '') {
+      result = result.filter(p => (p.rating || 0) >= Number(filters.minRating));
+    }
+
+    // Apply new arrival filter
+    if (filters.isNewArrival) {
+      result = result.filter(p => p.newArrival === true);
+    }
+
+    // Apply brand filter
+    if (filters.brand) {
+      result = result.filter(p => p.brand === filters.brand);
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (filters.sortBy) {
+        case 'price':
+          aValue = a.price || 0;
+          bValue = b.price || 0;
+          break;
+        case 'rating':
+          aValue = a.rating || 0;
+          bValue = b.rating || 0;
+          break;
+        case 'name':
+        default:
+          aValue = (a.name || '').toLowerCase();
+          bValue = (b.name || '').toLowerCase();
+          break;
+      }
+
+      if (filters.sortBy === 'name') {
+        return filters.sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return filters.sortDirection === 'asc' 
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+    });
+
+    return result;
+  }, [products, filters]);
+
+  // Filter handlers
+  const handlePriceChange = useCallback(({ minPrice, maxPrice }) => {
+    setFilters(prev => ({ ...prev, minPrice, maxPrice }));
+  }, []);
+
+  const handleRatingChange = useCallback((minRating) => {
+    setFilters(prev => ({ ...prev, minRating }));
+  }, []);
+
+  const handleSortChange = useCallback((sortBy, sortDirection) => {
+    setFilters(prev => ({ ...prev, sortBy, sortDirection }));
+  }, []);
+
+  const handleNewArrivalChange = useCallback((isNewArrival) => {
+    setFilters(prev => ({ ...prev, isNewArrival }));
+  }, []);
+
+  const handleBrandChange = useCallback((brand) => {
+    setFilters(prev => ({ ...prev, brand }));
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({
+      categoryId: category?.id || null,
+      minPrice: null,
+      maxPrice: null,
+      minRating: null,
+      isNewArrival: false,
+      sortBy: 'name',
+      sortDirection: 'asc',
+      brand: null,
+    });
+  }, [category?.id]);
 
   return (
     <div>
-        <div className='flex'>
-            <div className='w-[20%] p-[10px] border rounded-lg m-[20px]'>
-                {/* Filters */}
-                <div className='flex justify-between '>
-                <p className='text-[16px] text-gray-600'>Filter</p>
-                <FilterIcon />
-                
-                </div>
-                <div>
-                  {/* Product types */}
-                <p className='text-[16px] text-black mt-5'>Categories</p>
-                <Categories types={categoryContent?.types}/>
-                <hr></hr>
-                </div>
-                  {/* Price */}
-                  <PriceFilter />
-                  <hr></hr>
-                  {/* Colors */}
-                  <ColorsFilter colors={categoryContent?.meta_data?.colors}/>
-                  <hr></hr>
-                   {/* Sizes */}
-                   <SizeFilter sizes={categoryContent?.meta_data?.sizes}/>
-            </div>
+      {/* Button hiển thị Filter trên mobile */}
+      <div className="lg:hidden p-4">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 px-4 py-2 border rounded-lg bg-white shadow-sm hover:bg-gray-50"
+        >
+          <FilterIcon />
+          <span className="text-[16px] text-gray-600">
+            {showFilters ? 'Ẩn Filter' : 'Hiện Filter'}
+          </span>
+        </button>
+      </div>
 
-            <div className='p-[15px]'>
-            <p className='text-black text-lg'>{category?.description}</p>
-                {/* Products */}
-                <div className='pt-4 grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 px-2'>
-                {loading ? (
-                  <Spinner />
-                ) : (
-                  products?.map((item,index)=>(
-                  <ProductCard key={item?.id+"_"+index} {...item} title={item?.name}/>
-                  ))
-                )}
-                </div>
-
-            </div>
-
+      {/* Filters trên mobile (có thể mở/đóng) */}
+      {showFilters && (
+        <div className="lg:hidden mx-[20px] mb-[20px]">
+          <FilterSidebar
+            filters={filters}
+            availableBrands={availableBrands}
+            onPriceChange={handlePriceChange}
+            onRatingChange={handleRatingChange}
+            onSortChange={handleSortChange}
+            onNewArrivalChange={handleNewArrivalChange}
+            onBrandChange={handleBrandChange}
+            onClearFilters={handleClearFilters}
+          />
         </div>
-    </div>
-  )
-}
+      )}
 
-export default ProductListPage
+      {/* Layout chính */}
+      <div className="flex flex-col lg:flex-row">
+        {/* Cột trái: Filters - chỉ hiện trên desktop */}
+        <div className="hidden lg:block lg:w-[20%] m-[20px] min-w-[250px]">
+          <div className="sticky top-20">
+            <FilterSidebar
+              filters={filters}
+              availableBrands={availableBrands}
+              onPriceChange={handlePriceChange}
+              onRatingChange={handleRatingChange}
+              onSortChange={handleSortChange}
+              onNewArrivalChange={handleNewArrivalChange}
+              onBrandChange={handleBrandChange}
+              onClearFilters={handleClearFilters}
+            />
+          </div>
+        </div>
+
+        {/* Cột phải: Products */}
+        <div className="p-[15px] flex-grow w-full">
+          <p className="text-black text-lg">{category?.description}</p>
+
+          {/* Products Grid: Responsive - 1 đến 5 cột */}
+          <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-2">
+            {loading ? (
+              <div className="col-span-full flex justify-center py-20">
+                <Spinner />
+              </div>
+            ) : filteredAndSortedProducts?.length > 0 ? (
+              filteredAndSortedProducts.map((item, index) => (
+                <div key={item?.id + '_' + index}>
+                  <ProductCard {...item} title={item?.name} />
+                </div>
+              ))
+            ) : (
+              <p className="col-span-full text-center text-gray-500 py-10">
+                Không tìm thấy sản phẩm nào.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductListPage;

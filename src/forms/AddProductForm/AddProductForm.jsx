@@ -20,6 +20,7 @@ import { uploadSingleFile } from "@/store/uploadSlice";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { productAPI } from "@/api/product.api";
+import { API_BASE_URL } from '@/api/constant';
 
 export default function AddProductForm() {
   const form = useForm({
@@ -58,7 +59,7 @@ export default function AddProductForm() {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-  useEffect(async () => {
+  useEffect( () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
@@ -111,7 +112,8 @@ export default function AddProductForm() {
     const token = localStorage.getItem("token");
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:8080/api/products/${id}`, data, {
+  const base = API_BASE_URL || 'http://localhost:8080';
+  await axios.put(`${base}/api/products/${id}`, data, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success(" Cập nhật sản phẩm thành công!");

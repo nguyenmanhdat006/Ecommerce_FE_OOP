@@ -1,11 +1,30 @@
 import { useEffect, useState } from "react";
-import { orderAPI } from "@/api/order.api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrders, selectOrders } from "@/store/features/order";
+import { orderAPI } from '@/api/order.api';
+import { selectUserProfile } from "@/store/userProfileSlice";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
 
 export default function OrderManagement() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const orders = useSelector(selectOrders);
+  const user = useSelector(selectUserProfile);
+  const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("ALL");
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
+  
+  // Check if user is admin
+  const isAdmin = user?.role === "ADMIN";
 
   const statusTabs = [
     { label: "Tất cả", value: "ALL" },
@@ -18,32 +37,43 @@ export default function OrderManagement() {
   ];
 
   useEffect(() => {
-    console.log("Fetching orders...");
-    async function fetchOrders() {
-      try {
-        const res = await orderAPI.getAll();
-        console.log("Orders:", res);
-        setOrders(res);
-      } catch (err) {
-        console.error("Fetch orders failed:", err.response?.data || err.message);
-        alert("Không lấy được danh sách đơn hàng");
-      } finally {
-        setLoading(false);
+    let mounted = true;
+    const load = async () => {
+      if (!orders || orders.length === 0) {
+        setLoading(true);
+        await dispatch(fetchOrders());
+        if (mounted) setLoading(false);
       }
-    }
-    fetchOrders();
-  }, []);
+    };
+    load();
+    return () => (mounted = false);
+  }, [dispatch]);
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       // gửi changedBy = "admin" (hoặc user đang đăng nhập)
-      const updatedOrder = await orderAPI.updateStatus(orderId, newStatus, "admin");
-      setOrders(prev =>
-        prev.map(o => (o.id === orderId ? updatedOrder : o))
-      );
+      await orderAPI.updateStatus(orderId, newStatus, "admin");
+      // refresh orders from server
+      await dispatch(fetchOrders());
+      // Đóng dialog nếu đang mở
+      if (cancelDialogOpen) {
+        setCancelDialogOpen(false);
+        setOrderToCancel(null);
+      }
     } catch (err) {
       console.error(err);
       alert("Cập nhật trạng thái thất bại");
+    }
+  };
+
+  const handleCancelClick = (orderId) => {
+    setOrderToCancel(orderId);
+    setCancelDialogOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    if (orderToCancel) {
+      handleStatusChange(orderToCancel, "CANCELED");
     }
   };
 
@@ -62,7 +92,25 @@ export default function OrderManagement() {
       : orders.filter(o => o.status === selectedStatus);
 
   if (loading)
-    return <div className="p-6 text-gray-600">Đang tải danh sách đơn hàng...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center gap-4 bg-white border border-border rounded-lg px-6 py-4 shadow-sm">
+          <svg
+            className="w-8 h-8 text-black animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <div>
+            <div className="text-sm font-medium text-gray-900">Đang tải đơn hàng</div>
+            <div className="text-xs text-gray-500">Vui lòng chờ trong giây lát...</div>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -175,30 +223,33 @@ export default function OrderManagement() {
 
           {/* Nút thao tác */}
           <div className="flex justify-end gap-3 px-4 py-3 bg-white border-t">
-             {order.status === "PAID" ? (
-                  <span className="px-4 py-1 rounded bg-green-100 text-green-700 text-sm font-medium">
-                    Hoàn thành
-                  </span>
-                ) : (
-                  <button
-                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm"
-                    onClick={() =>
-                      handleStatusChange(order.id, getNextStatus(order.status))
-                    }
-              disabled={
-                order.status === "PAID" ||
-                order.status === "CANCELED" ||
-                order.status === "REFUND"
-              }
-            >
-              Xác nhận
-            </button>
-          )}
+            {order.status === "PAID" ? (
+              <span className="px-4 py-1 rounded bg-green-100 text-green-700 text-sm font-medium">
+                Hoàn thành
+              </span>
+            ) : (
+              // Chỉ hiển thị nút "Xác nhận" nếu user là admin và đơn chưa hủy
+              isAdmin && order.status !== "CANCELED" && order.status !== "REFUND" && (
+                <button
+                  className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm"
+                  onClick={() =>
+                    handleStatusChange(order.id, getNextStatus(order.status))
+                  }
+                  disabled={
+                    order.status === "PAID" ||
+                    order.status === "CANCELED" ||
+                    order.status === "REFUND"
+                  }
+                >
+                  Xác nhận
+                </button>
+              )
+            )}
 
             {!["CANCELED", "PAID", "SHIPPING", "WAIT_DELIVER"].includes(order.status) && (
               <button
                 className="bg-gray-200 text-gray-700 px-4 py-1 rounded hover:bg-gray-300 text-sm"
-                onClick={() => handleStatusChange(order.id, "CANCELED")}
+                onClick={() => handleCancelClick(order.id)}
               >
                 Hủy đơn
               </button>
@@ -206,6 +257,35 @@ export default function OrderManagement() {
           </div>
         </div>
       ))}
+
+      {/* Dialog xác nhận hủy đơn */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận hủy đơn hàng</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCancelDialogOpen(false);
+                setOrderToCancel(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmCancel}
+            >
+              Xác nhận hủy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
