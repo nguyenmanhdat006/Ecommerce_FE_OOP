@@ -120,9 +120,9 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                             if (!confirmed) return;
 
                             try {
-                              const token = localStorage.getItem("token");
+                              const token = localStorage.getItem("access_token");
                             if (!token) {
-                              alert("⚠️ Thiếu token, vui lòng đăng nhập lại.");
+                              alert("⚠️ Thiếu token, vui lòng đăng nhập lại."); 
                             return;
                             }
 
