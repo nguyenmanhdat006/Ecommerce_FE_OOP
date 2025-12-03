@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { saveToken, saveUser } from "../utils/jwt-helper";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,11 +10,13 @@ import Splash from "@/components/Splash"
 const OAuth2LoginCallback = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [showSplash, setShowSplash] = useState(true);
 
   const { profile: user, loadingProfile } = useSelector((state) => state.userProfileSlice);
 
   const urlToken = new URLSearchParams(window.location.search).get("token");
   const localToken = getToken();
+  
   // Step 1: Save token & load user
   useEffect(() => {
     if (!urlToken && !localToken) {
@@ -22,24 +24,38 @@ const OAuth2LoginCallback = () => {
       return;
     }
 
-    saveToken(urlToken || localToken);
-    dispatch(loadUserProfile());
+    if (urlToken) {
+      saveToken(urlToken);
+      dispatch(loadUserProfile());
+    }
   }, [urlToken, localToken, dispatch, navigate]);
 
-  // Step 2: when user loaded → save & redirect
+  // Step 2: when user loaded → save & redirect with splash
   useEffect(() => {
     if (loadingProfile === false && user) {
       saveUser(user);
-      dispatch(setCredentials({ accessToken: urlToken || localToken, user }));
-      navigate("/");
+      const token = urlToken || localToken;
+      dispatch(setCredentials({ accessToken: token, user }));
+      
+      // Lưu flag để ShopApplicationWrapper không hiển thị splash lại
+      sessionStorage.setItem('justLoggedIn', 'true');
+      
+      // Hiển thị splash 2 giây rồi redirect
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        navigate("/");
+      }, 2000);
+
+      return () => clearTimeout(timer);
     }
 
     if (loadingProfile === false && user === null && !urlToken && !localToken) {
+      setShowSplash(false);
       navigate("/v2/login");
     }
   }, [loadingProfile, user, urlToken, localToken, navigate, dispatch]);
 
-  return <Splash onFinish={() => navigate("/")} />;
+  return showSplash ? <Splash /> : null;
 };
 
 export default OAuth2LoginCallback;

@@ -109,4 +109,12 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: "/v2/oauth2/callback",
+    element: <OAuth2LoginCallback />,
+  },
+  {
+    path: "/v1/oauth2/callback",
+    element: <OAuth2LoginCallback />,
+  },
 ]);
