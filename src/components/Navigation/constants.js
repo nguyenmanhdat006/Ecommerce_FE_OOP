@@ -6,8 +6,8 @@ export const DEFAULT_NAVIGATION_LINKS = [
 ]
 
 export const DEFAULT_ACTIONS = [
-  { text: "Login", href: "/v1/login", isButton: false },
-  { text: "Sign up", href: "/v1/register", isButton: true },
+  { text: "Login", href: "/v2/login", isButton: false },
+  { text: "Sign up", href: "/v2/register", isButton: true },
 ]
 
 export const DEFAULT_NAVIGATION_CONFIG = {

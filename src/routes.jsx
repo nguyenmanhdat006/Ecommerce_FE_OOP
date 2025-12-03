@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Shop from "./Shop";
 import ProductListPage from "./pages/ProductListPage/ProductListPage.jsx";
 import ProductDetails from "./pages/ProductDetailPage/ProductDetails.jsx";
@@ -17,6 +17,9 @@ import OrderVnpSuccess from "./pages/Checkout/vnpayDone.jsx";
 import Chat from "./pages/Chat.jsx";
 import SearchResultsPage from "./pages/SearchResultsPage/SearchResultsPage.jsx";
 import LoginV2 from "./pages/Login/LoginV2.jsx";
+import RegisterV2 from "./pages/Register/RegisterV2.jsx";
+import ForgotPasswordV2 from "./pages/ForgotPassword/ForgotPasswordV2.jsx";
+import AuthenticationWrapperV2 from "./pages/AuthenticationWrapperV2.jsx";
 import LoginForm from "./forms/LoginForm.jsx";
 import RegisterForm from "./forms/RegisterForm.jsx";
 import ForgotForm from "./forms/ForgotForm.jsx";
@@ -83,25 +86,26 @@ export const router = createBrowserRouter([
     path: "/splash",
     element: <Splash />,
   },
+  // Redirect /login to /v2/login
   {
-    path: "/v1/",
-    element: <AuthenticationWrapper />,
+    path: "/login",
+    element: <Navigate to="/v2/login" replace />,
+  },
+  {
+    path: "/v2/",
+    element: <AuthenticationWrapperV2 />,
     children: [
       {
         path: "login",
-        element: <LoginForm />,
+        element: <LoginV2 />,
       },
       {
         path: "register",
-        element: <RegisterForm />,
+        element: <RegisterV2 />,
       },
       {
-        path: "forgot",
-        element: <ForgotForm />,
-      },
-      {
-        path: "oauth2/callback",
-        element: <OAuth2LoginCallback />,
+        path: "forgot-password",
+        element: <ForgotPasswordV2 />,
       },
     ],
   },
