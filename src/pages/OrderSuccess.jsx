@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { orderAPI } from "@/api/order.api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrders, selectOrders } from "@/store/features/order";
 import dayjs from "dayjs";
 
 export default function OrderManagement() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const orders = useSelector(selectOrders);
+  const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("ALL");
 
   const statusTabs = [
@@ -18,29 +20,24 @@ export default function OrderManagement() {
   ];
 
   useEffect(() => {
-    console.log("Fetching orders...");
-    async function fetchOrders() {
-      try {
-        const res = await orderAPI.getAll();
-        console.log("Orders:", res);
-        setOrders(res);
-      } catch (err) {
-        console.error("Fetch orders failed:", err.response?.data || err.message);
-        alert("Không lấy được danh sách đơn hàng");
-      } finally {
-        setLoading(false);
+    let mounted = true;
+    const load = async () => {
+      if (!orders || orders.length === 0) {
+        setLoading(true);
+        await dispatch(fetchOrders());
+        if (mounted) setLoading(false);
       }
-    }
-    fetchOrders();
-  }, []);
+    };
+    load();
+    return () => (mounted = false);
+  }, [dispatch]);
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       // gửi changedBy = "admin" (hoặc user đang đăng nhập)
       const updatedOrder = await orderAPI.updateStatus(orderId, newStatus, "admin");
-      setOrders(prev =>
-        prev.map(o => (o.id === orderId ? updatedOrder : o))
-      );
+      // refresh orders from server
+      await dispatch(fetchOrders());
     } catch (err) {
       console.error(err);
       alert("Cập nhật trạng thái thất bại");
@@ -62,7 +59,25 @@ export default function OrderManagement() {
       : orders.filter(o => o.status === selectedStatus);
 
   if (loading)
-    return <div className="p-6 text-gray-600">Đang tải danh sách đơn hàng...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center gap-4 bg-white border border-border rounded-lg px-6 py-4 shadow-sm">
+          <svg
+            className="w-8 h-8 text-black animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <div>
+            <div className="text-sm font-medium text-gray-900">Đang tải đơn hàng</div>
+            <div className="text-xs text-gray-500">Vui lòng chờ trong giây lát...</div>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="max-w-6xl mx-auto p-6">

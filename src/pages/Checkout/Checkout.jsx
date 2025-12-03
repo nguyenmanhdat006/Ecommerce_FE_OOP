@@ -3,6 +3,7 @@ import { orderAPI } from '@/api/order.api';
 import { paymentAPI } from '@/api/payment.api';
 import { MapPin, Store, MessageCircle, Ticket, Truck, Coins, Check } from "lucide-react";
 import { getUser } from '@/utils/jwt-helper';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
@@ -25,8 +26,9 @@ export default function Checkout() {
   const user = getUser();
   console.log('checkout user:', user);
   if (!user) {
-        alert("Bạn cần đăng nhập để đặt hàng");
-        return;
+        toast.error("Bạn cần đăng nhập để đặt hàng");
+        navigate("/v2/login");
+        return null;
       }
 
   // Lấy sản phẩm từ localStorage
@@ -265,7 +267,10 @@ export default function Checkout() {
         <button
           className={`bg-orange-600 text-white px-10 py-2 rounded-sm font-medium hover:bg-orange-700 transition-all ${isPlacing ? 'opacity-70 cursor-not-allowed' : ''}`}
           onClick={async () => {
-            if (cartItems.length === 0) return alert('Giỏ hàng rỗng');
+            if (cartItems.length === 0) {
+              toast.error('Giỏ hàng rỗng');
+              return;
+            }
 
             setIsPlacing(true);
             try {
@@ -302,6 +307,7 @@ export default function Checkout() {
                     // Use paymentAPI which uses axiosClient and automatically includes auth header
                     const paymentUrl = await paymentAPI.createVnPay({ orderId, amount: totalPayment });
                     // axiosClient response interceptor returns response.data; for text response we set responseType so data is text
+                    toast.success('Chuyển đến cổng thanh toán...');
                     window.location.href = paymentUrl;
                   }
                   break;
@@ -326,7 +332,7 @@ export default function Checkout() {
 
                 case "cod":
                   {
-                    alert('Đặt hàng thành công! Vui lòng chuẩn bị tiền khi nhận hàng.');
+                    toast.success('Đặt hàng thành công! Vui lòng chuẩn bị tiền khi nhận hàng.');
                     navigate(`/order-success/`);
                     localStorage.removeItem('checkoutItems');
                     setCartItems([]);
@@ -334,13 +340,13 @@ export default function Checkout() {
                   break;
 
                 default:
-                  alert('Phương thức thanh toán chưa được hỗ trợ');
+          toast.error('Phương thức thanh toán chưa được hỗ trợ');
                   break;
               }
 
             } catch (err) {
               console.error('Checkout failed', err);
-              alert(err?.message || 'Đặt hàng thất bại');
+        toast.error(err?.message || 'Đặt hàng thất bại');
             } finally {
               setIsPlacing(false);
             }

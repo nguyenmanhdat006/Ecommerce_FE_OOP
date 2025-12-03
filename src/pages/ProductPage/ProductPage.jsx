@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from '@/api/constant';
 import { QRCodeCanvas } from "qrcode.react";
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProducts } from '@/store/productSlice';
 
 /* ======= ProductPage (full) ======= */
 
@@ -123,7 +126,8 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                             return;
                             }
 
-                          const response = await axios.delete(`http://localhost:8080/api/products/${product.id}`, {
+                          const base = API_BASE_URL || 'http://localhost:8080';
+                          const response = await axios.delete(`${base}/api/products/${product.id}`, {
                             headers: { Authorization: `Bearer ${token}` },
                           });
 
@@ -190,11 +194,12 @@ function ProductDetailModal({ productId, open, onClose }) {
 
     console.log("ℹ️ Fetching product details for:", productId);
 
+    const base = API_BASE_URL || 'http://localhost:8080';
     Promise.all([
-      axios.get(`http://localhost:8080/api/products/${productId}`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`http://localhost:8080/api/product-variants?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`http://localhost:8080/api/products/${productId}/resources`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`http://localhost:8080/api/product-statuses?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`${base}/api/products/${productId}`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`${base}/api/product-variants?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`${base}/api/products/${productId}/resources`, { headers }).catch((e) => ({ error: e })),
+      axios.get(`${base}/api/product-statuses?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
     ])
       .then(([resP, resV, resR, resS]) => {
         console.log("resP", resP);
@@ -350,22 +355,31 @@ export default function ProductPageMain() {
   const [detailOpen, setDetailOpen] = useState(false);
   const navigate = useNavigate();
 
-  // initial load
+  // initial load - use Redux cache when available
+  const dispatch = useDispatch();
+  const storeProducts = useSelector((state) => state.productState?.products || []);
+  const storeLoaded = useSelector((state) => state.productState?.loaded);
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    let mounted = true;
+    const load = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:8080/api/products", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        setProducts(res.data || []);
+        if (!storeLoaded || !storeProducts || storeProducts.length === 0) {
+          // fetch via thunk and use payload to populate local state
+          const action = await dispatch(fetchProducts());
+          const payload = action?.payload || [];
+          if (mounted) setProducts(payload || []);
+        } else {
+          if (mounted) setProducts(storeProducts);
+        }
       } catch (err) {
         console.error("Lỗi khi tải products:", err);
-        setProducts([]);
+        if (mounted) setProducts([]);
       }
     };
-    fetchProducts();
-  }, []);
+    load();
+    return () => (mounted = false);
+  }, [dispatch, storeProducts, storeLoaded]);
 
 
   console.table(products.map(p => ({

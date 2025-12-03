@@ -35,11 +35,25 @@ export default function CartPage() {
   const storeCart = useSelector(selectCartItems);
   const navigate = useNavigate();
 
-  // Load cart từ backend
+  // Load cart từ backend only when store cart is empty (cache)
   useEffect(() => {
-    setLoading(true);
-    dispatch(fetchUserCarts()).finally(() => setLoading(false));
-  }, [dispatch]);
+    let mounted = true;
+    const loadCart = async () => {
+      try {
+        // If there is already data in Redux store, reuse it
+        if (!storeCart || storeCart.length === 0) {
+          if (mounted) setLoading(true);
+          await dispatch(fetchUserCarts());
+        }
+      } catch (err) {
+        console.error("Failed to load cart:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    loadCart();
+    return () => (mounted = false);
+  }, [dispatch, storeCart?.length]);
 
   // Đồng bộ products state với storeCart
   useEffect(() => {
@@ -99,7 +113,26 @@ export default function CartPage() {
     navigate("/checkout");
   };
 
-  if (loading) return <p className="text-center mt-10">Đang tải giỏ hàng...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center gap-4 bg-white border border-border rounded-lg px-6 py-4 shadow-sm">
+          <svg
+            className="w-8 h-8 text-black animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <div>
+            <div className="text-sm font-medium text-gray-900">Đang tải giỏ hàng</div>
+            <div className="text-xs text-gray-500">Vui lòng chờ trong giây lát...</div>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div className="bg-[#f5f5f5] py-6">
