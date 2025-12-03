@@ -4,6 +4,7 @@ import { saveToken, saveUser } from "../utils/jwt-helper";
 import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../store/authSlice";
 import { loadUserProfile } from "../store/userProfileSlice";
+import { fetchUserCarts } from '@/store/features/cart';
 import { getToken } from "../utils/jwt-helper";
 import Splash from "@/components/Splash"
 
@@ -34,19 +35,8 @@ const OAuth2LoginCallback = () => {
   useEffect(() => {
     if (loadingProfile === false && user) {
       saveUser(user);
-      const token = urlToken || localToken;
-      dispatch(setCredentials({ accessToken: token, user }));
-      
-      // Lưu flag để ShopApplicationWrapper không hiển thị splash lại
-      sessionStorage.setItem('justLoggedIn', 'true');
-      
-      // Hiển thị splash 2 giây rồi redirect
-      const timer = setTimeout(() => {
-        setShowSplash(false);
-        navigate("/");
-      }, 2000);
-
-      return () => clearTimeout(timer);
+      dispatch(setCredentials({ accessToken: urlToken || localToken, user }));
+      navigate("/");
     }
 
     if (loadingProfile === false && user === null && !urlToken && !localToken) {

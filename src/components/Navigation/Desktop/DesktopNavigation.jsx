@@ -11,6 +11,7 @@ import { NavLinkItem } from "../components/NavLinkItem";
 import { SearchBar } from "../components/SearchBar";
 import { User } from "lucide-react";
 import { getToken } from "@/utils/jwt-helper";
+import { countCartItems } from '@/store/features/cart';
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
 
 export default function DesktopNavigation({ links, actions, isActiveLink }) {
@@ -18,6 +19,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
   const dispatch = useDispatch();
   const isAuthenticated = getToken();
   const user = useSelector((state) => state.userProfile?.profile);
+  const cartCount = useSelector(countCartItems) || 0;
 
   const handleLogout = async () => {
     try {
@@ -73,7 +75,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
             >
               <ShoppingCart size={22} />
               <span className="absolute -top-1 -right-1 bg-primary text-white rounded-full text-[11px] w-5 h-5 flex items-center justify-center">
-                2
+                {cartCount}
               </span>
             </Button>
             <UserDropdown user={user} onLogout={handleLogout} />
