@@ -1,17 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { productAPI } from '@/api/product.api';
-import { 
-  SearchPriceFilter, 
-  SearchRatingFilter, 
-  SearchSortFilter,
-  SearchNewArrivalFilter,
-  SearchBrandFilter,
-  ClearFiltersButton
-} from './components/SearchFilters';
 import ProductCard from '../ProductListPage/ProductCard';
 import Spinner from '@/components/Spinner/Spinner';
-import FilterIcon from '@/components/common/FilterIcon';
+import FilterSidebar from '@/components/Filters/FilterSidebar';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import '@/components/Filters/priceFillter.css';
@@ -157,55 +149,17 @@ const SearchResultsPage = () => {
       <div className='flex flex-col md:flex-row gap-6'>
         {/* Sidebar Filters */}
         <div className='w-full md:w-[280px] lg:w-[300px]'>
-          <div className='border rounded-lg p-4 sticky top-20'>
-            <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-lg font-semibold'>Bộ lọc</h2>
-              <FilterIcon />
-            </div>
-
-            {/* Price Filter */}
-            <SearchPriceFilter
-              minPrice={filters.minPrice}
-              maxPrice={filters.maxPrice}
+          <div className='sticky top-20'>
+            <FilterSidebar
+              filters={filters}
+              availableBrands={availableBrands}
               onPriceChange={handlePriceChange}
-            />
-            <hr className='my-4' />
-
-            {/* Rating Filter */}
-            <SearchRatingFilter
-              minRating={filters.minRating}
               onRatingChange={handleRatingChange}
-            />
-            <hr className='my-4' />
-
-            {/* Sort Filter */}
-            <SearchSortFilter
-              sortBy={filters.sortBy}
-              sortDirection={filters.sortDirection}
               onSortChange={handleSortChange}
-            />
-            <hr className='my-4' />
-
-            {/* New Arrival Filter */}
-            <SearchNewArrivalFilter
-              isNewArrival={filters.isNewArrival}
               onNewArrivalChange={handleNewArrivalChange}
+              onBrandChange={handleBrandChange}
+              onClearFilters={handleClearFilters}
             />
-            
-            {/* Brand Filter */}
-            {availableBrands.length > 0 && (
-              <>
-                <hr className='my-4' />
-                <SearchBrandFilter
-                  brands={availableBrands}
-                  selectedBrand={filters.brand}
-                  onBrandChange={handleBrandChange}
-                />
-              </>
-            )}
-
-            {/* Clear Filters Button */}
-            <ClearFiltersButton onClear={handleClearFilters} />
           </div>
         </div>
 

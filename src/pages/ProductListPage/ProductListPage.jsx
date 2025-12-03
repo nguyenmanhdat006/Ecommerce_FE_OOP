@@ -1,24 +1,22 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import FilterIcon from '../../components/common/FilterIcon';
 import content from '../../data/content.json';
-import Categories from '../../components/Filters/Categories';
-import PriceFilter from '../../components/Filters/PriceFilter';
-import ColorsFilter from '../../components/Filters/ColorsFilter';
-import SizeFilter from '../../components/Filters/SizeFilter';
 import ProductCard from './ProductCard';
-import { fetchProducts } from '../../store/productSlice';
+import { productAPI } from '@/api/product.api';
 import Spinner from '../../components/Spinner/Spinner';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import FilterSidebar from '@/components/Filters/FilterSidebar';
+import '@/components/Filters/priceFillter.css';
 
 const categories = content?.categories;
 
 const ProductListPage = ({ categoryType }) => {
   const categoryData = useSelector((state) => state?.categoryState?.categories);
-  const dispatch = useDispatch();
-  const loading = useSelector((state) => state.productSlice?.loading);
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [availableBrands, setAvailableBrands] = useState([]);
 
   const categoryContent = useMemo(() => {
     return categories?.find((category) => category.code === categoryType);
@@ -28,12 +26,95 @@ const ProductListPage = ({ categoryType }) => {
     return categoryData?.find((element) => element?.code === categoryType);
   }, [categoryData, categoryType]);
 
+  // Filters state
+  const [filters, setFilters] = useState({
+    categoryId: null,
+    minPrice: null,
+    maxPrice: null,
+    minRating: null,
+    isNewArrival: false,
+    sortBy: 'name',
+    sortDirection: 'asc',
+    brand: null,
+  });
+
+  // Update categoryId when category changes
   useEffect(() => {
-    if (!category?.id) return;
-    dispatch(fetchProducts({ categoryId: category.id }))
-      .then((res) => setProducts(res.payload || []))
-      .catch(() => {});
-  }, [category?.id, dispatch]);
+    if (category?.id) {
+      setFilters(prev => ({ ...prev, categoryId: category.id }));
+    }
+  }, [category?.id]);
+
+  // Fetch products with filters
+  const fetchFilteredProducts = useCallback(async () => {
+    if (!filters.categoryId) return;
+    
+    setLoading(true);
+    try {
+      // Clean up params - remove null/undefined values
+      const cleanParams = Object.entries(filters).reduce((acc, [key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+
+      const response = await productAPI.search(cleanParams);
+      
+      setProducts(response.products || []);
+      
+      // Extract unique brands from results
+      const brands = [...new Set(response.products?.map(p => p.brand).filter(Boolean))];
+      setAvailableBrands(brands);
+    } catch (error) {
+      console.error('Fetch products error:', error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    fetchFilteredProducts();
+  }, [fetchFilteredProducts]);
+
+  // Filter handlers
+  const handleFilterChange = (updates) => {
+    setFilters(prev => ({ ...prev, ...updates }));
+  };
+
+  const handlePriceChange = ({ minPrice, maxPrice }) => {
+    handleFilterChange({ minPrice, maxPrice });
+  };
+
+  const handleRatingChange = (minRating) => {
+    handleFilterChange({ minRating });
+  };
+
+  const handleSortChange = (sortBy, sortDirection) => {
+    handleFilterChange({ sortBy, sortDirection });
+  };
+
+  const handleNewArrivalChange = (isNewArrival) => {
+    handleFilterChange({ isNewArrival });
+  };
+
+  const handleBrandChange = (brand) => {
+    handleFilterChange({ brand });
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      categoryId: category?.id || null,
+      minPrice: null,
+      maxPrice: null,
+      minRating: null,
+      isNewArrival: false,
+      sortBy: 'name',
+      sortDirection: 'asc',
+      brand: null,
+    });
+  };
 
   return (
     <div>
@@ -52,50 +133,36 @@ const ProductListPage = ({ categoryType }) => {
 
       {/* Filters trên mobile (có thể mở/đóng) */}
       {showFilters && (
-        <div className="lg:hidden p-[10px] border rounded-lg mx-[20px] mb-[20px]">
-          <div className="flex justify-between">
-            <p className="text-[16px] text-gray-600">Filter</p>
-            <FilterIcon />
-          </div>
-
-          <div>
-            <p className="text-[16px] text-black mt-5">Categories</p>
-            <Categories types={categoryContent?.types} />
-            <hr />
-          </div>
-
-          <PriceFilter />
-          <hr />
-
-          <ColorsFilter colors={categoryContent?.meta_data?.colors} />
-          <hr />
-
-          <SizeFilter sizes={categoryContent?.meta_data?.sizes} />
+        <div className="lg:hidden mx-[20px] mb-[20px]">
+          <FilterSidebar
+            filters={filters}
+            availableBrands={availableBrands}
+            onPriceChange={handlePriceChange}
+            onRatingChange={handleRatingChange}
+            onSortChange={handleSortChange}
+            onNewArrivalChange={handleNewArrivalChange}
+            onBrandChange={handleBrandChange}
+            onClearFilters={handleClearFilters}
+          />
         </div>
       )}
 
       {/* Layout chính */}
       <div className="flex flex-col lg:flex-row">
         {/* Cột trái: Filters - chỉ hiện trên desktop */}
-        <div className="hidden lg:block lg:w-[20%] p-[10px] border rounded-lg m-[20px] min-w-[250px]">
-          <div className="flex justify-between">
-            <p className="text-[16px] text-gray-600">Filter</p>
-            <FilterIcon />
+        <div className="hidden lg:block lg:w-[20%] m-[20px] min-w-[250px]">
+          <div className="sticky top-20">
+            <FilterSidebar
+              filters={filters}
+              availableBrands={availableBrands}
+              onPriceChange={handlePriceChange}
+              onRatingChange={handleRatingChange}
+              onSortChange={handleSortChange}
+              onNewArrivalChange={handleNewArrivalChange}
+              onBrandChange={handleBrandChange}
+              onClearFilters={handleClearFilters}
+            />
           </div>
-
-          <div>
-            <p className="text-[16px] text-black mt-5">Categories</p>
-            <Categories types={categoryContent?.types} />
-            <hr />
-          </div>
-
-          <PriceFilter />
-          <hr />
-
-          <ColorsFilter colors={categoryContent?.meta_data?.colors} />
-          <hr />
-
-          <SizeFilter sizes={categoryContent?.meta_data?.sizes} />
         </div>
 
         {/* Cột phải: Products */}
@@ -105,7 +172,7 @@ const ProductListPage = ({ categoryType }) => {
           {/* Products Grid: Responsive - 1 đến 5 cột */}
           <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-2">
             {loading ? (
-              <div className="col-span-full flex justify-center">
+              <div className="col-span-full flex justify-center py-20">
                 <Spinner />
               </div>
             ) : products?.length > 0 ? (
