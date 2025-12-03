@@ -11,8 +11,17 @@ export const dashboardAPI = {
 
   // Provide WS URL (uses env fallback)
   wsUrl: () => {
-  const base = API_BASE_URL || 'http://localhost:8080';
-    // Ensure correct ws scheme
+    // Prefer explicit websocket env var (supports wss://)
+    const wsEnv = import.meta.env.VITE_WEBSOCKET_URL;
+    if (wsEnv) {
+      const base = wsEnv.replace(/\/$/, "");
+      // ensure scheme is ws/wss
+      const wsBase = base.replace(/^http/, 'ws');
+      return `${wsBase}/ws/dashboard`;
+    }
+
+    // Fallback to API_BASE_URL (derive ws scheme) or localhost
+    const base = API_BASE_URL || 'http://localhost:8080';
     const url = new URL(base);
     const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${protocol}//${url.host}/ws/dashboard`;
