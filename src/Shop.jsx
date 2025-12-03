@@ -3,7 +3,6 @@ import HeroSection from "./components/HeroSection/HeroSection.jsx";
 import NewArrivals from "./components/Sections/NewArrivals.jsx";
 import Category from "./components/Sections/Categories/Category.jsx";
 import content from "./data/content.json";
-import Footer from "./components/Footer/Footer.jsx";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { getToken, getUser } from "./utils/jwt-helper.js";
@@ -38,7 +37,6 @@ const Shop = () => {
         content.pages.shop.sections.map((item, index) => (
           <Category key={item?.title + index} {...item} />
         ))}
-      <Footer content={content?.footer} />
     </>
   );
 };

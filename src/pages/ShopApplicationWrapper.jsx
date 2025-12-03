@@ -43,10 +43,12 @@ const ShopApplicationWrapper = () => {
   }, [dispatch, loaded]);
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
         <OrderStatusToast />
         <Navigation />
-        <Outlet />
+        <main className="flex-grow">
+          <Outlet />
+        </main>
         {showSplash && <Splash />}
         {getUser()?.id && <ChatWidget />}
         <Footer content={content?.footer} />
