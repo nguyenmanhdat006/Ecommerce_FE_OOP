@@ -4,6 +4,8 @@ import { useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import WebSocketManager from "@/lib/websocketManager";
 
+const WS_BASE = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8080";
+
 export default function OrderStatusToast() {
   const managerRef = useRef(null);
   const location = useLocation();
@@ -26,8 +28,10 @@ export default function OrderStatusToast() {
       return;
     }
 
-    const url = "ws://localhost:8080/ws/notification"; // kiểm tra URL server WebSocket
-    const manager = new WebSocketManager(url, {
+  // build ws url from env (supports wss:// or ws://)
+  const base = WS_BASE.replace(/^http/, "ws");
+  const url = `${base}/ws/notification`;
+  const manager = new WebSocketManager(url, {
       autoReconnect: true,
       reconnectInterval: 1000,
     });
