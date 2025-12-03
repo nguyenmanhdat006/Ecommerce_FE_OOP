@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff } from "lucide-react";
 import { login, clearAuthError } from "@/store/authSlice";
+import { fetchUserCarts } from '@/store/features/cart';
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
 import { FcGoogle } from "react-icons/fc"; // Google color icon
@@ -56,7 +57,9 @@ export default function LoginV2() {
       dispatch(clearAuthError());
 
       try {
-        await dispatch(login(values)).unwrap();
+  await dispatch(login(values)).unwrap();
+  // Fetch user's carts immediately after successful login so the UI (badge) updates
+  dispatch(fetchUserCarts());
       } catch (err) {
         const errorMessage =
           err?.message || err?.error || "Invalid Credentials!";

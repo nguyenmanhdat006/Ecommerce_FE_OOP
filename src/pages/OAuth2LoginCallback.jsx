@@ -4,6 +4,7 @@ import { saveToken, saveUser } from "../utils/jwt-helper";
 import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../store/authSlice";
 import { loadUserProfile } from "../store/userProfileSlice";
+import { fetchUserCarts } from '@/store/features/cart';
 import { getToken } from "../utils/jwt-helper";
 import Splash from "@/components/Splash"
 
@@ -31,6 +32,8 @@ const OAuth2LoginCallback = () => {
     if (loadingProfile === false && user) {
       saveUser(user);
       dispatch(setCredentials({ accessToken: urlToken || localToken, user }));
+  // Fetch carts immediately so UI shows user's cart count
+  dispatch(fetchUserCarts());
       navigate("/");
     }
 
