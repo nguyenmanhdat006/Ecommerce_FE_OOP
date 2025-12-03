@@ -28,12 +28,21 @@ const ProductListPage = ({ categoryType }) => {
     return categoryData?.find((element) => element?.code === categoryType);
   }, [categoryData, categoryType]);
 
+  const storeProducts = useSelector((state) => state.productState?.products || []);
+  const storeLoaded = useSelector((state) => state.productState?.loaded);
+
   useEffect(() => {
     if (!category?.id) return;
-    dispatch(fetchProducts({ categoryId: category.id }))
-      .then((res) => setProducts(res.payload || []))
-      .catch(() => {});
-  }, [category?.id, dispatch]);
+    // Only fetch if store has no products or not loaded
+    if (!storeLoaded || !storeProducts || storeProducts.length === 0) {
+      dispatch(fetchProducts({ categoryId: category.id }))
+        .then((res) => setProducts(res.payload || []))
+        .catch(() => {});
+    } else {
+      // Use cached products filtered by category if available
+      setProducts(storeProducts.filter(p => p.categoryId === category.id));
+    }
+  }, [category?.id, dispatch, storeProducts, storeLoaded]);
 
   return (
     <div>

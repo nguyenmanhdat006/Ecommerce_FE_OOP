@@ -72,8 +72,11 @@ export function UsersPage() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phoneNumber: '', enabled: true });
 
   useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    // Only fetch users if store cache is empty
+    if (!users || users.length === 0) {
+      dispatch(fetchUsers());
+    }
+  }, [dispatch, users?.length]);
 
   useEffect(() => {
     const onDelete = (e) => {

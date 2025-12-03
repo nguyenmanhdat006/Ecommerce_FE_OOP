@@ -11,7 +11,7 @@ export const dashboardAPI = {
 
   // Provide WS URL (uses env fallback)
   wsUrl: () => {
-    const base = API_BASE_URL || 'http://localhost:8080';
+  const base = API_BASE_URL || 'http://localhost:8080';
     // Ensure correct ws scheme
     const url = new URL(base);
     const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import { MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
 
 import StatusBadge from "./StatusBadge";
 import { orderAPI } from "@/api/order.api";
+import { fetchOrders, selectOrders } from "@/store/features/order";
 import UpdateOrderModal from "./UpdateOrderModal";
 
 export default function OrdersTable({
@@ -23,8 +25,9 @@ export default function OrdersTable({
   categoryFilter,
 }) {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState([]); // dữ liệu từ API
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const orders = useSelector(selectOrders);
+  const [loading, setLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [deletingOrders, setDeletingOrders] = useState(new Set()); // Track which orders are being deleted
   const [updatingOrder, setUpdatingOrder] = useState(null); // Order đang được cập nhật
@@ -32,24 +35,20 @@ export default function OrdersTable({
 
   //  Gọi API khi component load
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await orderAPI.getAll();
-        console.log("res", res);
-        const data = await res;
-        setOrders(data);
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
-      } finally {
-        setLoading(false);
+    let mounted = true;
+    const load = async () => {
+      if (!orders || orders.length === 0) {
+        setLoading(true);
+        await dispatch(fetchOrders());
+        if (mounted) setLoading(false);
       }
     };
-
-    fetchOrders();
-  }, []);
+    load();
+    return () => (mounted = false);
+  }, [dispatch]);
 
   // Lọc dữ liệu (nếu có search/filter)
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = orders?.filter((order) => {
     if (activeTab !== "all" && order.status !== activeTab) return false;
 
     if (
@@ -85,18 +84,16 @@ export default function OrdersTable({
 
     setDeletingOrders((prev) => new Set(prev).add(orderId));
     try {
-      await orderAPI.delete(orderId);
-      // Xóa đơn hàng khỏi local state
-      setOrders((prevOrders) =>
-        prevOrders.filter((order) => order.id !== orderId)
-      );
+  await orderAPI.delete(orderId);
+  // reload orders from server
+  await dispatch(fetchOrders());
       // Xóa khỏi selectedRows nếu có
       setSelectedRows((prev) => {
         const newSet = new Set(prev);
         newSet.delete(orderId);
         return newSet;
       });
-      alert("Đã xóa đơn hàng thành công!");
+  alert("Đã xóa đơn hàng thành công!");
     } catch (error) {
       console.error("Lỗi khi xóa đơn hàng:", error);
       alert("Không thể xóa đơn hàng. Vui lòng thử lại.");
@@ -123,17 +120,11 @@ export default function OrdersTable({
   // Cập nhật đơn hàng
   const handleUpdate = async (orderId, updateData) => {
     try {
-      const response = await orderAPI.update(orderId, updateData);
+  const response = await orderAPI.update(orderId, updateData);
       // API có thể trả về object trực tiếp hoặc trong response.data
       const updatedOrder = response?.data || response;
-      // Cập nhật đơn hàng trong local state
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.id === orderId
-            ? { ...order, ...updateData, ...updatedOrder }
-            : order
-        )
-      );
+  // reload orders from server
+  await dispatch(fetchOrders());
       alert("Đã cập nhật đơn hàng thành công!");
     } catch (error) {
       console.error("Lỗi khi cập nhật đơn hàng:", error);
@@ -191,7 +182,7 @@ export default function OrdersTable({
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.map((order) => (
+              {filteredOrders?.map((order) => (
                 <tr
                   key={order.id}
                   className="border-b border-border hover:bg-muted/30 transition-colors"
