@@ -1,4 +1,4 @@
-import { Heart, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -55,18 +55,16 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
         </div>
         {isAuthenticated ? (
           <>
-            <Button variant="ghost" size="icon" className="h-11 w-11">
-              <Heart size={22} />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              onClick={() => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST)}
-            >
-              <User size={22} />
-            </Button>
+            {user?.role === "ADMIN" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11"
+                onClick={() => navigate(ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST)}
+              >
+                <User size={22} />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

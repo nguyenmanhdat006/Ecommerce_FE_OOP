@@ -1,21 +1,28 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { orderAPI } from '@/api/order.api';
 import { paymentAPI } from '@/api/payment.api';
-import { MapPin, Store, MessageCircle, Ticket, Truck, Coins, Check } from "lucide-react";
+import { MapPin, Store, Ticket, Truck, Coins, Check, ChevronDown } from "lucide-react";
 import { getUser } from '@/utils/jwt-helper';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
+import { fetchMyAddresses, selectAddressState } from "@/store/addressSlice";
 
 export default function Checkout() {
-
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = localStorage.getItem("access_token");
   const [cartItems, setCartItems] = useState([]);
   const [shippingFee] = useState(10000);
   const [showVoucherList, setShowVoucherList] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState();
   const [selectedBank, setSelectedBank] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressList, setShowAddressList] = useState(false);
+  const [isPlacing, setIsPlacing] = useState(false);
+  
+  // Get addresses from Redux store
+  const { addresses, loading: addressesLoading, loaded: addressesLoaded } = useSelector(selectAddressState);
 
   const vouchers = [
     { id: 1, code: "GIAM10K", discount: 10000, minOrder: 50000 },
@@ -25,17 +32,39 @@ export default function Checkout() {
 
   const user = getUser();
   console.log('checkout user:', user);
-  if (!user) {
-        toast.error("Bạn cần đăng nhập để đặt hàng");
-        navigate("/v2/login");
-        return null;
-      }
 
   // Lấy sản phẩm từ localStorage
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("checkoutItems")) || [];
     setCartItems(stored);
   }, []);
+
+  // Check user authentication and redirect if needed
+  useEffect(() => {
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để đặt hàng");
+      navigate("/v2/login");
+    }
+  }, [user, navigate]);
+
+  // Fetch addresses if not loaded
+  useEffect(() => {
+    if (user && !addressesLoaded) {
+      dispatch(fetchMyAddresses());
+    }
+  }, [dispatch, addressesLoaded, user]);
+
+  // Set default address when addresses are loaded
+  useEffect(() => {
+    if (addresses && Array.isArray(addresses) && addresses.length > 0 && !selectedAddress) {
+      setSelectedAddress(addresses[0]);
+    }
+  }, [addresses, selectedAddress]);
+
+  // Early return if no user (after all hooks)
+  if (!user) {
+    return null;
+  }
 
   const bankPromotions = [
     { id: 1, bank: "SHINHAN", discount: 50000, minOrder: 500000, logo: "🏦" },
@@ -58,7 +87,6 @@ export default function Checkout() {
   const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
   const discount = selectedVoucher && totalPrice >= selectedVoucher.minOrder ? selectedVoucher.discount : 0;
   const totalPayment = totalPrice + shippingFee - discount;
-  const [isPlacing, setIsPlacing] = useState(false);
 
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-md shadow-sm p-6 text-gray-800 mb-10">
@@ -67,13 +95,76 @@ export default function Checkout() {
           <MapPin className="w-5 h-5" />
           <span>Địa Chỉ Nhận Hàng</span>
         </h2>
-        <div className="mt-2 text-sm flex justify-between items-start">
-          <div>
-            <p className="font-medium">Nguyễn Mạnh Đạt <span className="ml-2 text-gray-600">(+84) 345 455 326</span></p>
-            <p className="text-gray-600 mt-1">Ngõ 3 Cúc Phố, Xã Vinh Quang, Huyện Vĩnh Bảo, Hải Phòng</p>
+        {addressesLoading && (!addresses || !Array.isArray(addresses) || addresses.length === 0) ? (
+          <div className="mt-2 text-sm text-gray-500">Đang tải địa chỉ...</div>
+        ) : addresses && Array.isArray(addresses) && addresses.length > 0 ? (
+          <div className="mt-2 text-sm relative">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                {selectedAddress ? (
+                  <>
+                    <p className="font-medium">
+                      {selectedAddress.name} <span className="ml-2 text-gray-600">{selectedAddress.phoneNumber}</span>
+                    </p>
+                    <p className="text-gray-600 mt-1">
+                      {selectedAddress.street}, {selectedAddress.city}, {selectedAddress.state} {selectedAddress.zipCode}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-gray-500">Chưa chọn địa chỉ</p>
+                )}
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setShowAddressList(!showAddressList)}
+                  className="text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  {selectedAddress ? "Thay đổi" : "Chọn địa chỉ"}
+                  <ChevronDown size={16} className={showAddressList ? "rotate-180" : ""} />
+                </button>
+                {showAddressList && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto">
+                    {addresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 ${
+                          selectedAddress?.id === address.id ? "bg-blue-50" : ""
+                        }`}
+                        onClick={() => {
+                          setSelectedAddress(address);
+                          setShowAddressList(false);
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm">{address.name}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {address.street}, {address.city}, {address.state} {address.zipCode}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">{address.phoneNumber}</p>
+                          </div>
+                          {selectedAddress?.id === address.id && (
+                            <Check className="text-blue-600 w-5 h-5 flex-shrink-0" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <button className="text-blue-600 hover:underline">Thay đổi</button>
-        </div>
+        ) : (
+          <div className="mt-2 text-sm">
+            <p className="text-gray-500 mb-2">Bạn chưa có địa chỉ nào. Vui lòng thêm địa chỉ trong trang cá nhân.</p>
+            <button
+              onClick={() => navigate("/profile?section=address")}
+              className="text-blue-600 hover:underline"
+            >
+              Thêm địa chỉ
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between border-b border-gray-200 pb-3">
@@ -81,9 +172,6 @@ export default function Checkout() {
           <Store className="w-4 h-4 text-gray-600" />
           <span className="font-semibold">Shopease</span>
         </div>
-        <button className="flex items-center text-teal-600 hover:underline text-sm">
-          <MessageCircle className="w-4 h-4 mr-1" />Chat ngay
-        </button>
       </div>
 
       {cartItems.length > 0 ? (
@@ -272,6 +360,12 @@ export default function Checkout() {
               return;
             }
 
+            if (!selectedAddress) {
+              toast.error('Vui lòng chọn địa chỉ nhận hàng');
+              setIsPlacing(false);
+              return;
+            }
+
             setIsPlacing(true);
             try {
               // Tạo payload order
@@ -283,6 +377,9 @@ export default function Checkout() {
                 totalPrice: Number((it.price || 0) * (it.qty || it.quantity || 1)),
               }));
 
+              // Format shipping address
+              const shippingAddressText = `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.zipCode}`;
+
               const payload = {
                 orderNumber: new Date().toISOString(),
                 totalAmount: totalPayment,
@@ -290,7 +387,7 @@ export default function Checkout() {
                 status: "PENDING",
                 paymentStatus: paymentMethod === "vnpay" ? "PAID" : "UNPAID",
                 paymentMethod,
-                shippingAddress: 'demo dia chi 123',
+                shippingAddress: shippingAddressText,
                 notes: '',
                 customerId: user.id,
                 orderItems,
@@ -315,6 +412,9 @@ export default function Checkout() {
                 // case "shopeePay":
                 case "creditCard":
                 case "googlePay":
+                  // Payment methods not yet implemented
+                  toast.error('Phương thức thanh toán này chưa được hỗ trợ');
+                  break;
                 // case "napas":
                 //   {
                 //     // Giả lập redirect đến cổng tương ứng

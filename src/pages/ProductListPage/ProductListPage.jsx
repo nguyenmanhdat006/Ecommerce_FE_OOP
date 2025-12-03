@@ -7,6 +7,8 @@ import { productAPI } from '@/api/product.api';
 import Spinner from '../../components/Spinner/Spinner';
 import { useSelector } from 'react-redux';
 import FilterSidebar from '@/components/Filters/FilterSidebar';
+import { fetchProducts } from '@/store/productSlice';
+import { useDispatch } from 'react-redux';
 import '@/components/Filters/priceFillter.css';
 
 const categories = content?.categories;
@@ -17,7 +19,8 @@ const ProductListPage = ({ categoryType }) => {
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [availableBrands, setAvailableBrands] = useState([]);
-
+  const dispatch = useDispatch();
+  
   const categoryContent = useMemo(() => {
     return categories?.find((category) => category.code === categoryType);
   }, [categoryType]);
@@ -41,13 +44,123 @@ const ProductListPage = ({ categoryType }) => {
     brand: null,
   });
 
-  // Update categoryId when category changes
+  // Fetch products when category changes
   useEffect(() => {
     if (!category?.id) return;
+    setLoading(true);
+    setFilters(prev => ({ ...prev, categoryId: category.id }));
     dispatch(fetchProducts({ categoryId: category.id }))
-      .then((res) => setProducts(res.payload || []))
-      .catch(() => {});
+      .then((res) => {
+        setProducts(res.payload || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
   }, [category?.id, dispatch]);
+
+  // Extract available brands from products
+  useEffect(() => {
+    if (products && products.length > 0) {
+      const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
+      setAvailableBrands(brands);
+    }
+  }, [products]);
+
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = [...products];
+
+    // Apply price filter
+    if (filters.minPrice !== null && filters.minPrice !== '') {
+      result = result.filter(p => p.price >= Number(filters.minPrice));
+    }
+    if (filters.maxPrice !== null && filters.maxPrice !== '') {
+      result = result.filter(p => p.price <= Number(filters.maxPrice));
+    }
+
+    // Apply rating filter
+    if (filters.minRating !== null && filters.minRating !== '') {
+      result = result.filter(p => (p.rating || 0) >= Number(filters.minRating));
+    }
+
+    // Apply new arrival filter
+    if (filters.isNewArrival) {
+      result = result.filter(p => p.newArrival === true);
+    }
+
+    // Apply brand filter
+    if (filters.brand) {
+      result = result.filter(p => p.brand === filters.brand);
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (filters.sortBy) {
+        case 'price':
+          aValue = a.price || 0;
+          bValue = b.price || 0;
+          break;
+        case 'rating':
+          aValue = a.rating || 0;
+          bValue = b.rating || 0;
+          break;
+        case 'name':
+        default:
+          aValue = (a.name || '').toLowerCase();
+          bValue = (b.name || '').toLowerCase();
+          break;
+      }
+
+      if (filters.sortBy === 'name') {
+        return filters.sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return filters.sortDirection === 'asc' 
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+    });
+
+    return result;
+  }, [products, filters]);
+
+  // Filter handlers
+  const handlePriceChange = useCallback(({ minPrice, maxPrice }) => {
+    setFilters(prev => ({ ...prev, minPrice, maxPrice }));
+  }, []);
+
+  const handleRatingChange = useCallback((minRating) => {
+    setFilters(prev => ({ ...prev, minRating }));
+  }, []);
+
+  const handleSortChange = useCallback((sortBy, sortDirection) => {
+    setFilters(prev => ({ ...prev, sortBy, sortDirection }));
+  }, []);
+
+  const handleNewArrivalChange = useCallback((isNewArrival) => {
+    setFilters(prev => ({ ...prev, isNewArrival }));
+  }, []);
+
+  const handleBrandChange = useCallback((brand) => {
+    setFilters(prev => ({ ...prev, brand }));
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({
+      categoryId: category?.id || null,
+      minPrice: null,
+      maxPrice: null,
+      minRating: null,
+      isNewArrival: false,
+      sortBy: 'name',
+      sortDirection: 'asc',
+      brand: null,
+    });
+  }, [category?.id]);
 
   return (
     <div>
@@ -108,8 +221,8 @@ const ProductListPage = ({ categoryType }) => {
               <div className="col-span-full flex justify-center py-20">
                 <Spinner />
               </div>
-            ) : products?.length > 0 ? (
-              products.map((item, index) => (
+            ) : filteredAndSortedProducts?.length > 0 ? (
+              filteredAndSortedProducts.map((item, index) => (
                 <div key={item?.id + '_' + index}>
                   <ProductCard {...item} title={item?.name} />
                 </div>
