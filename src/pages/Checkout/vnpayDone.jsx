@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_BASE_URL } from '@/api/constant';
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function OrderVnpSuccess() {
-  const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -14,12 +11,17 @@ export default function OrderVnpSuccess() {
 
   // Lấy query params
   const queryParams = new URLSearchParams(location.search || "");
+  const orderId = queryParams.get("vnp_TxnRef");
   const vnpAmount = queryParams.get("vnp_Amount");
   const vnpBankCode = queryParams.get("vnp_BankCode");
   const vnpCardType = queryParams.get("vnp_CardType");
   const vnpOrderInfo = queryParams.get("vnp_OrderInfo");
   const vnpPayDate = queryParams.get("vnp_PayDate");
   const vnpTransactionNo = queryParams.get("vnp_TransactionNo");
+  const responseCode = queryParams.get("vnp_ResponseCode"); // "00" là thành công
+
+  // Xác định trạng thái
+  const status = responseCode === "00" ? "success" : "fail";
 
   // Format tiền VNĐ
   const formatMoney = (amount) => {
@@ -41,37 +43,13 @@ export default function OrderVnpSuccess() {
   };
 
   useEffect(() => {
-    async function handleVnpayReturn() {
-      const searchParams = location.search;
-
-      if (!searchParams.includes("vnp_Amount")) {
-        setStatusMessage("Không có dữ liệu thanh toán!");
-        return;
-      }
-
-      const token = localStorage.getItem("access_token");
-
-      try {
-        const base = API_BASE_URL || 'http://localhost:8080';
-        const res = await axios.get(
-          `${base}/api/vnpay/return${searchParams}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (res.status === 200 && res.data === "Thanh toán thành công!") {
-          setStatusMessage("Thanh toán thành công! Đơn hàng đã được cập nhật.");
-          setTimeout(() => setSuccess(true), 800);
-        } else {
-          setStatusMessage("Thanh toán thất bại!");
-        }
-      } catch (err) {
-        console.error(err);
-        setStatusMessage("Có lỗi khi xử lý thanh toán!");
-      }
+    if (status === "success") {
+      setStatusMessage("Thanh toán thành công! Đơn hàng đã được cập nhật.");
+      setTimeout(() => setSuccess(true), 800);
+    } else {
+      setStatusMessage("Thanh toán thất bại!");
     }
-
-    handleVnpayReturn();
-  }, [location.search]);
+  }, [status]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -122,7 +100,7 @@ export default function OrderVnpSuccess() {
 
                 {/* Tiêu đề */}
                 <h2 className="text-2xl font-bold text-green-600">
-                  Giao Dịch Thanh Toán Thành Công
+                  Giao Dịch Thanh Toán {status === "success" ? "Thành Công" : "Thất Bại"}
                 </h2>
 
                 <div className="h-px bg-gray-200 w-3/4 my-4"></div>
