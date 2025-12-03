@@ -9,10 +9,12 @@ import { Eye, EyeOff } from "lucide-react";
 import { register, clearAuthError } from "@/store/authSlice";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
+import VerifyCodeV2 from "./VerifyCodeV2";
 
 export default function RegisterV2() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [enableVerify, setEnableVerify] = useState(false);
   const [values, setValues] = useState({
     firstName: "",
     lastName: "",
@@ -64,20 +66,20 @@ export default function RegisterV2() {
           })
         ).unwrap();
         
-        toast.success("Registration successful! Please login.");
-        
-        // Delay 2s trước khi chuyển sang trang login
-        setTimeout(() => {
-          navigate("/v2/login");
-        }, 2000);
+        toast.success("Registration successful! Please verify your email.");
+        setEnableVerify(true);
       } catch (err) {
         const errorMessage =
           err?.message || err?.error || "Registration failed!";
         toast.error(errorMessage);
       }
     },
-    [dispatch, values, navigate]
+    [dispatch, values]
   );
+
+  if (enableVerify) {
+    return <VerifyCodeV2 email={values.email} />;
+  }
 
   return (
     <AuthFormLayout
