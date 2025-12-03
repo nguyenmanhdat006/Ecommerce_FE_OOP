@@ -123,7 +123,7 @@ const ProductDetails = () => {
     // cần login
     if (!currentUser) {
       toast.error('Please login to add items to cart');
-      navigate('/v1/login');
+      navigate('/v2/login');
       return;
     }
 

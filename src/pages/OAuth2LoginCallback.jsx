@@ -18,7 +18,7 @@ const OAuth2LoginCallback = () => {
   // Step 1: Save token & load user
   useEffect(() => {
     if (!urlToken && !localToken) {
-      navigate("/v1/login");
+      navigate("/v2/login");
       return;
     }
 
@@ -35,7 +35,7 @@ const OAuth2LoginCallback = () => {
     }
 
     if (loadingProfile === false && user === null && !urlToken && !localToken) {
-      navigate("/v1/login");
+      navigate("/v2/login");
     }
   }, [loadingProfile, user, urlToken, localToken, navigate, dispatch]);
 

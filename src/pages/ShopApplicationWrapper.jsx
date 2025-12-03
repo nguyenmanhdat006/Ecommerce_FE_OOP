@@ -13,15 +13,25 @@ import content from '../data/content.json'
 const ShopApplicationWrapper = () => {
   const dispatch = useDispatch();
   const loaded = useSelector((state)=> state?.userProfile?.loaded);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
 
   // Hiển thị splash 2 giây khi component mount (lần đầu vào hoặc refresh)
+  // Nhưng không hiển thị nếu vừa login (đã hiển thị splash ở AuthenticationWrapperV2)
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+    if (justLoggedIn) {
+      // Xóa flag để lần refresh sau vẫn hiển thị splash
+      sessionStorage.removeItem('justLoggedIn');
       setShowSplash(false);
-    }, 2000);
+    } else {
+      // Hiển thị splash khi refresh hoặc lần đầu vào
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 2000);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   useEffect(() => {

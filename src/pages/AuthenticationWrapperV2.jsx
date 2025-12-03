@@ -16,6 +16,8 @@ const AuthenticationWrapperV2 = () => {
     if (isAuthenticated && !hasShownSplash.current) {
       hasShownSplash.current = true;
       setShowSplash(true);
+      // Lưu flag vào sessionStorage để ShopApplicationWrapper không hiển thị splash lại
+      sessionStorage.setItem('justLoggedIn', 'true');
       
       const timer = setTimeout(() => {
         setShowSplash(false);

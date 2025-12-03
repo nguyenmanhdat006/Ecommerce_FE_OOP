@@ -67,7 +67,7 @@ const Register = () => {
         </form>
       </div>
       {error && <p className='text-lg text-red-700'>{error}</p>}
-      <Link to={"/v1/login"} className='underline text-gray-500 hover:text-black'>Already have an  account? Log in</Link>
+      <Link to={"/v2/login"} className='underline text-gray-500 hover:text-black'>Already have an  account? Log in</Link>
       </>
       }
       {enableVerify && <VerifyCode email={values?.email}/>}

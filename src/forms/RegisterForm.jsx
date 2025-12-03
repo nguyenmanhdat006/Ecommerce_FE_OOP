@@ -218,7 +218,7 @@ export default function RegisterForm() {
             variant="link"
             className="p-0 h-auto text-sm hover:text-opacity-80 font-medium cursor-pointer"
             style={{ color: "#ff80d4" }}
-            onClick={() => navigate("/v1/login")}
+            onClick={() => navigate("/v2/login")}
           >
             Sign In.
           </Button>
