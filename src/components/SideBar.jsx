@@ -5,6 +5,7 @@ import {
   BarChart3,
   Users,
   MessageSquare,
+  Bot,
   ItalicIcon as AnalyticsIcon,
   FolderOpen,
   Zap,
@@ -89,6 +90,11 @@ export function Sidebar() {
       label: "Chat",
       icon: <MessageSquare className="w-5 h-5" />,
       route: ROUTE_CONSTANTS.ADMIN_CHAT,
+    },
+    {
+      label: "AI Agent",
+      icon: <Bot className="w-5 h-5" />,
+      route: ROUTE_CONSTANTS.ADMIN_AGENT,
     },
   ];
 
