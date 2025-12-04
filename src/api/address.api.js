@@ -13,6 +13,10 @@ export const addressAPI = {
   getById: (id) =>
     axiosClient.get(`/api/addresses/${id}`),
 
+  // GET /api/addresses/user/{userId} - Get addresses for a specific user (admin)
+  getByUser: (userId) =>
+    axiosClient.get(`/api/addresses/user/${userId}`),
+
   // POST /api/addresses - Create address
   create: (data) =>
     axiosClient.post("/api/addresses", data),
