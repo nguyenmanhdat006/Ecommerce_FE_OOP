@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserCarts, selectCartItems } from '@/store/features/cart';
 import { useNavigate } from "react-router-dom"; 
 import { cartAPI } from "@/api/cart.api";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 // Recommendation images
 import rec1 from '@/assets/img/category-men-hoodies.png';
@@ -15,9 +16,6 @@ import rec2 from '@/assets/img/category-men-jeans.jpg';
 import rec3 from '@/assets/img/category-women-shorts.jpg';
 import rec4 from '@/assets/img/category-women-tshirts.png';
 import rec5 from '@/assets/img/category-women-coats.jpg';
-
-const formatVND = (n) =>
-  n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
 const recommendations = [
   { id: 1, name: "Áo hoodies Unisex thu đông hoodie phiên bản hàn quốc", price: 39900, sold: "Đã bán 20k+", discount: "-29%", rating: 4.6, image: rec1 },
@@ -167,7 +165,7 @@ export default function CartPage() {
             {/* --- Mua kèm --- */}
             <div className="bg-gray-100 px-4 py-2 text-sm text-black border-b">
               <span className="text-black font-medium">Mua Kèm</span> Mua tối
-              thiểu <span className="font-semibold">349.000₫</span> để nhận quà
+              thiểu <span className="font-semibold">{formatCurrency(349000)}</span> để nhận quà
               <Button
                 variant="link"
                 className="text-black font-medium ml-1 p-0 h-auto"
@@ -195,10 +193,10 @@ export default function CartPage() {
               </div>
               <div className="text-center w-32">
                 <div className="text-gray-400 line-through text-sm">
-                  {formatVND(p.price * 1.1)}
+                  {formatCurrency(p.price * 1.1)}
                 </div>
                 <div className="text-black font-semibold">
-                  {formatVND(p.price)}
+                  {formatCurrency(p.price)}
                 </div>
               </div>
               <div className="flex items-center justify-center gap-1 w-32">
@@ -224,7 +222,7 @@ export default function CartPage() {
               </div>
                 <div className="w-40 text-right">
                 <div className="text-black font-semibold mb-1">
-                  {formatVND(p.price * p.qty)}
+                  {formatCurrency(p.price * p.qty)}
                 </div>
                 <Button
                   variant="link"
@@ -269,7 +267,7 @@ export default function CartPage() {
             <div className="text-sm text-black">
               Tổng cộng ({checkedItems.length} sản phẩm):{" "}
               <span className="text-xl text-black font-bold">
-                {formatVND(total)}
+                {formatCurrency(total)}
               </span>
             </div>
             <Button
@@ -306,7 +304,7 @@ export default function CartPage() {
                 <div className="p-2">
                   <p className="text-sm line-clamp-2">{item.name}</p>
                   <p className="text-orange-500 font-semibold">
-                    {formatVND(item.price)}
+                    {formatCurrency(item.price)}
                   </p>
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>{item.discount}</span>

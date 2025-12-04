@@ -21,6 +21,7 @@ import { addToCart } from '../../store/features/cart';
 import { cartAPI } from '../../api/cart.api';
 import { getAllProducts } from '../../api/fetchProducts';
 import { getUser } from '../../utils/jwt-helper';
+import { formatCurrency } from '../../utils/currencyFormatter';
 
 // Icons cho phần Extra sections
 const extraSections = [
@@ -266,7 +267,7 @@ const ProductDetails = () => {
                                 </button>
 
                                 {/* Price Display */}
-                                <p className="text-2xl font-bold text-gray-800">${product?.price}</p>
+                                <p className="text-2xl font-bold text-gray-800">{formatCurrency(product?.price)}</p>
                             </>
                         );
                     })()}

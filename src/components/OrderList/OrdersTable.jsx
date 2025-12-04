@@ -17,6 +17,7 @@ import StatusBadge from "./StatusBadge";
 import { orderAPI } from "@/api/order.api";
 import { fetchOrders, selectOrders } from "@/store/features/order";
 import UpdateOrderModal from "./UpdateOrderModal";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 export default function OrdersTable({
   activeTab,
@@ -200,7 +201,7 @@ export default function OrdersTable({
                     {new Date(order.orderDate).toLocaleDateString("vi-VN")}
                   </td>
                   <td className="px-4 py-3 text-sm font-medium">
-                    {order.totalAmount.toLocaleString()} ₫
+                    {formatCurrency(order.totalAmount)}
                   </td>
                   <td className="px-4 py-3 text-sm">{order.paymentMethod}</td>
                   <td className="px-4 py-3 text-sm">{order.shippingAddress}</td>

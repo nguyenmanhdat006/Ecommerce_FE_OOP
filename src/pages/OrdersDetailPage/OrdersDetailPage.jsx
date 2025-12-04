@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Clock, CreditCard, Package, User, Mail } from "lucide-react";
 import { orderAPI } from "@/api/order.api";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 const OrderDetailPage = () => {
   const [searchParams] = useSearchParams();
@@ -151,10 +152,10 @@ const OrderDetailPage = () => {
                     <td className="p-2 border text-center">{idx + 1}</td>
                     <td className="p-2 border text-center">{item.quantity}</td>
                     <td className="p-2 border text-right">
-                      {item.unitPrice.toLocaleString("vi-VN")}₫
+                      {formatCurrency(item.unitPrice)}
                     </td>
                     <td className="p-2 border text-right">
-                      {item.totalPrice.toLocaleString("vi-VN")}₫
+                      {formatCurrency(item.totalPrice)}
                     </td>
                   </tr>
                 ))}
@@ -189,7 +190,7 @@ const OrderDetailPage = () => {
                     </p>
                   </div>
                   <span className="font-semibold text-blue-600">
-                    {h.totalAmount.toLocaleString("vi-VN")}₫
+                    {formatCurrency(h.totalAmount)}
                   </span>
                 </li>
               ))}
@@ -223,7 +224,7 @@ const OrderDetailPage = () => {
         </CardHeader>
         <CardContent>
           <p className="text-xl font-bold text-blue-600">
-            {order.totalAmount.toLocaleString("vi-VN")}₫
+            {formatCurrency(order.totalAmount)}
           </p>
         </CardContent>
       </Card>

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 export default function OrderManagement() {
   const dispatch = useDispatch();
@@ -209,11 +210,11 @@ export default function OrderManagement() {
                 <div className="flex flex-col text-sm text-gray-700">
                   <span>• Sản phẩm #{idx + 1}</span>
                   <span>Số lượng: {item.quantity}</span>
-                  <span>Đơn giá: {item.unitPrice.toLocaleString()}₫</span>
+                  <span>Đơn giá: {formatCurrency(item.unitPrice)}</span>
                   <span>SKU: {item.productVariant?.color} / {item.productVariant?.size}</span>
                 </div>
                 <div className="text-right font-medium text-gray-900">
-                  {item.totalPrice.toLocaleString()}₫
+                  {formatCurrency(item.totalPrice)}
                 </div>
               </div>
             ))}
@@ -228,7 +229,7 @@ export default function OrderManagement() {
             <div className="text-right">
               <div className="text-gray-500 text-sm">Tổng tiền</div>
               <div className="text-orange-600 font-semibold text-lg">
-                {order.totalAmount.toLocaleString()}₫
+                {formatCurrency(order.totalAmount)}
               </div>
             </div>
           </div>

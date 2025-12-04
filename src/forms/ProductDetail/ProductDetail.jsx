@@ -3,6 +3,7 @@
 import { QRCodeCanvas } from "qrcode.react";
 import { useState, useEffect } from "react";
 import { Search, Settings, Download, Plus, Info, MoreVertical } from "lucide-react";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 // ==== Component cơ bản ====
 function Button({ children, className = "", variant, size, ...props }) {
@@ -224,7 +225,7 @@ function ProductTable({ searchTerm }) {
             <p className="text-gray-700 mb-2">📦 Tình trạng: {selectedProduct.statusDetail}</p>
             <p className="text-gray-700 mb-4">📝 Mô tả: {selectedProduct.description}</p>
             <p className="text-gray-700 mb-4">
-              💰 Giá: {selectedProduct.price.toLocaleString("vi-VN")} VNĐ
+              💰 Giá: {formatCurrency(selectedProduct.price)}
             </p>
 
             <div className="flex justify-end">
@@ -263,7 +264,7 @@ function ProductTable({ searchTerm }) {
                   <TableCell>{product.name}</TableCell>
                   <TableCell className="max-w-xs truncate">{product.description}</TableCell>
                   <TableCell className="text-right font-medium">
-                    {product.price.toLocaleString("vi-VN")} VNĐ
+                    {formatCurrency(product.price)}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">

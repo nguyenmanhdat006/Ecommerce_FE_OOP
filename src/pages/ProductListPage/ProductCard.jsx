@@ -1,5 +1,6 @@
 import SvgFavourite from "../../components/common/SvgFavourite";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 // eslint-disable-next-line no-unused-vars
 const ProductCard = ({ id, title, description, price, discount, rating, brand, thumbnail, slug }) => {
@@ -31,7 +32,7 @@ const ProductCard = ({ id, title, description, price, discount, rating, brand, t
         </div>
         <div className="flex-shrink-0">
           <p className="text-[14px] sm:text-[16px] font-semibold text-gray-900">
-            ${price}
+            {formatCurrency(price)}
           </p>
         </div>
       </div>

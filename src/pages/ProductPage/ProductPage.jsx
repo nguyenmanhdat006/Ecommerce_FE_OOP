@@ -6,6 +6,7 @@ import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-r
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '@/store/productSlice';
+import { formatCurrency } from '@/utils/currencyFormatter';
 
 /* ======= ProductPage (full) ======= */
 
@@ -71,7 +72,7 @@ function ProductTable({ products, onOpenDetail, navigate }) {
               </td>
               <td className="px-4 py-2 text-sm text-gray-700">{product.name}</td>
               <td className="px-4 py-2 text-sm text-gray-700">{product.brand || "—"}</td>
-              <td className="px-4 py-2 text-sm text-gray-700 text-right font-medium">{product.price?.toLocaleString("vi-VN")} VNĐ</td>
+              <td className="px-4 py-2 text-sm text-gray-700 text-right font-medium">{formatCurrency(product.price)}</td>
               <td className="px-4 py-2">{origin && <QRCodeCanvas value={`${origin}/qr?id=${product.id}`} size={60} />}</td>
               <td className="px-4 py-2 relative">
                 <div className="inline-block text-left">
@@ -273,7 +274,7 @@ function ProductDetailModal({ productId, open, onClose }) {
                 <h3 className="text-xl font-semibold">{product.name}</h3>
                 <p className="text-sm text-gray-500 mt-1">ID: {product.id}</p>
                 <div className="mt-3 flex items-center gap-4">
-                  <div className="text-2xl font-bold">{product.price?.toLocaleString("vi-VN")} VNĐ</div>
+                  <div className="text-2xl font-bold">{formatCurrency(product.price)}</div>
                   {product.newArrival && <div className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Mới</div>}
                 </div>
                 <p className="mt-3 text-gray-700">{product.description}</p>
