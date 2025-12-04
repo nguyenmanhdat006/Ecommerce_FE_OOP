@@ -92,7 +92,7 @@ export function UsersPage() {
     };
     const onDetail = (e) => {
       const id = e.detail;
-      const u = users.find((x) => x.id === id);
+      const u = users.find((x) => String(x.id) === String(id));
       if (u) {
         setSelectedUser(u);
         setFetchedAddresses(null);
@@ -154,7 +154,7 @@ export function UsersPage() {
       window.removeEventListener('admin-user-delete', onDelete);
       window.removeEventListener('admin-user-detail', onDetail);
     };
-  }, [dispatch]);
+  }, [dispatch, users]);
 
   // Compute avatar src for selected user
   const selectedAvatarSrc = selectedUser
