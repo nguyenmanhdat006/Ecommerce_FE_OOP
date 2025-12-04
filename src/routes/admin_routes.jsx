@@ -12,6 +12,7 @@ import { CategoryTypePage } from "@/pages/CategoryTypePage/CategoryTypePage.jsx"
 import { CategoryPage } from "@/pages/CategoryPage/CategoryPage.jsx";
 import { InventoryManagement } from "@/pages/InventoryManagement/InventoryManagement.jsx";
 import AdminChat from "@/pages/AdminChat/AdminChat.jsx";
+import AdminAgent from "@/pages/AdminAgent/AdminAgent.jsx";
 import DashboardHome from "@/pages/DashboardHome/DashboardHome.jsx";
 
 export const adminRouter = {
@@ -66,6 +67,10 @@ export const adminRouter = {
     {
       path: ROUTE_CONSTANTS.ADMIN_CHAT,
       element: <AdminChat />,
+    },
+    {
+      path: ROUTE_CONSTANTS.ADMIN_AGENT,
+      element: <AdminAgent />,
     }
   ],
 };

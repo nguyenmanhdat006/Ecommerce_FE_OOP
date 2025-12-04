@@ -31,4 +31,5 @@ export const ROUTE_CONSTANTS = {
 
   ADMIN_INVENTORY_MANAGEMENT: "/admin/inventory-management",
   ADMIN_CHAT: "/admin/chat",
+  ADMIN_AGENT: "/admin/agent",
 };
