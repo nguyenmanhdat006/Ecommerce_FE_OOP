@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from '@/api/constant';
+import { productAPI } from '@/api/product.api';
 import { QRCodeCanvas } from "qrcode.react";
+import { toast } from 'react-hot-toast';
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
@@ -121,30 +123,15 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                             if (!confirmed) return;
 
                             try {
-                              const token = localStorage.getItem("access_token");
-                            if (!token) {
-                              alert("⚠️ Thiếu token, vui lòng đăng nhập lại."); 
-                            return;
-                            }
-
-                          const base = API_BASE_URL || 'http://localhost:8080';
-                          const response = await axios.delete(`${base}/api/products/${product.id}`, {
-                            headers: { Authorization: `Bearer ${token}` },
-                          });
-
-                            if (response.status === 200 || response.status === 204) {
-                              alert("✅ Xóa sản phẩm thành công!");
-                              // Cập nhật lại danh sách sản phẩm (không cần reload trang)
+                              // use shared axios client via productAPI which handles auth and baseURL
+                              await productAPI.delete(product.id);
+                              toast.success("Xóa sản phẩm thành công!");
+                              // Update local products state
                               setProducts((prev) => prev.filter((p) => p.id !== product.id));
-                            } else {
-                              alert(`⚠️ Xóa thất bại — Status: ${response.status}`);
-                            }
                             } catch (error) {
                               console.error("❌ Lỗi khi xóa:", error);
-                              alert(
-                                `Xóa sản phẩm thất bại.\n${error.response?.data?.message || error.message}`
-                              );
-                              }
+                              toast.error(`Xóa sản phẩm thất bại. ${error?.message || (error?.data?.message) || 'Unknown error'}`);
+                            }
                         }}
 
                       >
