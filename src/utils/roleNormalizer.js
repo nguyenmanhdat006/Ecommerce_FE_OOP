@@ -42,7 +42,37 @@ export const normalizeUser = (user) => {
   
   // Normalize role
   if (normalized.role) {
+    // keep original raw role for detail views
+    normalized.rawRole = normalized.role;
     normalized.role = normalizeRole(normalized.role);
+  }
+  
+  // If backend doesn't provide top-level `role`, try to infer from authorityList,
+  // `roles` array or `authorities` array commonly used by different backends.
+  if (!normalized.role) {
+    // prefer already-normalized authorityList
+    const list = Array.isArray(normalized.authorityList)
+      ? normalized.authorityList
+      : Array.isArray(normalized.authorities)
+      ? normalized.authorities
+      : Array.isArray(normalized.roles)
+      ? normalized.roles.map((r) => ({ roleCode: r }))
+      : null;
+
+    if (Array.isArray(list) && list.length > 0) {
+      // try to extract a role code from first authority object or string
+      const first = list[0];
+      let candidate = null;
+      if (typeof first === 'string') candidate = first;
+      else if (first?.roleCode) candidate = first.roleCode;
+      else if (first?.authority) candidate = first.authority;
+      else if (first?.name) candidate = first.name;
+
+      if (candidate) {
+  normalized.rawRole = candidate;
+  normalized.role = normalizeRole(candidate);
+      }
+    }
   }
   
   // Normalize authorityList
