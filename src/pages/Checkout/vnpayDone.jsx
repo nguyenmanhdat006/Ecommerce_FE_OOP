@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 export default function OrderVnpSuccess() {
   const location = useLocation();
@@ -23,11 +24,11 @@ export default function OrderVnpSuccess() {
   // Xác định trạng thái
   const status = responseCode === "00" ? "success" : "fail";
 
-  // Format tiền VNĐ
+  // Format tiền USD (VNPay trả về amount * 100)
   const formatMoney = (amount) => {
     if (!amount) return "-";
     const realAmount = Number(amount) / 100;
-    return realAmount.toLocaleString("vi-VN") + " ₫";
+    return formatCurrency(realAmount);
   };
 
   // Format ngày thanh toán

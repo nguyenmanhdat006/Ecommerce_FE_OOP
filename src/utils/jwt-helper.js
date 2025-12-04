@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import { normalizeUser } from "./roleNormalizer";
 
 const ACCESS_KEY = "access_token";
 const REFRESH_KEY = "refresh_token";
@@ -38,7 +39,9 @@ const isTokenValid = () => {
   }
 };
 const saveUser = (user) => {
-  localStorage.setItem("user", JSON.stringify(user));
+  // Normalize user data before saving
+  const normalizedUser = normalizeUser(user);
+  localStorage.setItem("user", JSON.stringify(normalizedUser));
 };
 
 const getUser = () => {
@@ -47,7 +50,9 @@ const getUser = () => {
   if (!user || user === "undefined" || user === "null") return null;
 
   try {
-    return JSON.parse(user);
+    const parsedUser = JSON.parse(user);
+    // Normalize user data when retrieving (in case of old data format)
+    return normalizeUser(parsedUser);
   } catch (err) {
     console.error("Invalid user JSON:", err);
     return null;

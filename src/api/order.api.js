@@ -8,6 +8,9 @@ export const orderAPI = {
   getById: (id) => axiosClient.get(`/api/orders/${id}`),
   getAll: () => axiosClient.get("/api/orders"),
 
+  // GET orders for current logged-in user (requires Authorization header)
+  getMine: () => axiosClient.get("/api/orders/me"),
+
   // DELETE 
   delete: (orderId) => axiosClient.delete(`/api/orders/${orderId}`),
 

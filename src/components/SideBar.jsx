@@ -5,6 +5,7 @@ import {
   BarChart3,
   Users,
   MessageSquare,
+  Bot,
   ItalicIcon as AnalyticsIcon,
   FolderOpen,
   Zap,
@@ -53,11 +54,11 @@ export function Sidebar() {
           icon: <ShoppingCart className="w-4 h-4" />,
           route: ROUTE_CONSTANTS.ADMIN_ORDER_LIST,
         },
-        {
-          label: "Order Detail",
-          icon: <ShoppingCart className="w-4 h-4" />,
-          route: ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL,
-        },
+        // {
+        //   label: "Order Detail",
+        //   icon: <ShoppingCart className="w-4 h-4" />,
+        //   route: ROUTE_CONSTANTS.ADMIN_ORDER_DETAIL,
+        // },
         {
           label: "Category Type List",
           icon: <ShoppingCart className="w-4 h-4" />,
@@ -75,11 +76,11 @@ export function Sidebar() {
         },
       ],
     },
-    {
-      label: "Sales",
-      icon: <BarChart3 className="w-5 h-5" />,
-      route: "/admin/sales",
-    },
+    // {
+    //   label: "Sales",
+    //   icon: <BarChart3 className="w-5 h-5" />,
+    //   route: "/admin/sales",
+    // },
     {
       label: "User Management",
       icon: <Users className="w-5 h-5" />,
@@ -89,6 +90,11 @@ export function Sidebar() {
       label: "Chat",
       icon: <MessageSquare className="w-5 h-5" />,
       route: ROUTE_CONSTANTS.ADMIN_CHAT,
+    },
+    {
+      label: "AI Agent",
+      icon: <Bot className="w-5 h-5" />,
+      route: ROUTE_CONSTANTS.ADMIN_AGENT,
     },
   ];
 

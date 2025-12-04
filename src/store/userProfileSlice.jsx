@@ -1,6 +1,7 @@
 // src/store/userProfileSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { userAPI } from "@/api/user.api";
+import { normalizeUser } from "@/utils/roleNormalizer";
 
 export const loadUserProfile = createAsyncThunk(
   "userProfile/loadUserProfile",
@@ -37,7 +38,8 @@ const userProfileSlice = createSlice({
       })
       .addCase(loadUserProfile.fulfilled, (state, action) => {
         state.loadingProfile = false;
-        state.profile = action.payload;
+        // Normalize user data from backend
+        state.profile = normalizeUser(action.payload);
         state.loaded = true;
       })
       .addCase(loadUserProfile.rejected, (state, action) => {

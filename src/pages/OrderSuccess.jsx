@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders, selectOrders } from "@/store/features/order";
+import { fetchOrders, fetchMyOrders, selectOrders, selectMyOrders } from "@/store/features/order";
 import { orderAPI } from '@/api/order.api';
 import { selectUserProfile } from "@/store/userProfileSlice";
 import {
@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 export default function OrderManagement() {
   const dispatch = useDispatch();
   const orders = useSelector(selectOrders);
+  const myOrders = useSelector(selectMyOrders);
   const user = useSelector(selectUserProfile);
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("ALL");
@@ -39,9 +41,17 @@ export default function OrderManagement() {
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      if (!orders || orders.length === 0) {
+      // Fetch only the appropriate list: admin -> all orders, user -> my orders
+      try {
         setLoading(true);
-        await dispatch(fetchOrders());
+        if (isAdmin) {
+          await dispatch(fetchOrders());
+        } else {
+          await dispatch(fetchMyOrders());
+        }
+        if (mounted) setLoading(false);
+      } catch (e) {
+        console.error('Failed to load orders', e);
         if (mounted) setLoading(false);
       }
     };
@@ -54,7 +64,8 @@ export default function OrderManagement() {
       // gửi changedBy = "admin" (hoặc user đang đăng nhập)
       await orderAPI.updateStatus(orderId, newStatus, "admin");
       // refresh orders from server
-      await dispatch(fetchOrders());
+  if (isAdmin) await dispatch(fetchOrders());
+  else await dispatch(fetchMyOrders());
       // Đóng dialog nếu đang mở
       if (cancelDialogOpen) {
         setCancelDialogOpen(false);
@@ -86,10 +97,12 @@ export default function OrderManagement() {
     }
   };
 
+  // prefer myOrders if available (user view), otherwise show all orders (admin view)
+  const baseList = (myOrders && myOrders.length > 0) ? myOrders : orders;
   const filteredOrders =
     selectedStatus === "ALL"
-      ? orders
-      : orders.filter(o => o.status === selectedStatus);
+      ? baseList
+      : baseList.filter(o => o.status === selectedStatus);
 
   if (loading)
     return (
@@ -128,7 +141,7 @@ export default function OrderManagement() {
           >
             {tab.label}{" "}
             {tab.value !== "ALL" &&
-              `(${orders.filter(o => o.status === tab.value).length})`}
+              `(${baseList.filter(o => o.status === tab.value).length})`}
           </button>
         ))}
       </div>
@@ -197,11 +210,11 @@ export default function OrderManagement() {
                 <div className="flex flex-col text-sm text-gray-700">
                   <span>• Sản phẩm #{idx + 1}</span>
                   <span>Số lượng: {item.quantity}</span>
-                  <span>Đơn giá: {item.unitPrice.toLocaleString()}₫</span>
+                  <span>Đơn giá: {formatCurrency(item.unitPrice)}</span>
                   <span>SKU: {item.productVariant?.color} / {item.productVariant?.size}</span>
                 </div>
                 <div className="text-right font-medium text-gray-900">
-                  {item.totalPrice.toLocaleString()}₫
+                  {formatCurrency(item.totalPrice)}
                 </div>
               </div>
             ))}
@@ -216,7 +229,7 @@ export default function OrderManagement() {
             <div className="text-right">
               <div className="text-gray-500 text-sm">Tổng tiền</div>
               <div className="text-orange-600 font-semibold text-lg">
-                {order.totalAmount.toLocaleString()}₫
+                {formatCurrency(order.totalAmount)}
               </div>
             </div>
           </div>

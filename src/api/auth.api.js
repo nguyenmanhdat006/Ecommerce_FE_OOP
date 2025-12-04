@@ -4,6 +4,7 @@ import axiosClient from "./axiosClient";
 export const authAPI = {
   login: (data) => axiosClient.post("/api/auth/login", data),
   register: (data) => axiosClient.post("/api/auth/register", data),
+  verify: (data) => axiosClient.post("/api/auth/verify", data),
   refreshToken: (refreshToken) => 
     axiosClient.post("/api/auth/refresh", { refresh_token: refreshToken }),
   logout: () => axiosClient.post("/api/auth/logout"),

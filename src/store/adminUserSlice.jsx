@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminUserAPI } from "@/api/adminUser.api";
+import { normalizeUser } from "@/utils/roleNormalizer";
 
 const initialState = {
   users: [],
@@ -68,7 +69,9 @@ const adminUserSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.users = action.payload;
+        // Normalize users array from backend
+        const users = Array.isArray(action.payload) ? action.payload : [];
+        state.users = users.map(normalizeUser);
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
@@ -81,8 +84,9 @@ const adminUserSlice = createSlice({
       })
       .addCase(createUser.fulfilled, (state, action) => {
         state.loading = false;
-        // Server may return created user
-        state.users.unshift(action.payload);
+        // Server may return created user - normalize before adding
+        const normalizedUser = normalizeUser(action.payload);
+        state.users.unshift(normalizedUser);
       })
       .addCase(createUser.rejected, (state, action) => {
         state.loading = false;
@@ -108,10 +112,11 @@ const adminUserSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.loading = false;
-        // Update user in the list
-        const index = state.users.findIndex((u) => u.id === action.payload?.id);
+        // Update user in the list - normalize before updating
+        const normalizedUser = normalizeUser(action.payload);
+        const index = state.users.findIndex((u) => u.id === normalizedUser?.id);
         if (index !== -1) {
-          state.users[index] = action.payload;
+          state.users[index] = normalizedUser;
         }
       })
       .addCase(updateUser.rejected, (state, action) => {

@@ -7,6 +7,7 @@ import { getUser } from '@/utils/jwt-helper';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
 import { fetchMyAddresses, selectAddressState } from "@/store/addressSlice";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 export default function Checkout() {
   const dispatch = useDispatch();
@@ -182,9 +183,9 @@ export default function Checkout() {
               <p className="text-sm">{item.name}</p>
               <p className="text-xs text-gray-500 mt-1">Phân loại: {item.color || "-"}, {item.size || "-"}</p>
             </div>
-            <div className="text-sm">{item.price.toLocaleString()}₫</div>
+            <div className="text-sm">{formatCurrency(item.price)}</div>
             <div className="text-center text-sm">{item.qty}</div>
-            <div className="text-sm font-medium">{(item.price * item.qty).toLocaleString()}₫</div>
+            <div className="text-sm font-medium">{formatCurrency(item.price * item.qty)}</div>
           </div>
         ))
       ) : (
@@ -210,7 +211,7 @@ export default function Checkout() {
                       onClick={() => isEligible && (setSelectedVoucher(v), setShowVoucherList(false))}>
                       <div>
                         <p className="font-semibold text-sm">{v.code}</p>
-                        <p className="text-xs text-gray-500">Giảm {v.discount.toLocaleString()}₫ - đơn từ {v.minOrder.toLocaleString()}₫</p>
+                        <p className="text-xs text-gray-500">Giảm {formatCurrency(v.discount)} - đơn từ {formatCurrency(v.minOrder)}</p>
                       </div>
                       {selectedVoucher?.id === v.id && <Check className="text-green-600 w-5 h-5" />}
                     </div>
@@ -225,17 +226,17 @@ export default function Checkout() {
           <div>
             <p><span className="font-semibold">Phương thức vận chuyển:</span> Nhanh</p>
             <p className="text-teal-600 mt-1 flex items-center"><Truck className="w-4 h-4 mr-1" />Nhận từ 5 Th11 - 6 Th11</p>
-            <p className="text-gray-500 text-xs mt-1">Nhận Voucher 15.000₫ nếu giao trễ</p>
+            <p className="text-gray-500 text-xs mt-1">Nhận Voucher {formatCurrency(15000)} nếu giao trễ</p>
           </div>
           <div className="flex items-center gap-3">
             <button className="text-blue-600 hover:underline">Thay đổi</button>
-            <span className="font-medium">{shippingFee.toLocaleString()}₫</span>
+            <span className="font-medium">{formatCurrency(shippingFee)}</span>
           </div>
         </div>
 
         <div className="text-right mt-4 font-semibold text-sm">
           Tổng số tiền ({cartItems.length} sản phẩm):
-          <span className="text-black text-base ml-1">{totalPayment.toLocaleString()}₫</span>
+          <span className="text-black text-base ml-1">{formatCurrency(totalPayment)}</span>
         </div>
       </div>
 
@@ -290,9 +291,9 @@ export default function Checkout() {
                       <span className="text-2xl">{promo.logo}</span>
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded">{promo.bank}</span>
                     </div>
-                    <p className="font-bold text-lg mb-1">{typeof promo.discount === "number" ? `₫${promo.discount.toLocaleString()} Giảm` : promo.discount}</p>
+                    <p className="font-bold text-lg mb-1">{typeof promo.discount === "number" ? `${formatCurrency(promo.discount)} Giảm` : promo.discount}</p>
                     <p className="text-xs text-gray-600">
-                      {promo.expired ? "Ưu đãi này đã hết lượt sử dụng" : promo.type ? `Đơn từ ₫${promo.minOrder.toLocaleString()} - Mỗi ngày với thẻ ${promo.type}` : promo.maxDiscount ? `Tối đa ₫${promo.minOrder.toLocaleString()} - ${promo.maxDiscount}` : `Đơn từ ₫${promo.minOrder.toLocaleString()} mỗi Chủ Nhật`}
+                      {promo.expired ? "Ưu đãi này đã hết lượt sử dụng" : promo.type ? `Đơn từ ${formatCurrency(promo.minOrder)} - Mỗi ngày với thẻ ${promo.type}` : promo.maxDiscount ? `Tối đa ${formatCurrency(promo.minOrder)} - ${promo.maxDiscount}` : `Đơn từ ${formatCurrency(promo.minOrder)} mỗi Chủ Nhật`}
                     </p>
                   </div>
                 ))}
@@ -312,19 +313,19 @@ export default function Checkout() {
           {paymentMethod === "cod" && (
             <div className="bg-gray-50 p-4 rounded border">
               <p className="font-medium mb-2">Thanh toán khi nhận hàng</p>
-              <p className="text-sm text-gray-600 mb-3">Phí thu hộ: ₫0 VND. Ưu đãi về phí vận chuyển (nếu có) áp dụng cả với phí thu hộ.</p>
+              <p className="text-sm text-gray-600 mb-3">Phí thu hộ: {formatCurrency(0)}. Ưu đãi về phí vận chuyển (nếu có) áp dụng cả với phí thu hộ.</p>
               <div className="bg-white p-3 rounded border text-sm">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Tổng tiền hàng</span>
-                  <span>{totalPrice.toLocaleString()}₫</span>
+                  <span>{formatCurrency(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Tổng tiền phí vận chuyển</span>
-                  <span>{shippingFee.toLocaleString()}₫</span>
+                  <span>{formatCurrency(shippingFee)}</span>
                 </div>
                 <div className="flex justify-between font-semibold pt-2 border-t">
                   <span>Tổng thanh toán</span>
-                  <span className="text-black">{totalPayment.toLocaleString()}₫</span>
+                  <span className="text-black">{formatCurrency(totalPayment)}</span>
                 </div>
               </div>
             </div>
@@ -335,21 +336,21 @@ export default function Checkout() {
       <div className="mt-6 border-t border-gray-200 pt-4">
         <div className="flex justify-between items-center text-sm mb-2">
           <span>Tổng tiền hàng</span>
-          <span>{totalPrice.toLocaleString()}₫</span>
+          <span>{formatCurrency(totalPrice)}</span>
         </div>
         <div className="flex justify-between items-center text-sm mb-2">
           <span>Phí vận chuyển</span>
-          <span>{shippingFee.toLocaleString()}₫</span>
+          <span>{formatCurrency(shippingFee)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between items-center text-sm mb-2 text-green-600">
             <span>Giảm giá Voucher</span>
-            <span>-{discount.toLocaleString()}₫</span>
+            <span>-{formatCurrency(discount)}</span>
           </div>
         )}
         <div className="flex justify-between items-center text-lg font-semibold text-black mt-2">
           <span>Tổng thanh toán</span>
-          <span>{totalPayment.toLocaleString()}₫</span>
+          <span>{formatCurrency(totalPayment)}</span>
         </div>
         <div className="text-right mt-5">
         <button

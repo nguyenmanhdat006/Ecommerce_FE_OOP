@@ -9,15 +9,19 @@ import { Eye, EyeOff } from "lucide-react";
 import { register, clearAuthError } from "@/store/authSlice";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
+import VerifyCodeV2 from "./VerifyCodeV2";
 
 export default function RegisterV2() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [enableVerify, setEnableVerify] = useState(false);
   const [values, setValues] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    phoneNumber: "",
   });
 
   const dispatch = useDispatch();
@@ -54,26 +58,28 @@ export default function RegisterV2() {
       try {
         await dispatch(
           register({
-            userName: values.email,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
             password: values.password,
-            fullName: values.fullName,
+            phoneNumber: values.phoneNumber,
           })
         ).unwrap();
         
-        toast.success("Registration successful! Please login.");
-        
-        // Delay 2s trước khi chuyển sang trang login
-        setTimeout(() => {
-          navigate("/v2/login");
-        }, 2000);
+        toast.success("Registration successful! Please verify your email.");
+        setEnableVerify(true);
       } catch (err) {
         const errorMessage =
           err?.message || err?.error || "Registration failed!";
         toast.error(errorMessage);
       }
     },
-    [dispatch, values, navigate]
+    [dispatch, values]
   );
+
+  if (enableVerify) {
+    return <VerifyCodeV2 email={values.email} />;
+  }
 
   return (
     <AuthFormLayout
@@ -82,24 +88,46 @@ export default function RegisterV2() {
     >
       {/* Form fields */}
       <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label
-            htmlFor="fullName"
-            className="text-sm font-medium text-foreground"
-          >
-            Full Name
-          </Label>
-          <Input
-            id="fullName"
-            name="fullName"
-            type="text"
-            placeholder="John Doe"
-            value={values.fullName}
-            onChange={handleOnChange}
-            disabled={loading}
-            required
-            className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label
+              htmlFor="firstName"
+              className="text-sm font-medium text-foreground"
+            >
+              First Name
+            </Label>
+            <Input
+              id="firstName"
+              name="firstName"
+              type="text"
+              placeholder="John"
+              value={values.firstName}
+              onChange={handleOnChange}
+              disabled={loading}
+              required
+              className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="lastName"
+              className="text-sm font-medium text-foreground"
+            >
+              Last Name
+            </Label>
+            <Input
+              id="lastName"
+              name="lastName"
+              type="text"
+              placeholder="Doe"
+              value={values.lastName}
+              onChange={handleOnChange}
+              disabled={loading}
+              required
+              className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -112,6 +140,26 @@ export default function RegisterV2() {
             type="email"
             placeholder="user@company.com"
             value={values.email}
+            onChange={handleOnChange}
+            disabled={loading}
+            required
+            className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label
+            htmlFor="phoneNumber"
+            className="text-sm font-medium text-foreground"
+          >
+            Phone Number
+          </Label>
+          <Input
+            id="phoneNumber"
+            name="phoneNumber"
+            type="tel"
+            placeholder="+1234567890"
+            value={values.phoneNumber}
             onChange={handleOnChange}
             disabled={loading}
             required

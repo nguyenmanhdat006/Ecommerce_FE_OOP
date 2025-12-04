@@ -32,6 +32,20 @@ export const fetchAddresses = createAsyncThunk(
   }
 );
 
+// GET ADDRESSES BY USER (admin)
+export const fetchAddressesByUser = createAsyncThunk(
+  "address/fetchAddressesByUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const res = await addressAPI.getByUser(userId);
+      console.log("✅ Addresses by user res:", res);
+      return res;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err || "Get addresses by user failed");
+    }
+  }
+);
+
 // GET BY ID
 export const getAddress = createAsyncThunk(
   "address/getAddress",
@@ -139,6 +153,22 @@ const addressSlice = createSlice({
         state.loaded = true;
       })
       .addCase(fetchAddresses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.loaded = false;
+      })
+
+      // ---------- GET BY USER ----------
+      .addCase(fetchAddressesByUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAddressesByUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.addresses = action.payload;
+        state.loaded = true;
+      })
+      .addCase(fetchAddressesByUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.loaded = false;
