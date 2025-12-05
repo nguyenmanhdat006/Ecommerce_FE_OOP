@@ -91,6 +91,7 @@ export default function AddProductForm() {
           reset(res);
           initialSlug.current = res.slug || "";
           slugManuallyEdited.current = Boolean(res.slug);
+          defaultVariantsAdded.current = true; // Đã có variants từ server
         } catch (error) {
           console.error("Failed to fetch product:", error);
         }
@@ -101,6 +102,7 @@ export default function AddProductForm() {
       // Reset khi thêm mới
       slugManuallyEdited.current = false;
       initialSlug.current = "";
+      defaultVariantsAdded.current = false; // Reset để có thể thêm default variants
     }
   }, [id, isEdit, reset]);
 
@@ -153,10 +155,27 @@ export default function AddProductForm() {
   // Field arrays
   const resourceArray = useFieldArray({ control, name: "productResources" });
   const variantArray = useFieldArray({ control, name: "variants" });
+  const defaultVariantsAdded = useRef(false);
+
+  // Thêm default variants khi tạo mới (không phải edit)
+  useEffect(() => {
+    if (!isEdit && !defaultVariantsAdded.current && variantArray.fields.length === 0) {
+      // Thêm 3 variants mặc định
+      variantArray.append({ size: "M", color: "Red", stockQuantity: 999 });
+      variantArray.append({ size: "L", color: "Blue", stockQuantity: 999 });
+      variantArray.append({ size: "XL", color: "Yellow", stockQuantity: 999 });
+      defaultVariantsAdded.current = true;
+    }
+  }, [isEdit, variantArray.fields.length, variantArray.append]);
 
   // Actions
   const handleSaveDraft = () => toast.success("Draft saved!");
-  const handleDiscard = () => reset();
+  const handleDiscard = () => {
+    reset();
+    defaultVariantsAdded.current = false;
+    slugManuallyEdited.current = false;
+    initialSlug.current = "";
+  };
   const onSubmit = async (data) => {
     const token = localStorage.getItem("token");
     try {
