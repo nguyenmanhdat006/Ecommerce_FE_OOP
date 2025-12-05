@@ -62,7 +62,8 @@ export default function OrderManagement() {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       // gửi changedBy = "admin" (hoặc user đang đăng nhập)
-      await orderAPI.updateStatus(orderId, newStatus, "admin");
+  // dialog is illustrative; use updateStatus endpoint for cancellation as well
+  await orderAPI.updateStatus(orderId, newStatus, "admin");
       // refresh orders from server
   if (isAdmin) await dispatch(fetchOrders());
   else await dispatch(fetchMyOrders());
@@ -77,14 +78,14 @@ export default function OrderManagement() {
     }
   };
 
-  const handleCancelClick = (orderId) => {
-    setOrderToCancel(orderId);
+  const handleCancelClick = (order) => {
+    setOrderToCancel(order);
     setCancelDialogOpen(true);
   };
 
   const handleConfirmCancel = () => {
     if (orderToCancel) {
-      handleStatusChange(orderToCancel, "CANCELED");
+      handleStatusChange(orderToCancel.id, "CANCELED");
     }
   };
 
@@ -262,7 +263,7 @@ export default function OrderManagement() {
             {!["CANCELED", "PAID", "SHIPPING", "WAIT_DELIVER"].includes(order.status) && (
               <button
                 className="bg-gray-200 text-gray-700 px-4 py-1 rounded hover:bg-gray-300 text-sm"
-                onClick={() => handleCancelClick(order.id)}
+                onClick={() => handleCancelClick(order)}
               >
                 Hủy đơn
               </button>
@@ -275,11 +276,32 @@ export default function OrderManagement() {
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận hủy đơn hàng</DialogTitle>
-            <DialogDescription>
-              Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác.
-            </DialogDescription>
+            <DialogTitle>Hủy đơn hàng</DialogTitle>
+
           </DialogHeader>
+
+              <div className="mt-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-sm text-gray-700">
+                    <p className="font-semibold text-gray-900">Xác nhận hủy đơn hàng</p>
+                    <p className="mt-2 text-gray-600">Hành động này sẽ chuyển đơn sang trạng thái "Đã hủy". Nếu đơn đã thanh toán bằng VNPAY, shop sẽ xử lý hoàn tiền trong thời gian ngắn nhất và admin sẽ liên hệ để xác nhận.</p>
+                    {orderToCancel?.paymentMethod === "vnpay" && (
+                      <div className="mt-3 text-sm text-blue-800 bg-blue-50 border border-blue-100 p-3 rounded">
+                        <p className="font-medium">Đã thanh toán bằng VNPAY</p>
+                        <p className="mt-1">Shop sẽ hoàn tiền trong thời gian ngắn nhất. Vui lòng bật thông báo điện thoại và kiểm tra tin nhắn để nhận cập nhật từ admin.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -288,7 +310,7 @@ export default function OrderManagement() {
                 setOrderToCancel(null);
               }}
             >
-              Hủy
+              Quay lại
             </Button>
             <Button
               variant="destructive"
