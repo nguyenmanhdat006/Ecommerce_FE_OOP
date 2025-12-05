@@ -19,7 +19,7 @@ const ChatWidget = () => {
 
   // eslint-disable-next-line no-unused-vars
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
-  const ADMIN_ID = "ca271b76-eb75-4d15-9ebc-e863f2068649"; // Admin ID cố định
+  const ADMIN_ID = "d5a4953b-487b-4b90-9c66-daeff6936a15"; // Admin ID cố định
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const listenerId = "chat-widget";
