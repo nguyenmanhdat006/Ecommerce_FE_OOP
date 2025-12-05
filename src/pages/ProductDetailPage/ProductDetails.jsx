@@ -178,9 +178,10 @@ const ProductDetails = () => {
                   <button
                     key={index}
                     onClick={() => setImage(item?.url)}
-                    className={`p-1 rounded-lg ${
-                      image === item?.url ? 'border-2 border-black' : 'border'
+                    className={`p-1 rounded-lg transition-transform duration-200 ease-out transform focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-300 ${
+                      image === item?.url ? 'border-2 border-black scale-105 shadow-lg' : 'border hover:scale-105 hover:shadow' 
                     }`}
+                    aria-label={`View thumbnail ${index + 1}`}
                   >
                     <img
                       src={item?.url}
@@ -195,7 +196,7 @@ const ProductDetails = () => {
               <div className="w-full md:w-[80%] flex justify-center">
                 <img
                   src={image}
-                  className="w-full max-h-[500px] object-cover rounded-lg shadow-lg"
+                  className="w-full max-h-[500px] object-cover rounded-lg shadow-lg transition-transform duration-300 hover:scale-102"
                   alt={product?.name}
                 />
               </div>
@@ -253,24 +254,22 @@ const ProductDetails = () => {
 
                 {/* Price & Add to Cart */}
                 <div className="flex items-center gap-4 mb-6 pt-2">
-                    {(() => {
-                        const inCart = cartItems?.some((it) => it?.id === product?.id);
-                        return (
-                            <>
-                                {/* Add to Cart Button */}
-                                <button
-                                    onClick={addItemToCart}
-                                    className="flex items-center justify-center bg-black text-white font-medium h-10 w-40 rounded-lg hover:bg-gray-800 transition duration-300"
-                                    disabled={inCart}
-                                >
-                                    Add to cart
-                                </button>
+                  {(() => {
+                    // allow adding again even if already in cart; reducer will merge quantities
+                    return (
+                      <>
+                        <button
+                          onClick={addItemToCart}
+                          className={`flex items-center justify-center bg-black text-white font-medium h-10 w-40 rounded-lg transition duration-200 transform hover:scale-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400`}
+                        >
+                          Add to cart
+                        </button>
 
-                                {/* Price Display */}
-                                <p className="text-2xl font-bold text-gray-800">{formatCurrency(product?.price)}</p>
-                            </>
-                        );
-                    })()}
+                        {/* Price Display */}
+                        <p className="text-2xl font-bold text-gray-800">{formatCurrency(product?.price)}</p>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Extra sections - Secured Payment, etc. */}
@@ -297,17 +296,17 @@ const ProductDetails = () => {
                     <div className="flex space-x-6">
                         {/* Giả lập các tab với state activeTab */}
                         {['Description', 'User comments (1)', 'Question & Answer (4)'].map((tabTitle) => (
-                            <button
-                                key={tabTitle}
-                                onClick={() => setActiveTab(tabTitle.split(' ')[0])}
-                                className={`pb-2 text-sm font-medium ${
-                                    activeTab === tabTitle.split(' ')[0]
-                                        ? 'border-b-2 border-black text-black'
-                                        : 'text-gray-500 hover:text-black'
-                                }`}
-                            >
-                                {tabTitle}
-                            </button>
+              <button
+                key={tabTitle}
+                onClick={() => setActiveTab(tabTitle.split(' ')[0])}
+                className={`pb-2 text-sm font-medium transition-colors duration-150 ${
+                  activeTab === tabTitle.split(' ')[0]
+                    ? 'border-b-2 border-black text-black' 
+                    : 'text-gray-500 hover:text-black hover:scale-102'
+                } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
+              >
+                {tabTitle}
+              </button>
                         ))}
                     </div>
                 </div>
@@ -332,7 +331,7 @@ const ProductDetails = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center cursor-pointer">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 shadow-md active:scale-95 focus:outline-none" role="button" tabIndex={0} aria-label="Play video">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
