@@ -162,6 +162,7 @@ export default function AddProductForm() {
           update={resourceArray.update}
           register={register}
           errors={errors}
+          dispatch={dispatch}
         />
         <VariantsSection
           fields={variantArray.fields}
