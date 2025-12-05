@@ -1,12 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function UserMenuItems({ onLogout, isAuthenticated }) {
   const location = useLocation();
+  const { t } = useTranslation();
 
   const menuItems = [
-    { icon: UserIcon, label: "Profile", path: "/profile" },
-    { icon: Settings, label: "Settings", path: "/settings" },
+    { icon: UserIcon, label: t('navigation.profile'), path: "/profile" },
+    { icon: Settings, label: t('navigation.settings'), path: "/settings" },
   ];
 
   const isActiveLink = (href) => {
@@ -41,7 +43,7 @@ export function UserMenuItems({ onLogout, isAuthenticated }) {
           className="flex items-center w-full text-left text-muted-foreground hover:text-foreground transition-colors text-red-600 hover:text-red-600"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Log out
+          {t('navigation.logOut')}
         </button>
       )}
     </div>

@@ -1,3 +1,4 @@
+// Default links (for backward compatibility)
 export const DEFAULT_NAVIGATION_LINKS = [
   { text: "Shop", href: "/" },
   { text: "Men", href: "/men" },

@@ -1,0 +1,18 @@
+{
+  "navigation": {
+    "shop": "Shop",
+    "men": "Men",
+    "women": "Women",
+    "kids": "Kids",
+    "login": "Login",
+    "signUp": "Sign up",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logOut": "Log out",
+    "loggedOutSuccessfully": "Logged out successfully",
+    "logoutFailed": "Logout failed",
+    "search": "Search",
+    "cart": "Cart"
+  }
+}
+
