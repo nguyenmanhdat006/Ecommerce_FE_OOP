@@ -6,7 +6,22 @@ export default function ProductDetailsSection({
   handleUploadThumbnail,
   register,
   errors,
+  onSlugChange,
 }) {
+  // Tạo custom register function cho slug với onChange handler
+  const slugRegisterFn = (name, options) => {
+    const originalRegister = register(name, options);
+    return {
+      ...originalRegister,
+      onChange: (e) => {
+        originalRegister.onChange(e);
+        if (onSlugChange) {
+          onSlugChange(e);
+        }
+      },
+    };
+  };
+  
   return (
     <CardSection title="Product Details">
       <FormInput
@@ -28,8 +43,8 @@ export default function ProductDetailsSection({
         <FormInput
           label="Slug"
           name="slug"
-          register={register}
-          placeholder="slug"
+          register={slugRegisterFn}
+          placeholder="slug (tự động tạo từ tên)"
           errors={errors}
         />
       </div>
