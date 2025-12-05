@@ -14,10 +14,15 @@ import { InventoryManagement } from "@/pages/InventoryManagement/InventoryManage
 import AdminChat from "@/pages/AdminChat/AdminChat.jsx";
 import AdminAgent from "@/pages/AdminAgent/AdminAgent.jsx";
 import DashboardHome from "@/pages/DashboardHome/DashboardHome.jsx";
+import { AdminRoute } from "@/components/AdminRoute.jsx";
 
 export const adminRouter = {
   path: "/admin",
-  element: <Dashboard />,
+  element: (
+    <AdminRoute>
+      <Dashboard />
+    </AdminRoute>
+  ),
   children: [
     {
       path: ROUTE_CONSTANTS.ADMIN_PRODUCT_LIST,
