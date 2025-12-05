@@ -10,7 +10,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '@/store/productSlice';
 import { formatCurrency } from '@/utils/currencyFormatter';
 
-/* ======= ProductPage (full) ======= */
 
 function Button({ children, className = "", variant = "default", ...props }) {
   const base = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none";

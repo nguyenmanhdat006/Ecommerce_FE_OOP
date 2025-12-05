@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Activity, DollarSign, ShoppingCart, TrendingUp, Bell, Users } from 'lucide-react';
+import { Activity, DollarSign, ShoppingCart, TrendingUp, Bell, Users, Package, Crown } from 'lucide-react';
 import WebSocketManager from "@/lib/websocketManager";
 import { dashboardAPI } from '@/api/dashboard.api';
 
@@ -11,12 +11,18 @@ const DashboardHome = () => {
   const [kpi, setKpi] = useState({
     processingOrders: 0,
     todayRevenue: 0,
+    topProducts: [],
+    topCustomers: [],
     timestamp: null
   });
 
   // State cho Charts
   const [hourlyRevenue, setHourlyRevenue] = useState([]);
   const [orderStatusDist, setOrderStatusDist] = useState([]);
+
+  // State cho Top Lists
+  const [topProducts, setTopProducts] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
 
   // State cho WebSocket
   const [wsStatus, setWsStatus] = useState('Đang kết nối...');
@@ -26,27 +32,48 @@ const DashboardHome = () => {
   // Animation state cho KPI cards
   const [animatingKpi, setAnimatingKpi] = useState({});
 
-  // Format số tiền VND
+  // Format số tiền USD
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'USD'
     }).format(amount);
   };
 
   // Fetch initial data từ REST API
   const fetchInitialData = async () => {
     try {
+      console.log('🔄 Fetching initial dashboard data...');
       const res = await dashboardAPI.getKpi();
-      // axiosClient response interceptor returns response.data, so res is the data
+      console.log('📊 Initial KPI data:', res);
+      
       setKpi(res);
+      
+      // Set initial top lists if available
+      if (res.topProducts) {
+        console.log('📦 Setting initial top products:', res.topProducts);
+        setTopProducts(res.topProducts);
+      }
+      if (res.topCustomers) {
+        console.log('👑 Setting initial top customers:', res.topCustomers);
+        setTopCustomers(res.topCustomers);
+      }
+
+      // 🔧 FIX: Manually trigger refresh để lấy chart data
+      try {
+        await dashboardAPI.refresh();
+        console.log('✅ Triggered dashboard refresh for chart data');
+      } catch (refreshError) {
+        console.warn('⚠️ Failed to trigger refresh:', refreshError);
+      }
     } catch (error) {
-      console.error('Failed to fetch initial KPI:', error);
+      console.error('❌ Failed to fetch initial KPI:', error);
     }
   };
   
   // Handle KPI Update với animation
   const handleKpiUpdate = useCallback((payload) => {
+    console.log('📊 KPI Update received:', payload);
     setKpi(prev => {
       // Trigger animation nếu giá trị thay đổi
       if (prev.processingOrders !== payload.processingOrders) {
@@ -59,6 +86,14 @@ const DashboardHome = () => {
       }
       return { ...prev, ...payload };
     });
+
+    // Update top lists if included in payload
+    if (payload.topProducts) {
+      setTopProducts(payload.topProducts);
+    }
+    if (payload.topCustomers) {
+      setTopCustomers(payload.topCustomers);
+    }
   }, []);
 
   // Handle New Order với notification
@@ -67,7 +102,9 @@ const DashboardHome = () => {
       id: Date.now(),
       type: 'success',
       title: '🛒 Đơn hàng mới!',
-      message: `${payload.customerName} - ${formatCurrency(payload.total)}`,
+      message: `${payload.customerName} - ${formatCurrency(payload.total)}${payload.orderName ? ` — ${payload.orderName}` : payload.orderId ? ` — #${payload.orderId}` : ''}`,
+      orderName: payload.orderName || (payload.orderId ? `#${payload.orderId}` : undefined),
+      actor: 'Changeby Admin',
       time: new Date().toLocaleTimeString('vi-VN')
     };
     setNotifications(prev => [notification, ...prev].slice(0, 5));
@@ -89,17 +126,11 @@ const DashboardHome = () => {
       type: 'info',
       title: '📦 Cập nhật trạng thái',
       message: `${statusMap[payload.oldStatus]} → ${statusMap[payload.newStatus]}`,
+      orderName: payload.orderName || (payload.orderId ? `#${payload.orderId}` : undefined),
+      actor: 'Changeby Admin',
       time: new Date().toLocaleTimeString('vi-VN')
     };
     setNotifications(prev => [notification, ...prev].slice(0, 5));
-    // if (payload.newStatus === 'PAID') {
-    //   try {
-    //     await dashboardAPI.refresh();
-    //   } catch (error) {
-    //     console.error('Failed to refresh dashboard charts:', error);
-    //   }
-    // }
-
   }, []);
 
   // Handle Revenue Update
@@ -109,15 +140,27 @@ const DashboardHome = () => {
     setTimeout(() => setAnimatingKpi(a => ({ ...a, todayRevenue: false })), 600);
   }, []);
 
+  // Handle Top Products Update
+  const handleTopProducts = useCallback((payload) => {
+    console.log('📦 Received TOP_PRODUCTS:', payload);
+    setTopProducts(payload);
+  }, []);
+
+  // Handle Top Customers Update
+  const handleTopCustomers = useCallback((payload) => {
+    console.log('👑 Received TOP_CUSTOMERS:', payload);
+    setTopCustomers(payload);
+  }, []);
+
   // Handle WebSocket message
   const handleWebSocketMessage = useCallback((event) => {
     try {
       const message = JSON.parse(event.data);
-      console.log('📡 Received:', message);
+      console.log('📡 Received WebSocket message:', message.type, message.payload);
 
       switch (message.type) {
         case 'CONNECTION_SUCCESS':
-          console.log('🎉', message.payload);
+          console.log('🎉 WebSocket connected:', message.payload);
           break;
 
         case 'KPI_UPDATE':
@@ -137,40 +180,56 @@ const DashboardHome = () => {
           break;
 
         case 'HOURLY_REVENUE':
-          setHourlyRevenue(message.payload);
-          // console.log('LOG Hourly Revenue:', message.payload);
+          console.log('📈 Hourly revenue data:', message.payload);
+          if (Array.isArray(message.payload) && message.payload.length > 0) {
+            setHourlyRevenue(message.payload);
+          } else {
+            console.warn('⚠️ Hourly revenue data is empty or invalid');
+          }
           break;
 
         case 'ORDER_STATUS_DISTRIBUTION':
-          const distArray = Object.entries(message.payload).map(([status, count]) => ({
-            status,
-            count
-          }));
-          setOrderStatusDist(distArray);
+          console.log('📊 Order status distribution:', message.payload);
+          if (message.payload && typeof message.payload === 'object') {
+            const distArray = Object.entries(message.payload).map(([status, count]) => ({
+              status,
+              count
+            }));
+            console.log('📊 Converted distribution array:', distArray);
+            if (distArray.length > 0) {
+              setOrderStatusDist(distArray);
+            } else {
+              console.warn('⚠️ Order status distribution is empty');
+            }
+          } else {
+            console.warn('⚠️ Invalid order status distribution payload');
+          }
+          break;
+
+        case 'TOP_PRODUCTS':
+          handleTopProducts(message.payload);
+          break;
+
+        case 'TOP_CUSTOMERS':
+          handleTopCustomers(message.payload);
           break;
 
         default:
-          console.log('Unknown event type:', message.type);
+          console.log('❓ Unknown event type:', message.type);
       }
     } catch (error) {
-      console.error('Failed to parse WebSocket message:', error);
+      console.error('❌ Failed to parse WebSocket message:', error);
     }
-  }, [handleKpiUpdate, handleNewOrder, handleOrderStatusChanged, handleRevenueUpdate]);
+  }, [handleKpiUpdate, handleNewOrder, handleOrderStatusChanged, handleRevenueUpdate, handleTopProducts, handleTopCustomers]);
 
   // Setup WebSocket với WebSocketManager
   useEffect(() => {
+    console.log('🚀 Dashboard initializing...');
+    
     // Fetch initial data
     fetchInitialData();
-  //     const interval = setInterval(async () => {
-  //   try {
-  //     await dashboardAPI.refresh();
-  //   } catch (error) {
-  //     console.error("Failed to refresh dashboard charts:", error);
-  //   }
-  // }, 5000);
-  
 
-  const ws = new WebSocketManager(dashboardAPI.wsUrl(), {
+    const ws = new WebSocketManager(dashboardAPI.wsUrl(), {
       autoReconnect: true,
       reconnectInterval: 3000,
       maxReconnectAttempts: Infinity
@@ -202,13 +261,12 @@ const DashboardHome = () => {
 
     // Cleanup
     return () => {
-      console.log("close websocket");
-
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-  };
+      console.log('🧹 Cleaning up dashboard...');
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
   }, [handleWebSocketMessage]);
 
   return (
@@ -298,7 +356,9 @@ const DashboardHome = () => {
                 <TrendingUp className="h-5 w-5 text-blue-600" />
                 Doanh thu theo giờ
               </CardTitle>
-              <CardDescription>Biểu đồ doanh thu hôm nay</CardDescription>
+              <CardDescription>
+                Biểu đồ doanh thu hôm nay 
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {hourlyRevenue.length > 0 ? (
@@ -336,8 +396,10 @@ const DashboardHome = () => {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[300px] flex items-center justify-center text-slate-500">
-                  Chưa có dữ liệu doanh thu
+                <div className="h-[300px] flex flex-col items-center justify-center text-slate-500">
+                  <TrendingUp className="h-12 w-12 mb-3 text-slate-300" />
+                  <p>Chưa có dữ liệu doanh thu</p>
+                  <p className="text-xs mt-1">Đợi WebSocket push data...</p>
                 </div>
               )}
             </CardContent>
@@ -350,7 +412,10 @@ const DashboardHome = () => {
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 Phân bố trạng thái đơn
               </CardTitle>
-              <CardDescription>Số lượng đơn theo trạng thái</CardDescription>
+              <CardDescription>
+                Số lượng đơn đang xử lý theo trạng thái
+                {orderStatusDist.length > 0 && ` (${orderStatusDist.length} trạng thái)`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {orderStatusDist.length > 0 ? (
@@ -378,8 +443,107 @@ const DashboardHome = () => {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
+                <div className="h-[300px] flex flex-col items-center justify-center text-slate-500">
+                  <ShoppingCart className="h-12 w-12 mb-3 text-slate-300" />
+                  <p>Chưa có dữ liệu trạng thái</p>
+                  <p className="text-xs mt-1">Đợi WebSocket push data...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Products & Top Customers Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top Products */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-amber-600" />
+                Sản phẩm bán chạy
+              </CardTitle>
+              <CardDescription>Top 5 sản phẩm được mua nhiều nhất</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {topProducts.length > 0 ? (
+                <div className="space-y-4">
+                  {topProducts.map((product, index) => (
+                    <div 
+                      key={product.productId}
+                      className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${
+                          index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                          index === 1 ? 'bg-gray-300 text-gray-700' :
+                          index === 2 ? 'bg-orange-400 text-orange-900' :
+                          'bg-slate-200 text-slate-600'
+                        }`}>
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{product.productName}</p>
+                          <p className="text-xs text-slate-500">ID: {product.productId}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-amber-600">{product.quantity}</p>
+                        <p className="text-xs text-slate-500">đã bán</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <div className="h-[300px] flex items-center justify-center text-slate-500">
-                  Chưa có dữ liệu trạng thái
+                  Chưa có dữ liệu sản phẩm
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Top Customers */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-purple-600" />
+                Khách hàng VIP
+              </CardTitle>
+              <CardDescription>Top 5 khách hàng mua nhiều nhất</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {topCustomers.length > 0 ? (
+                <div className="space-y-4">
+                  {topCustomers.map((customer, index) => (
+                    <div 
+                      key={customer.customerId}
+                      className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${
+                          index === 0 ? 'bg-purple-400 text-purple-900' :
+                          index === 1 ? 'bg-pink-300 text-pink-900' :
+                          index === 2 ? 'bg-indigo-300 text-indigo-900' :
+                          'bg-slate-200 text-slate-600'
+                        }`}>
+                          {index === 0 ? '👑' : index === 1 ? '⭐' : index === 2 ? '💎' : index + 1}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{customer.email}</p>
+                          <p className="text-xs text-slate-500">ID: {customer.customerId}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-purple-600">
+                          {formatCurrency(customer.total)}
+                        </p>
+                        <p className="text-xs text-slate-500">tổng chi</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-slate-500">
+                  Chưa có dữ liệu khách hàng
                 </div>
               )}
             </CardContent>
@@ -396,21 +560,29 @@ const DashboardHome = () => {
               </CardTitle>
               <CardDescription>Các sự kiện mới nhất</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {notifications.map((notif) => (
+            <CardContent>
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-2 scroll-smooth" style={{scrollBehavior: 'smooth'}}>
+                {notifications.map((notif) => (
                 <Alert 
                   key={notif.id} 
                   className="animate-in slide-in-from-right duration-300"
                 >
                   <AlertDescription className="flex items-center justify-between">
                     <div>
-                      <span className="font-semibold">{notif.title}</span>
-                      <span className="ml-2 text-slate-600">{notif.message}</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold">{notif.title}</span>
+                        <span className="ml-2 text-slate-600">{notif.message}</span>
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        {notif.orderName && <span className="mr-3">Đơn: <strong>{notif.orderName}</strong></span>}
+                        {notif.actor && <span>Thao tác bởi: <strong>{notif.actor}</strong></span>}
+                      </div>
                     </div>
                     <span className="text-xs text-slate-500">{notif.time}</span>
                   </AlertDescription>
                 </Alert>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
