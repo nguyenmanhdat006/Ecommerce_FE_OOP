@@ -14,13 +14,30 @@ import { VariantsSection } from "./components/VariantsSection";
 import { productSchema } from "@/validation/productSchema";
 import { createProduct } from "@/store/productSlice";
 import { fetchCategories } from "@/store/categorySlice";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { uploadSingleFile } from "@/store/uploadSlice";
 
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { productAPI } from "@/api/product.api";
 import { API_BASE_URL } from '@/api/constant';
+
+// Hàm tạo slug từ name
+const generateSlug = (name) => {
+  if (!name) return "";
+  
+  return name
+    .toLowerCase()
+    .trim()
+    // Xử lý tiếng Việt: chuyển đổi các ký tự có dấu thành không dấu
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Loại bỏ dấu
+    // Thay thế khoảng trắng và ký tự đặc biệt bằng dấu gạch ngang
+    .replace(/[^\w\s-]/g, "") // Loại bỏ ký tự đặc biệt
+    .replace(/\s+/g, "-") // Thay khoảng trắng bằng dấu gạch ngang
+    .replace(/-+/g, "-") // Loại bỏ nhiều dấu gạch ngang liên tiếp
+    .replace(/^-+|-+$/g, ""); // Loại bỏ dấu gạch ngang ở đầu và cuối
+};
 
 export default function AddProductForm() {
   const form = useForm({
@@ -58,6 +75,8 @@ export default function AddProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const slugManuallyEdited = useRef(false);
+  const initialSlug = useRef("");
 
   useEffect( () => {
     dispatch(fetchCategories());
@@ -70,14 +89,44 @@ export default function AddProductForm() {
         try {
           const res = await productAPI.getById(id);
           reset(res);
+          initialSlug.current = res.slug || "";
+          slugManuallyEdited.current = Boolean(res.slug);
         } catch (error) {
           console.error("Failed to fetch product:", error);
         }
       };
 
       fetchProduct();
+    } else {
+      // Reset khi thêm mới
+      slugManuallyEdited.current = false;
+      initialSlug.current = "";
     }
   }, [id, isEdit, reset]);
+
+  // Tự động tạo slug từ name
+  const productName = watch("name");
+  const currentSlug = watch("slug");
+
+  useEffect(() => {
+    // Chỉ tự động tạo slug khi:
+    // 1. Có name
+    // 2. Chưa được chỉnh sửa thủ công
+    // 3. Slug hiện tại rỗng hoặc bằng slug được tạo tự động từ name trước đó
+    if (productName && !slugManuallyEdited.current) {
+      const autoSlug = generateSlug(productName);
+      
+      // Chỉ cập nhật nếu:
+      // - Slug hiện tại rỗng, HOẶC
+      // - Slug hiện tại giống với slug tự động từ name trước đó (tức là chưa được chỉnh sửa)
+      if (autoSlug) {
+        if (!currentSlug || currentSlug === initialSlug.current) {
+          setValue("slug", autoSlug);
+          initialSlug.current = autoSlug;
+        }
+      }
+    }
+  }, [productName, setValue, currentSlug]);
 
   const categories = useSelector((state) => state.categoryState?.categories);
 
@@ -154,6 +203,10 @@ export default function AddProductForm() {
           handleUploadThumbnail={handleUploadThumbnail}
           register={register}
           errors={errors}
+          onSlugChange={() => {
+            // Đánh dấu slug đã được chỉnh sửa thủ công
+            slugManuallyEdited.current = true;
+          }}
         />
         <ImageUploadSection
           fields={resourceArray.fields}
