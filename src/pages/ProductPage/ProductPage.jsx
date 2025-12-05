@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '@/store/productSlice';
 import { formatCurrency } from '@/utils/currencyFormatter';
+import { useTranslation } from 'react-i18next';
 
 
 function Button({ children, className = "", variant = "default", ...props }) {
@@ -31,6 +32,7 @@ function Input({ className = "", ...props }) {
 
 /* ProductTable: list with dropdown */
 function ProductTable({ products, onOpenDetail, navigate }) {
+  const { t } = useTranslation();
   const [selectedDropdown, setSelectedDropdown] = useState(null);
   const [origin, setOrigin] = useState("");
 
@@ -43,12 +45,12 @@ function ProductTable({ products, onOpenDetail, navigate }) {
       <table className="w-full border-collapse">
         <thead className="bg-gray-100">
           <tr>
-            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">ID</th>
-            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Ảnh</th>
-            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Tên</th>
-            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">Thương hiệu</th>
-            <th className="text-right px-4 py-2 text-sm font-semibold text-gray-700">Giá</th>
-            <th className="px-4 py-2 text-sm font-semibold text-gray-700">QR</th>
+            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">{t('admin.products.id')}</th>
+            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">{t('admin.products.image')}</th>
+            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">{t('admin.products.name')}</th>
+            <th className="text-left px-4 py-2 text-sm font-semibold text-gray-700">{t('admin.products.brand')}</th>
+            <th className="text-right px-4 py-2 text-sm font-semibold text-gray-700">{t('admin.products.price')}</th>
+            <th className="px-4 py-2 text-sm font-semibold text-gray-700">{t('admin.products.qr')}</th>
             <th className="px-4 py-2 text-sm font-semibold text-gray-700"></th>
           </tr>
         </thead>
@@ -56,7 +58,7 @@ function ProductTable({ products, onOpenDetail, navigate }) {
           {products.length === 0 && (
             <tr>
               <td colSpan={7} className="px-4 py-6 text-center text-gray-400">
-                Không có sản phẩm
+                {t('admin.products.noProducts')}
               </td>
             </tr>
           )}
@@ -68,7 +70,7 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                 {product.thumbnail ? (
                   <img src={product.thumbnail || undefined} alt={product.name} className="w-14 h-14 rounded-md object-cover border" />
                 ) : (
-                  <div className="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500">No image</div>
+                  <div className="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500">{t('admin.products.noImage')}</div>
                 )}
               </td>
               <td className="px-4 py-2 text-sm text-gray-700">{product.name}</td>
@@ -99,7 +101,7 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                           requestAnimationFrame(() => onOpenDetail(product.id));
                         }}
                       >
-                        Chi tiết
+                        {t('admin.common.detail')}
                       </button>
 
                       <button
@@ -109,7 +111,7 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                           navigate(`/admin/product/edit/${product.id}`);
                         }}
                       >
-                        Sửa
+                        {t('admin.common.edit')}
                       </button>
 
 
@@ -118,23 +120,23 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                         className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-100 flex items-center gap-2"
                         onClick={async () => {
                           setSelectedDropdown(null);
-                          const confirmed = window.confirm(`Bạn có chắc muốn xóa sản phẩm "${product.name}" không?`);
+                          const confirmed = window.confirm(t('admin.products.deleteConfirm', { name: product.name }));
                             if (!confirmed) return;
 
                             try {
                               // use shared axios client via productAPI which handles auth and baseURL
                               await productAPI.delete(product.id);
-                              toast.success("Xóa sản phẩm thành công!");
+                              toast.success(t('admin.products.deleteSuccess'));
                               // Update local products state
                               setProducts((prev) => prev.filter((p) => p.id !== product.id));
                             } catch (error) {
                               console.error("❌ Lỗi khi xóa:", error);
-                              toast.error(`Xóa sản phẩm thất bại. ${error?.message || (error?.data?.message) || 'Unknown error'}`);
+                              toast.error(t('admin.products.deleteFailed', { error: error?.message || (error?.data?.message) || 'Unknown error' }));
                             }
                         }}
 
                       >
-                      <Trash2 className="h-4 w-4" /> Xóa
+                      <Trash2 className="h-4 w-4" /> {t('admin.common.delete')}
                       </button>
 
                     </div>
@@ -336,6 +338,7 @@ function ProductDetailModal({ productId, open, onClose }) {
 
 /* Main Page component */
 export default function ProductPageMain() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -390,13 +393,13 @@ export default function ProductPageMain() {
           <div className="flex items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input placeholder="Tìm kiếm sản phẩm..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <Input placeholder={t('admin.products.search')} className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             <Button variant="outline" className="gap-2" onClick={() => navigate("/admin/product/add")}>
-              <Plus className="h-4 w-4" /> Thêm sản phẩm
+              <Plus className="h-4 w-4" /> {t('admin.products.addProduct')}
             </Button>
             <Button variant="outline"><Download className="h-4 w-4" /></Button>
             <Button variant="outline"><Settings className="h-4 w-4" /></Button>
@@ -405,22 +408,22 @@ export default function ProductPageMain() {
 
         <div className="p-6 space-y-6">
           <section>
-            <h1 className="text-2xl font-bold mb-4">Tổng quan sản phẩm</h1>
+            <h1 className="text-2xl font-bold mb-4">{t('admin.products.overview')}</h1>
             <div className="grid grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-white shadow">
-                <div className="text-sm text-gray-500">Tổng sản phẩm</div>
+                <div className="text-sm text-gray-500">{t('admin.products.totalProducts')}</div>
                 <div className="text-2xl font-bold">{totalProducts}</div>
               </div>
               <div className="p-4 rounded-lg bg-white shadow">
-                <div className="text-sm text-gray-500">Còn hàng </div>
+                <div className="text-sm text-gray-500">{t('admin.products.inStock')}</div>
                 <div className="text-2xl font-bold">{inStock}</div>
               </div>
               <div className="p-4 rounded-lg bg-white shadow">
-                <div className="text-sm text-gray-500">Tồn kho thấp</div>
+                <div className="text-sm text-gray-500">{t('admin.products.lowStock')}</div>
                 <div className="text-2xl font-bold">{lowStock}</div>
               </div>
               <div className="p-4 rounded-lg bg-white shadow">
-                <div className="text-sm text-gray-500">Hết hàng</div>
+                <div className="text-sm text-gray-500">{t('admin.products.outOfStock')}</div>
                 <div className="text-2xl font-bold">{outOfStock}</div>
               </div>
             </div>
@@ -428,7 +431,7 @@ export default function ProductPageMain() {
 
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Danh sách sản phẩm</h2>
+              <h2 className="text-xl font-bold">{t('admin.products.productList')}</h2>
             </div>
 
             <ProductTable

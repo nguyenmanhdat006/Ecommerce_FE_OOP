@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { agentAPI } from "@/api/agent.api";
 import { Bot, Send, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const SYSTEM_PROMPT = `Bạn là một AI assistant chuyên giúp admin quản lý đơn hàng trong hệ thống e-commerce. 
 Nhiệm vụ chính của bạn:
@@ -17,11 +18,13 @@ Khi admin yêu cầu xác nhận đơn hàng, bạn cần:
 Luôn trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp.`;
 
 export default function AdminAgent() {
+  const { t } = useTranslation();
+  
   const [messages, setMessages] = useState([
     {
       id: 1,
       role: "assistant",
-      content: "Xin chào! Tôi là AI Assistant, tôi có thể giúp bạn quản lý đơn hàng. Bạn cần hỗ trợ gì?",
+      content: t('admin.agent.greeting'),
       timestamp: new Date(),
     },
   ]);
@@ -489,8 +492,8 @@ export default function AdminAgent() {
             <Bot className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">AI Assistant</h1>
-            <p className="text-sm text-gray-500">Hỗ trợ quản lý đơn hàng</p>
+            <h1 className="text-lg font-semibold text-gray-900">{t('admin.agent.title')}</h1>
+            <p className="text-sm text-gray-500">{t('admin.agent.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -536,7 +539,7 @@ export default function AdminAgent() {
         <div className="flex items-center gap-3">
           <input
             type="text"
-            placeholder="Nhập tin nhắn..."
+            placeholder={t('admin.agent.placeholder')}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -559,7 +562,7 @@ export default function AdminAgent() {
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2 px-2">
-          💡 Gợi ý: "Hiển thị danh sách đơn hàng", "Xác nhận đơn hàng [ID]", "Xác nhận hết các đơn hàng chưa được xác nhận"
+          💡 {t('admin.agent.suggestion')}
         </p>
       </div>
     </div>

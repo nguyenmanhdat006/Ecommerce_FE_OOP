@@ -27,37 +27,7 @@ import { addressAPI } from "@/api/address.api";
 import { fetchAddressesByUser } from "@/store/addressSlice";
 
 import { ActionMenu } from "@/components/ActionMenu";
-
-const userColumns = [
-  { key: "avatar", header: "Avatar", width: "60px", render: (u) => {
-      // Prefer explicit avatar URL, otherwise use a deterministic dicebear avatar based on id/email
-      const src = u.avatar || (u.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.email)}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=user-${u.id}`);
-      return (
-        <Avatar className="w-10 h-10">
-          <AvatarImage src={src} alt={u.username || u.email} />
-          <AvatarFallback>{(u.username || u.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-      )
-    } },
-  { key: "username", header: "Username", render: (u) => <span className="font-medium">{u.username}</span> },
-  { key: "email", header: "Email", render: (u) => <span className="text-sm">{u.email}</span> },
-  { key: "role", header: "Role", render: (u) => (
-      <Badge variant={u.role === 'ADMIN' ? undefined : 'outline'}>{u.role}</Badge>
-    ) },
-  { key: "status", header: "Status", render: (u) => (
-      u.active ? <Badge className="bg-green-500 text-white">Active</Badge> : <Badge variant="outline">Inactive</Badge>
-    ) },
-  { key: "actions", header: "Actions", width: "80px", render: (u) => (
-      <ActionMenu
-        item={u}
-        actions={[
-          { label: 'Detail', icon: <Eye className="w-4 h-4" />, onClick: (it) => window.dispatchEvent(new CustomEvent('admin-user-detail', { detail: it.id })) },
-          { label: 'Delete user', icon: <Trash className="w-4 h-4" />, subtitle: 'Disable the account', variant: 'danger', onClick: (it) => window.dispatchEvent(new CustomEvent('admin-user-delete', { detail: it.id })) },
-        ]}
-        ariaLabel="User actions"
-      />
-    ) },
-];
+import { useTranslation } from "react-i18next";
 
 // Simple sample data if store hasn't users
 const sampleUsers = [
@@ -66,6 +36,38 @@ const sampleUsers = [
 ];
 
 export function UsersPage() {
+  const { t } = useTranslation();
+  
+  const userColumns = [
+    { key: "avatar", header: "Avatar", width: "60px", render: (u) => {
+        // Prefer explicit avatar URL, otherwise use a deterministic dicebear avatar based on id/email
+        const src = u.avatar || (u.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.email)}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=user-${u.id}`);
+        return (
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={src} alt={u.username || u.email} />
+            <AvatarFallback>{(u.username || u.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        )
+      } },
+    { key: "username", header: t('admin.users.username'), render: (u) => <span className="font-medium">{u.username}</span> },
+    { key: "email", header: t('admin.users.email'), render: (u) => <span className="text-sm">{u.email}</span> },
+    { key: "role", header: t('admin.users.role'), render: (u) => (
+        <Badge variant={u.role === 'ADMIN' ? undefined : 'outline'}>{u.role}</Badge>
+      ) },
+    { key: "status", header: t('admin.users.status'), render: (u) => (
+        u.active ? <Badge className="bg-green-500 text-white">{t('admin.users.active')}</Badge> : <Badge variant="outline">{t('admin.users.inactive')}</Badge>
+      ) },
+    { key: "actions", header: t('admin.users.actions'), width: "80px", render: (u) => (
+        <ActionMenu
+          item={u}
+          actions={[
+            { label: t('admin.users.detail'), icon: <Eye className="w-4 h-4" />, onClick: (it) => window.dispatchEvent(new CustomEvent('admin-user-detail', { detail: it.id })) },
+            { label: t('admin.users.deleteUser'), icon: <Trash className="w-4 h-4" />, subtitle: t('admin.users.disableAccount'), variant: 'danger', onClick: (it) => window.dispatchEvent(new CustomEvent('admin-user-delete', { detail: it.id })) },
+          ]}
+          ariaLabel="User actions"
+        />
+      ) },
+  ];
   const dispatch = useDispatch();
   const users = useSelector((s) => s.adminUsers?.users || []);
   const loading = useSelector((s) => s.adminUsers?.loading);
@@ -198,12 +200,12 @@ export function UsersPage() {
   })) : sampleUsers;
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this user? This will disable the user.')) return;
+    if (!confirm(t('admin.users.deleteConfirm'))) return;
     try {
       await dispatch(deleteUser(id)).unwrap();
-      toast.success('User deleted (disabled)');
+      toast.success(t('admin.users.deleteSuccess'));
     } catch (err) {
-      toast.error(err?.message || 'Delete failed');
+      toast.error(err?.message || t('admin.users.deleteFailed'));
     }
   };
 
@@ -211,11 +213,11 @@ export function UsersPage() {
     e.preventDefault();
     try {
       await dispatch(createUser(form)).unwrap();
-      toast.success('User created');
+      toast.success(t('admin.users.createSuccess'));
       setOpen(false);
       setForm({ firstName: '', lastName: '', email: '', phoneNumber: '', enabled: true });
     } catch (err) {
-      toast.error(err?.message || 'Create failed');
+      toast.error(err?.message || t('admin.users.createFailed'));
     }
   };
 
@@ -225,8 +227,8 @@ export function UsersPage() {
     <>
       {loading && <Spinner />}
       <CrudPageLayout
-        title="Users"
-        actionText="Add User"
+        title={t('admin.users.title')}
+        actionText={t('admin.users.addUser')}
         onAdd={() => setOpen(true)}
       >
         <DataTable data={data} columns={userColumns} showSelect={true} />
@@ -239,35 +241,35 @@ export function UsersPage() {
         </SheetTrigger>
         <SheetContent side="right">
           <SheetHeader>
-            <SheetTitle>Add User</SheetTitle>
+            <SheetTitle>{t('admin.users.addUser')}</SheetTitle>
           </SheetHeader>
 
           <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm">First name</label>
+              <label className="block text-sm">{t('admin.users.firstName')}</label>
               <input value={form.firstName} onChange={onChange('firstName')} className="w-full px-3 py-2 border rounded" />
             </div>
             <div>
-              <label className="block text-sm">Last name</label>
+              <label className="block text-sm">{t('admin.users.lastName')}</label>
               <input value={form.lastName} onChange={onChange('lastName')} className="w-full px-3 py-2 border rounded" />
             </div>
             <div>
-              <label className="block text-sm">Email</label>
+              <label className="block text-sm">{t('admin.users.email')}</label>
               <input type="email" value={form.email} onChange={onChange('email')} className="w-full px-3 py-2 border rounded" required />
             </div>
             <div>
-              <label className="block text-sm">Phone</label>
+              <label className="block text-sm">{t('admin.users.phoneNumber')}</label>
               <input value={form.phoneNumber} onChange={onChange('phoneNumber')} className="w-full px-3 py-2 border rounded" />
             </div>
             <div className="flex items-center gap-2">
               <input id="enabled" type="checkbox" checked={form.enabled} onChange={onChange('enabled')} />
-              <label htmlFor="enabled" className="text-sm">Enabled</label>
+              <label htmlFor="enabled" className="text-sm">{t('admin.users.enabled')}</label>
             </div>
 
             <SheetFooter>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Create</button>
+                <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 border rounded">{t('admin.common.cancel')}</button>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">{t('admin.common.save')}</button>
               </div>
             </SheetFooter>
           </form>
@@ -278,8 +280,8 @@ export function UsersPage() {
         <DialogContent className="sm:max-w-2xl">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <DialogTitle className="text-lg font-semibold">User details</DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground">Information about the selected user</DialogDescription>
+                <DialogTitle className="text-lg font-semibold">{t('admin.users.userDetails')}</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">{t('admin.users.userDetailsDesc')}</DialogDescription>
               </div>
               <div>
                 <button onClick={() => setDetailOpen(false)} className="p-2 rounded hover:bg-muted focus:outline-none">
@@ -307,21 +309,21 @@ export function UsersPage() {
 
               <div className="mt-4 grid grid-cols-3 gap-4">
                 <div className="p-3 bg-gray-50 rounded">
-                  <div className="text-xs text-muted-foreground">Phone</div>
+                  <div className="text-xs text-muted-foreground">{t('admin.users.phoneNumber')}</div>
                   <div className="font-medium">{selectedUser?.phoneNumber || '—'}</div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded">
-                  <div className="text-xs text-muted-foreground">Status</div>
-                  <div className="font-medium">{selectedUser?.enabled ? 'Active' : (selectedUser?.active ? 'Active' : 'Inactive')}</div>
+                  <div className="text-xs text-muted-foreground">{t('admin.users.status')}</div>
+                  <div className="font-medium">{selectedUser?.enabled ? t('admin.users.active') : (selectedUser?.active ? t('admin.users.active') : t('admin.users.inactive'))}</div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded">
-                  <div className="text-xs text-muted-foreground">ID</div>
+                  <div className="text-xs text-muted-foreground">{t('admin.products.id')}</div>
                   <div className="text-sm break-all">{selectedUser?.id}</div>
                 </div>
               </div>
 
               <div className="mt-4">
-                <div className="text-sm font-medium text-muted-foreground mb-2">Addresses</div>
+                <div className="text-sm font-medium text-muted-foreground mb-2">{t('admin.users.addresses')}</div>
                 <div className="grid grid-cols-1 gap-3">
                   {addressesContent}
                 </div>
@@ -330,7 +332,7 @@ export function UsersPage() {
 
             <DialogFooter>
               <div className="flex justify-end">
-                <button onClick={() => setDetailOpen(false)} className="px-4 py-2 border rounded">Close</button>
+                <button onClick={() => setDetailOpen(false)} className="px-4 py-2 border rounded">{t('admin.common.cancel')}</button>
               </div>
             </DialogFooter>
           </DialogContent>

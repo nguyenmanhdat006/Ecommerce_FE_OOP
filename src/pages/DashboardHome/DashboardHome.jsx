@@ -5,8 +5,11 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { Activity, DollarSign, ShoppingCart, TrendingUp, Bell, Users, Package, Crown } from 'lucide-react';
 import WebSocketManager from "@/lib/websocketManager";
 import { dashboardAPI } from '@/api/dashboard.api';
+import { useTranslation } from 'react-i18next';
 
 const DashboardHome = () => {
+  const { t } = useTranslation();
+  
   // State cho KPI Cards
   const [kpi, setKpi] = useState({
     processingOrders: 0,
@@ -25,7 +28,7 @@ const DashboardHome = () => {
   const [topCustomers, setTopCustomers] = useState([]);
 
   // State cho WebSocket
-  const [wsStatus, setWsStatus] = useState('Đang kết nối...');
+  const [wsStatus, setWsStatus] = useState(t('admin.dashboard.connecting'));
   const [notifications, setNotifications] = useState([]);
   const wsRef = useRef(null);
 
@@ -101,37 +104,37 @@ const DashboardHome = () => {
     const notification = {
       id: Date.now(),
       type: 'success',
-      title: '🛒 Đơn hàng mới!',
+      title: `🛒 ${t('admin.dashboard.newOrder')}`,
       message: `${payload.customerName} - ${formatCurrency(payload.total)}${payload.orderName ? ` — ${payload.orderName}` : payload.orderId ? ` — #${payload.orderId}` : ''}`,
       orderName: payload.orderName || (payload.orderId ? `#${payload.orderId}` : undefined),
       actor: 'Changeby Admin',
       time: new Date().toLocaleTimeString('vi-VN')
     };
     setNotifications(prev => [notification, ...prev].slice(0, 5));
-  }, []);
+  }, [t]);
 
   // Handle Order Status Changed
   const handleOrderStatusChanged = useCallback(async (payload) => {
     const statusMap = {
-      PENDING: 'Chờ xác nhận',
-      SHIPPING: 'Đang vận chuyển',
-      WAIT_DELIVER: 'Chờ giao hàng',
-      PAID: 'Hoàn thành',
-      CANCELED: 'Đã hủy',
-      REFUND: 'Hoàn tiền'
+      PENDING: t('admin.dashboard.status.PENDING'),
+      SHIPPING: t('admin.dashboard.status.SHIPPING'),
+      WAIT_DELIVER: t('admin.dashboard.status.WAIT_DELIVER'),
+      PAID: t('admin.dashboard.status.PAID'),
+      CANCELED: t('admin.dashboard.status.CANCELED'),
+      REFUND: t('admin.dashboard.status.REFUND')
     };
     
     const notification = {
       id: Date.now(),
       type: 'info',
-      title: '📦 Cập nhật trạng thái',
-      message: `${statusMap[payload.oldStatus]} → ${statusMap[payload.newStatus]}`,
+      title: `📦 ${t('admin.dashboard.statusUpdate')}`,
+      message: `${statusMap[payload.oldStatus] || payload.oldStatus} → ${statusMap[payload.newStatus] || payload.newStatus}`,
       orderName: payload.orderName || (payload.orderId ? `#${payload.orderId}` : undefined),
       actor: 'Changeby Admin',
       time: new Date().toLocaleTimeString('vi-VN')
     };
     setNotifications(prev => [notification, ...prev].slice(0, 5));
-  }, []);
+  }, [t]);
 
   // Handle Revenue Update
   const handleRevenueUpdate = useCallback((payload) => {
@@ -238,19 +241,19 @@ const DashboardHome = () => {
     // Event handlers
     ws.on('open', () => {
       console.log('✅ Connected to Dashboard WebSocket');
-      setWsStatus('Đã kết nối');
+      setWsStatus(t('admin.dashboard.connected'));
     });
 
     ws.on('message', handleWebSocketMessage);
 
     ws.on('error', (error) => {
       console.error('❌ WebSocket error:', error);
-      setWsStatus('Lỗi kết nối');
+      setWsStatus(t('admin.dashboard.connectionError'));
     });
 
     ws.on('close', () => {
       console.log('❌ WebSocket closed');
-      setWsStatus('Mất kết nối');
+      setWsStatus(t('admin.dashboard.disconnected'));
     });
 
     // Connect
@@ -267,7 +270,7 @@ const DashboardHome = () => {
         wsRef.current = null;
       }
     };
-  }, [handleWebSocketMessage]);
+  }, [handleWebSocketMessage, t]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
@@ -275,11 +278,11 @@ const DashboardHome = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-            <p className="text-slate-600 mt-1">Theo dõi đơn hàng và doanh thu thời gian thực</p>
+            <h1 className="text-3xl font-bold text-slate-900">{t('admin.dashboard.title')}</h1>
+            <p className="text-slate-600 mt-1">{t('admin.dashboard.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-slate-200">
-            <div className={`w-2 h-2 rounded-full ${wsStatus === 'Đã kết nối' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${wsStatus === t('admin.dashboard.connected') ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
             <span className="text-sm font-medium text-slate-700">{wsStatus}</span>
           </div>
         </div>
@@ -290,13 +293,13 @@ const DashboardHome = () => {
           <Card className={`transform transition-all duration-300 hover:scale-105 hover:shadow-lg ${animatingKpi.processingOrders ? 'ring-2 ring-blue-500 scale-105' : ''}`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Đơn đang xử lý
+                {t('admin.dashboard.processingOrders')}
               </CardTitle>
               <ShoppingCart className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-slate-900">{kpi.processingOrders}</div>
-              <p className="text-xs text-slate-500 mt-1">Đơn chưa hoàn thành</p>
+              <p className="text-xs text-slate-500 mt-1">{t('admin.dashboard.uncompletedOrders')}</p>
             </CardContent>
           </Card>
 
@@ -304,7 +307,7 @@ const DashboardHome = () => {
           <Card className={`transform transition-all duration-300 hover:scale-105 hover:shadow-lg ${animatingKpi.todayRevenue ? 'ring-2 ring-green-500 scale-105' : ''}`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Doanh thu hôm nay
+                {t('admin.dashboard.todayRevenue')}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
@@ -312,7 +315,7 @@ const DashboardHome = () => {
               <div className="text-3xl font-bold text-slate-900">
                 {formatCurrency(kpi.todayRevenue)}
               </div>
-              <p className="text-xs text-slate-500 mt-1">Đơn đã hoàn thành</p>
+              <p className="text-xs text-slate-500 mt-1">{t('admin.dashboard.completedOrders')}</p>
             </CardContent>
           </Card>
 
@@ -320,7 +323,7 @@ const DashboardHome = () => {
           <Card className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Hoạt động
+                {t('admin.dashboard.activity')}
               </CardTitle>
               <Activity className="h-4 w-4 text-purple-600" />
             </CardHeader>
@@ -328,7 +331,7 @@ const DashboardHome = () => {
               <div className="text-3xl font-bold text-slate-900">
                 {kpi.processingOrders > 0 ? '🟢 Live' : '⚪ Idle'}
               </div>
-              <p className="text-xs text-slate-500 mt-1">Trạng thái hệ thống</p>
+              <p className="text-xs text-slate-500 mt-1">{t('admin.dashboard.systemStatus')}</p>
             </CardContent>
           </Card>
 
@@ -336,13 +339,13 @@ const DashboardHome = () => {
           <Card className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">
-                Thông báo
+                {t('admin.dashboard.notifications')}
               </CardTitle>
               <Bell className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-slate-900">{notifications.length}</div>
-              <p className="text-xs text-slate-500 mt-1">Sự kiện mới</p>
+              <p className="text-xs text-slate-500 mt-1">{t('admin.dashboard.newEvents')}</p>
             </CardContent>
           </Card>
         </div>
@@ -354,10 +357,10 @@ const DashboardHome = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-blue-600" />
-                Doanh thu theo giờ
+                {t('admin.dashboard.hourlyRevenue')}
               </CardTitle>
               <CardDescription>
-                Biểu đồ doanh thu hôm nay 
+                {t('admin.dashboard.hourlyRevenueDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -398,8 +401,8 @@ const DashboardHome = () => {
               ) : (
                 <div className="h-[300px] flex flex-col items-center justify-center text-slate-500">
                   <TrendingUp className="h-12 w-12 mb-3 text-slate-300" />
-                  <p>Chưa có dữ liệu doanh thu</p>
-                  <p className="text-xs mt-1">Đợi WebSocket push data...</p>
+                  <p>{t('admin.dashboard.noRevenueData')}</p>
+                  <p className="text-xs mt-1">{t('admin.dashboard.waitingForData')}</p>
                 </div>
               )}
             </CardContent>
@@ -410,11 +413,11 @@ const DashboardHome = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
-                Phân bố trạng thái đơn
+                {t('admin.dashboard.orderStatusDistribution')}
               </CardTitle>
               <CardDescription>
-                Số lượng đơn đang xử lý theo trạng thái
-                {orderStatusDist.length > 0 && ` (${orderStatusDist.length} trạng thái)`}
+                {t('admin.dashboard.orderStatusDistributionDesc')}
+                {orderStatusDist.length > 0 && ` (${orderStatusDist.length} ${t('admin.dashboard.status').toLowerCase()})`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -445,8 +448,8 @@ const DashboardHome = () => {
               ) : (
                 <div className="h-[300px] flex flex-col items-center justify-center text-slate-500">
                   <ShoppingCart className="h-12 w-12 mb-3 text-slate-300" />
-                  <p>Chưa có dữ liệu trạng thái</p>
-                  <p className="text-xs mt-1">Đợi WebSocket push data...</p>
+                  <p>{t('admin.dashboard.noStatusData')}</p>
+                  <p className="text-xs mt-1">{t('admin.dashboard.waitingForData')}</p>
                 </div>
               )}
             </CardContent>
@@ -460,9 +463,9 @@ const DashboardHome = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-amber-600" />
-                Sản phẩm bán chạy
+                {t('admin.dashboard.topProducts')}
               </CardTitle>
-              <CardDescription>Top 5 sản phẩm được mua nhiều nhất</CardDescription>
+              <CardDescription>{t('admin.dashboard.topProductsDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               {topProducts.length > 0 ? (
@@ -488,14 +491,14 @@ const DashboardHome = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-amber-600">{product.quantity}</p>
-                        <p className="text-xs text-slate-500">đã bán</p>
+                        <p className="text-xs text-slate-500">{t('admin.dashboard.sold')}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-slate-500">
-                  Chưa có dữ liệu sản phẩm
+                  {t('admin.dashboard.noProductData')}
                 </div>
               )}
             </CardContent>
@@ -506,9 +509,9 @@ const DashboardHome = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-purple-600" />
-                Khách hàng VIP
+                {t('admin.dashboard.topCustomers')}
               </CardTitle>
-              <CardDescription>Top 5 khách hàng mua nhiều nhất</CardDescription>
+              <CardDescription>{t('admin.dashboard.topCustomersDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               {topCustomers.length > 0 ? (
@@ -536,14 +539,14 @@ const DashboardHome = () => {
                         <p className="text-lg font-bold text-purple-600">
                           {formatCurrency(customer.total)}
                         </p>
-                        <p className="text-xs text-slate-500">tổng chi</p>
+                        <p className="text-xs text-slate-500">{t('admin.dashboard.totalSpent')}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-slate-500">
-                  Chưa có dữ liệu khách hàng
+                  {t('admin.dashboard.noCustomerData')}
                 </div>
               )}
             </CardContent>
@@ -556,9 +559,9 @@ const DashboardHome = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-orange-600" />
-                Thông báo realtime
+                {t('admin.dashboard.realtimeNotifications')}
               </CardTitle>
-              <CardDescription>Các sự kiện mới nhất</CardDescription>
+              <CardDescription>{t('admin.dashboard.latestEvents')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-64 overflow-y-auto pr-2 scroll-smooth" style={{scrollBehavior: 'smooth'}}>
@@ -574,8 +577,8 @@ const DashboardHome = () => {
                         <span className="ml-2 text-slate-600">{notif.message}</span>
                       </div>
                       <div className="text-xs text-slate-500 mt-1">
-                        {notif.orderName && <span className="mr-3">Đơn: <strong>{notif.orderName}</strong></span>}
-                        {notif.actor && <span>Thao tác bởi: <strong>{notif.actor}</strong></span>}
+                        {notif.orderName && <span className="mr-3">{t('admin.dashboard.order')}: <strong>{notif.orderName}</strong></span>}
+                        {notif.actor && <span>{t('admin.dashboard.actionBy')}: <strong>{notif.actor}</strong></span>}
                       </div>
                     </div>
                     <span className="text-xs text-slate-500">{notif.time}</span>
