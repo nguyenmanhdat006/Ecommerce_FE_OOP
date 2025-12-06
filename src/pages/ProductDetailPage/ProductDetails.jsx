@@ -325,9 +325,16 @@ const ProductDetails = () => {
                       </button>
 
                       {/* Price Display */}
-                      <p className="text-2xl font-bold text-gray-800">
-                        {formatCurrency(product?.price)}
-                      </p>
+                      <div className="flex flex-col">
+                        <p className="text-2xl font-bold text-gray-800">
+                          {formatCurrency(product?.price * quantity)}
+                        </p>
+                        {quantity > 1 && (
+                          <p className="text-sm text-gray-500">
+                            {formatCurrency(product?.price)} × {quantity}
+                          </p>
+                        )}
+                      </div>
                     </>
                   );
                 })()}
