@@ -18,7 +18,7 @@ import SectionHeading from "../../components/Sections/SectionsHeading/SeactionHe
 import ProductCard from "../ProductListPage/ProductCard";
 import Spinner from "../../components/Spinner/Spinner";
 
-import { addToCart } from "../../store/features/cart";
+import { addToCart, fetchUserCarts } from "../../store/features/cart";
 import { cartAPI } from "../../api/cart.api";
 import { getAllProducts } from "../../api/fetchProducts";
 import { getUser } from "../../utils/jwt-helper";
@@ -156,6 +156,9 @@ const ProductDetails = () => {
       };
 
       await cartAPI.addToCart(body);
+      
+      // TODO: delete this if successfully fix optimism update
+      await dispatch(fetchUserCarts());
       toast.success("Added to cart");
     } catch (err) {
       console.error("Add to cart API error", err);
