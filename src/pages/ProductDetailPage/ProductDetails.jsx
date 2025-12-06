@@ -171,6 +171,54 @@ const ProductDetails = () => {
     navigate,
   ]);
 
+  const handleBuyNow = useCallback(async () => {
+    if (!product) return;
+
+    // Kiểm tra nếu có variants nhưng chưa chọn variant
+    if (
+      product?.variants &&
+      product.variants.length > 0 &&
+      !selectedVariant &&
+      !selectedSize
+    ) {
+      toast.error("Please select a variant (color and size) before buying");
+      return;
+    }
+
+    // cần login
+    if (!currentUser) {
+      toast.error("Please login to buy");
+      navigate("/v2/login");
+      return;
+    }
+
+    const variant =
+      selectedVariant ||
+      product?.variants?.find((v) => v.size === selectedSize) ||
+      product?.variants?.[0] ||
+      null;
+
+    // Format data giống CartPage
+    const checkoutItem = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      productId: product.id,
+      productVariantId: variant?.id || null,
+      name: product.name,
+      price: product.price,
+      qty: quantity,
+      shop: product.brand || "Shopease - Official Store",
+      img: product.thumbnail || "https://via.placeholder.com/120",
+      size: variant?.size || "-",
+      color: variant?.color || "-",
+    };
+
+    // Lưu vào localStorage giống CartPage
+    localStorage.setItem("checkoutItems", JSON.stringify([checkoutItem]));
+
+    // Navigate đến checkout
+    navigate("/checkout");
+  }, [product, selectedVariant, selectedSize, quantity, currentUser, navigate]);
+
   // Danh sách màu và size
   const colors = useMemo(() => {
     return _.uniq(_.map(product?.variants, "color"));
@@ -282,24 +330,26 @@ const ProductDetails = () => {
                 <ProductColors colors={colors} />
               </div> */}
 
-
               {/* Stock Quantity Display */}
-              {selectedVariant && selectedVariant.stockQuantity !== undefined && (
-                <div className="mb-4 pt-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Stock:</span>
-                    <span className={`text-sm font-semibold ${
-                      selectedVariant.stockQuantity === 0
-                        ? 'text-red-600'
-                        : 'text-gray-600'
-                    }`}>
-                      {selectedVariant.stockQuantity === 0
-                        ? 'Out of stock'
-                        : `${selectedVariant.stockQuantity}`}
-                    </span>
+              {selectedVariant &&
+                selectedVariant.stockQuantity !== undefined && (
+                  <div className="mb-4 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Stock:</span>
+                      <span
+                        className={`text-sm font-semibold ${
+                          selectedVariant.stockQuantity === 0
+                            ? "text-red-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {selectedVariant.stockQuantity === 0
+                          ? "Out of stock"
+                          : `${selectedVariant.stockQuantity}`}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Price & Add to Cart */}
               <div className="flex items-center gap-4 mb-6 pt-2">
@@ -312,17 +362,30 @@ const ProductDetails = () => {
 
                   return (
                     <>
-                      <button
-                        onClick={addItemToCart}
-                        disabled={isDisabled}
-                        className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
-                          isDisabled
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-black text-white transform hover:scale-105 hover:shadow-lg active:scale-95"
-                        }`}
-                      >
-                        {isDisabled ? "Select variant" : "Add to cart"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={addItemToCart}
+                          disabled={isDisabled}
+                          className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
+                            isDisabled
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-black text-white transform hover:scale-102 hover:shadow-md cursor-pointer active:scale-95"
+                          }`}
+                        >
+                          Add to cart
+                        </button>
+                        <button
+                          onClick={handleBuyNow}
+                          disabled={isDisabled}
+                          className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
+                            isDisabled
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-[#FF6B6B] text-white transform cursor-pointer hover:scale-102 active:scale-102 hover:shadow-md active:scale-95"
+                          }`}
+                        >
+                          Buy Now
+                        </button>
+                      </div>
 
                       {/* Price Display */}
                       <div className="flex flex-col">
