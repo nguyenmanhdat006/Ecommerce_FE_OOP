@@ -9,6 +9,7 @@ import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import Rating from '../../components/Rating/Rating';
 import SizeFilter from '../../components/Filters/SizeFilter';
 import ProductColors from './ProductColors';
+import ProductVariants from './components/ProductVariants';
 import SvgCreditCard from '../../components/common/SvgCreditCard';
 import SvgCloth from '../../components/common/SvgCloth';
 import SvgShipping from '../../components/common/SvgShipping';
@@ -16,6 +17,10 @@ import SvgReturn from '../../components/common/SvgReturn';
 import SectionHeading from '../../components/Sections/SectionsHeading/SeactionHeading';
 import ProductCard from '../ProductListPage/ProductCard';
 import Spinner from '../../components/Spinner/Spinner';
+import { reviewAPI } from '../../api/review.api';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import dayjs from 'dayjs';
 
 import { addToCart, fetchUserCarts } from "../../store/features/cart";
 import { cartAPI } from "../../api/cart.api";
@@ -51,9 +56,15 @@ const ProductDetails = () => {
   const cartItems = useSelector((state) => state.cartState?.cart);
   const currentUser = getUser();
   const navigate = useNavigate();
+  // Reviews and user dialog state
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [similarProduct, setSimilarProducts] = useState([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const categories = useSelector((state) => state?.categoryState?.categories);
+  const isAdmin = currentUser?.role === 'ADMIN';
 
   // Tìm category hiện tại của sản phẩm
   const productCategory = useMemo(() => {
@@ -105,10 +116,10 @@ const ProductDetails = () => {
     setLoadingReviews(true);
     reviewAPI
       .getByProduct(product.id)
-      .then((res) => {
+      .then((data) => {
         if (!mounted) return;
-        const data = res?.data ?? res ?? [];
-        setReviews(data);
+        // axiosClient returns response.data in the response interceptor
+        setReviews(data ?? []);
       })
       .catch((err) => {
         console.error('Failed to load reviews', err);
@@ -310,7 +321,7 @@ const ProductDetails = () => {
                 <div className="flex items-center mb-4">
                   <Rating rating={product?.rating} />
                   <span className="text-sm text-gray-500 ml-2">
-                    {product?.reviewsCount || 120} comment
+                    {product?.reviewsCount ?? reviews.length} comment
                   </span>
                 </div>
               </div>
@@ -449,20 +460,21 @@ const ProductDetails = () => {
                 {/* Tabs for Description, Comments, Q&A */}
                 <div className="border-b mb-4">
                     <div className="flex space-x-6">
-                        {/* Giả lập các tab với state activeTab */}
-                        {['Description', 'User comments (1)', 'Question & Answer (4)'].map((tabTitle) => (
-              <button
-                key={tabTitle}
-                onClick={() => setActiveTab(tabTitle.split(' ')[0])}
-                className={`pb-2 text-sm font-medium transition-colors duration-150 ${
-                  activeTab === tabTitle.split(' ')[0]
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-500 hover:text-black hover:scale-102'
-                } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
-              >
-                {tabTitle}
-              </button>
-                        ))}
+                                {/* Tabs: Description / Reviews / QnA */}
+                                {[
+                                  { key: 'Description', label: 'Description' },
+                                  { key: 'Reviews', label: `User comments (${product?.reviewsCount ?? reviews.length})` },
+                                ].map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => setActiveTab(t.key)}
+                        className={`pb-2 text-sm font-medium transition-colors duration-150 ${
+                          activeTab === t.key ? 'border-b-2 border-black text-black' : 'text-gray-500 hover:text-black hover:scale-102'
+                        } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
+                      >
+                        {t.label}
+                      </button>
+                                ))}
                     </div>
                 </div>
 
@@ -474,6 +486,53 @@ const ProductDetails = () => {
                         </p>
 
                     </div>
+                )}
+
+                {/* Reviews */}
+                {activeTab === 'Reviews' && (
+                  <div className="pt-2">
+                    {loadingReviews ? (
+                      <div className="text-center py-6"><Spinner /></div>
+                    ) : (
+                      <div className="space-y-4">
+                        {reviews.length === 0 ? (
+                          <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>
+                        ) : (
+                          reviews.map((r) => (
+                            <div key={r.id} className="border rounded p-3">
+                              <div className="flex gap-4">
+                                <button
+                                  type="button"
+                                  onClick={() => { setSelectedUser(r.user || null); setUserDialogOpen(true); }}
+                                  className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0"
+                                >
+                                  {r.user?.avatar ? (
+                                    <img src={r.user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">U</div>
+                                  )}
+                                </button>
+
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between">
+                                    <div>
+                                      <div className="font-semibold text-sm">{r.user ? `${r.user.firstName || ''} ${r.user.lastName || ''}`.trim() : 'Người dùng'}</div>
+                                      <div className="mt-1 text-yellow-500 text-base leading-none">{Array.from({ length: r.rating }).map((_, i) => (
+                                        <span key={i} className="inline-block mr-0.5">★</span>
+                                      ))}</div>
+                                    </div>
+                                    <div className="text-xs text-gray-400">{dayjs(r.createdAt).format('DD/MM/YYYY HH:mm')}</div>
+                                  </div>
+
+                                  <div className="mt-3 text-sm text-gray-700 min-h-[48px] flex items-center">{r.comment}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
             </div>
 
