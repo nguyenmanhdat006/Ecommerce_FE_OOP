@@ -1,45 +1,46 @@
 /* eslint-disable no-unused-vars */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useLoaderData, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-hot-toast';
-import _ from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useLoaderData, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
+import _ from "lodash";
 
-import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
-import Rating from '../../components/Rating/Rating';
-import SizeFilter from '../../components/Filters/SizeFilter';
-import ProductColors from './ProductColors';
-import SvgCreditCard from '../../components/common/SvgCreditCard';
-import SvgCloth from '../../components/common/SvgCloth';
-import SvgShipping from '../../components/common/SvgShipping';
-import SvgReturn from '../../components/common/SvgReturn';
-import SectionHeading from '../../components/Sections/SectionsHeading/SeactionHeading';
-import ProductCard from '../ProductListPage/ProductCard';
-import Spinner from '../../components/Spinner/Spinner';
+import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
+import Rating from "../../components/Rating/Rating";
+import SizeFilter from "../../components/Filters/SizeFilter";
+import ProductColors from "./ProductColors";
+import ProductVariants from "./components/ProductVariants";
+import SvgCreditCard from "../../components/common/SvgCreditCard";
+import SvgCloth from "../../components/common/SvgCloth";
+import SvgShipping from "../../components/common/SvgShipping";
+import SvgReturn from "../../components/common/SvgReturn";
+import SectionHeading from "../../components/Sections/SectionsHeading/SeactionHeading";
+import ProductCard from "../ProductListPage/ProductCard";
+import Spinner from "../../components/Spinner/Spinner";
 
-import { addToCart } from '../../store/features/cart';
-import { cartAPI } from '../../api/cart.api';
-import { getAllProducts } from '../../api/fetchProducts';
-import { getUser } from '../../utils/jwt-helper';
-import { formatCurrency } from '../../utils/currencyFormatter';
+import { addToCart } from "../../store/features/cart";
+import { cartAPI } from "../../api/cart.api";
+import { getAllProducts } from "../../api/fetchProducts";
+import { getUser } from "../../utils/jwt-helper";
+import { formatCurrency } from "../../utils/currencyFormatter";
 
 // Icons cho phần Extra sections
 const extraSections = [
   {
     icon: <SvgCreditCard className="w-5 h-5" />,
-    label: 'Secure payment',
+    label: "Secure payment",
   },
   {
     icon: <SvgCloth className="w-5 h-5" />,
-    label: 'Size & Fit',
+    label: "Size & Fit",
   },
   {
     icon: <SvgShipping className="w-5 h-5" />,
-    label: 'Free shipping',
+    label: "Free shipping",
   },
   {
     icon: <SvgReturn className="w-5 h-5" />,
-    label: 'Free Shipping & Returns',
+    label: "Free Shipping & Returns",
   },
 ];
 
@@ -79,7 +80,7 @@ const ProductDetails = () => {
     setImage(product?.thumbnail);
     setBreadCrumbLink([]);
     const arrayLinks = [
-      { title: 'Shop', path: '/' },
+      { title: "Shop", path: "/" },
       {
         title: productCategory?.name,
         path: productCategory?.name,
@@ -99,14 +100,29 @@ const ProductDetails = () => {
   }, [productCategory, product]);
 
   const [selectedSize, setSelectedSize] = useState(null);
-  const [quantity, setQuantity] = useState(1); 
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
   // Hàm thêm sản phẩm vào giỏ hàng
   const addItemToCart = useCallback(async () => {
     if (!product) return;
 
-    // tìm variant theo size (hoặc fallback)
+    // Kiểm tra nếu có variants nhưng chưa chọn variant
+    if (
+      product?.variants &&
+      product.variants.length > 0 &&
+      !selectedVariant &&
+      !selectedSize
+    ) {
+      toast.error(
+        "Please select a variant (color and size) before adding to cart"
+      );
+      return;
+    }
+
+    // Ưu tiên sử dụng selectedVariant, nếu không có thì tìm theo size, cuối cùng là variant đầu tiên
     const variant =
+      selectedVariant ||
       product?.variants?.find((v) => v.size === selectedSize) ||
       product?.variants?.[0] ||
       null;
@@ -123,8 +139,8 @@ const ProductDetails = () => {
 
     // cần login
     if (!currentUser) {
-      toast.error('Please login to add items to cart');
-      navigate('/v2/login');
+      toast.error("Please login to add items to cart");
+      navigate("/v2/login");
       return;
     }
 
@@ -140,24 +156,32 @@ const ProductDetails = () => {
       };
 
       await cartAPI.addToCart(body);
-      toast.success('Added to cart');
+      toast.success("Added to cart");
     } catch (err) {
-      console.error('Add to cart API error', err);
-      toast.error(err?.message || 'Failed to add to cart');
+      console.error("Add to cart API error", err);
+      toast.error(err?.message || "Failed to add to cart");
     }
-  }, [dispatch, product, selectedSize, quantity, currentUser, navigate]);
+  }, [
+    dispatch,
+    product,
+    selectedSize,
+    selectedVariant,
+    quantity,
+    currentUser,
+    navigate,
+  ]);
 
   // Danh sách màu và size
   const colors = useMemo(() => {
-    return _.uniq(_.map(product?.variants, 'color'));
+    return _.uniq(_.map(product?.variants, "color"));
   }, [product]);
 
   const sizes = useMemo(() => {
-    return _.uniq(_.map(product?.variants, 'size'));
+    return _.uniq(_.map(product?.variants, "size"));
   }, [product]);
-  
+
   // Tab hiện tại cho phần mô tả
-  const [activeTab, setActiveTab] = useState('Description');
+  const [activeTab, setActiveTab] = useState("Description");
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -169,7 +193,6 @@ const ProductDetails = () => {
         <>
           {/* MAIN CONTENT - PRODUCT DETAIL */}
           <div className="flex flex-col lg:flex-row mt-4">
-            
             {/* LEFT: Images & Thumbnails */}
             <div className="w-full lg:w-1/2 flex gap-4">
               {/* Thumbnails */}
@@ -179,14 +202,16 @@ const ProductDetails = () => {
                     key={index}
                     onClick={() => setImage(item?.url)}
                     className={`p-1 rounded-lg transition-transform duration-200 ease-out transform focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-300 ${
-                      image === item?.url ? 'border-2 border-black scale-105 shadow-lg' : 'border hover:scale-105 hover:shadow' 
+                      image === item?.url
+                        ? "border-2 border-black scale-105 shadow-lg"
+                        : "border hover:scale-105 hover:shadow"
                     }`}
                     aria-label={`View thumbnail ${index + 1}`}
                   >
                     <img
                       src={item?.url}
                       className="h-20 w-20 rounded-lg object-cover"
-                      alt={'sample-' + index}
+                      alt={"sample-" + index}
                     />
                   </button>
                 ))}
@@ -204,38 +229,34 @@ const ProductDetails = () => {
 
             {/* RIGHT: Details, Controls, & Price */}
             <div className="w-full lg:w-1/2 pt-6 lg:pt-0 lg:pl-10">
-                
-                {/* Breadcrumb CHUẨN */}
-                <Breadcrumb links={breadCrumbLinks} /> 
+              {/* Breadcrumb CHUẨN */}
+              <Breadcrumb links={breadCrumbLinks} />
 
-                <div className="mt-2">
-                    
-                    {/* Product Name */}
-                    <h1 className="text-3xl font-semibold mb-2">{product?.name}</h1>
+              <div className="mt-2">
+                {/* Product Name */}
+                <h1 className="text-3xl font-semibold mb-2">{product?.name}</h1>
 
-                    {/* Rating */}
-                    <div className="flex items-center mb-4">
-                        <Rating rating={product?.rating} />
-                        <span className="text-sm text-gray-500 ml-2">
-                            {product?.reviewsCount || 120} comment
-                        </span>
-                    </div>
+                {/* Rating */}
+                <div className="flex items-center mb-4">
+                  <Rating rating={product?.rating} />
+                  <span className="text-sm text-gray-500 ml-2">
+                    {product?.reviewsCount || 120} comment
+                  </span>
                 </div>
+              </div>
 
-
-                {/* Size Selector */}
-                <div className="mb-4">
-                    <div className="flex items-center gap-4 mb-2">
-                        <p className="text-sm font-semibold">Select Size</p>
-                        <Link
-                            className="text-sm text-gray-500 hover:text-gray-900 underline"
-                            to="https://en.wikipedia.org/wiki/Clothing_sizes"
-                            target="_blank"
-                        >
-                            Size Guide
-                        </Link>
-                    </div>
-                    <SizeFilter
+              <div className="mb-4">
+                <div className="flex items-center gap-4 mb-2">
+                  <p className="text-sm font-semibold">Select Variant</p>
+                  <Link
+                    className="text-sm text-gray-500 hover:text-gray-900 underline"
+                    to="https://en.wikipedia.org/wiki/Clothing_sizes"
+                    target="_blank"
+                  >
+                    Size Guide
+                  </Link>
+                </div>
+                {/* <SizeFilter
                         sizes={sizes}
                         hidleTitle
                         multi={false}
@@ -243,95 +264,127 @@ const ProductDetails = () => {
                         className="space-x-2"
                         buttonClass="w-10 h-10 border rounded-lg flex items-center justify-center font-medium"
                         activeClass="border-black text-black bg-white"
-                    />
-                </div>
+                    /> */}
+                <ProductVariants
+                  variants={product?.variants}
+                  selectedVariant={selectedVariant}
+                  quantity={quantity}
+                  onSelectVariant={(variant) => {
+                    setSelectedVariant(variant);
+                    setSelectedSize(variant.size);
+                  }}
+                  onQuantityChange={setQuantity}
+                />
+              </div>
 
-                {/* Colors */}
-                <div className="mb-6">
-                    <p className="text-sm font-semibold mb-2">Colors Available</p>
-                    <ProductColors colors={colors} />
-                </div>
+              {/* <div className="mb-6">
+                <p className="text-sm font-semibold mb-2">Colors Available</p>
+                <ProductColors colors={colors} />
+              </div> */}
 
-                {/* Price & Add to Cart */}
-                <div className="flex items-center gap-4 mb-6 pt-2">
-                  {(() => {
-                    // allow adding again even if already in cart; reducer will merge quantities
-                    return (
-                      <>
-                        <button
-                          onClick={addItemToCart}
-                          className={`flex items-center justify-center bg-black text-white font-medium h-10 w-40 rounded-lg transition duration-200 transform hover:scale-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400`}
-                        >
-                          Add to cart
-                        </button>
 
-                        {/* Price Display */}
-                        <p className="text-2xl font-bold text-gray-800">{formatCurrency(product?.price)}</p>
-                      </>
-                    );
-                  })()}
-                </div>
+              {/* Price & Add to Cart */}
+              <div className="flex items-center gap-4 mb-6 pt-2">
+                {(() => {
+                  const hasVariants =
+                    product?.variants && product.variants.length > 0;
+                  const isVariantSelected =
+                    selectedVariant || (hasVariants && selectedSize);
+                  const isDisabled = hasVariants && !isVariantSelected;
 
-                {/* Extra sections - Secured Payment, etc. */}
-                <div className="grid grid-cols-2 gap-y-4 border-t pt-6">
-                    {extraSections?.map((section, index) => (
-                        <div key={index} className="flex items-center">
-                            {section?.icon}
-                            <p className="ml-2 text-sm text-gray-600">{section?.label}</p>
-                        </div>
-                    ))}
-                </div>
+                  return (
+                    <>
+                      <button
+                        onClick={addItemToCart}
+                        disabled={isDisabled}
+                        className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
+                          isDisabled
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-black text-white transform hover:scale-105 hover:shadow-lg active:scale-95"
+                        }`}
+                      >
+                        {isDisabled ? "Select variant" : "Add to cart"}
+                      </button>
+
+                      {/* Price Display */}
+                      <p className="text-2xl font-bold text-gray-800">
+                        {formatCurrency(product?.price)}
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Extra sections - Secured Payment, etc. */}
+              <div className="grid grid-cols-2 gap-y-4 border-t pt-6">
+                {extraSections?.map((section, index) => (
+                  <div key={index} className="flex items-center">
+                    {section?.icon}
+                    <p className="ml-2 text-sm text-gray-600">
+                      {section?.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          
+
           <hr className="my-10" />
 
           {/* DESCRIPTION & VIDEO SECTION */}
           <div className="mt-12 flex flex-col lg:flex-row gap-8">
             {/* LEFT: Product Description & Tabs */}
             <div className="w-full lg:w-1/2">
-                
-                {/* Tabs for Description, Comments, Q&A */}
-                <div className="border-b mb-4">
-                    <div className="flex space-x-6">
-                        {/* Giả lập các tab với state activeTab */}
-                        {['Description', 'User comments (1)', 'Question & Answer (4)'].map((tabTitle) => (
-              <button
-                key={tabTitle}
-                onClick={() => setActiveTab(tabTitle.split(' ')[0])}
-                className={`pb-2 text-sm font-medium transition-colors duration-150 ${
-                  activeTab === tabTitle.split(' ')[0]
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-500 hover:text-black hover:scale-102'
-                } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
-              >
-                {tabTitle}
-              </button>
-                        ))}
-                    </div>
+              {/* Tabs for Description, Comments, Q&A */}
+              <div className="border-b mb-4">
+                <div className="flex space-x-6">
+                  {/* Giả lập các tab với state activeTab */}
+                  {[
+                    "Description",
+                    "User comments (1)",
+                    "Question & Answer (4)",
+                  ].map((tabTitle) => (
+                    <button
+                      key={tabTitle}
+                      onClick={() => setActiveTab(tabTitle.split(" ")[0])}
+                      className={`pb-2 text-sm font-medium transition-colors duration-150 ${
+                        activeTab === tabTitle.split(" ")[0]
+                          ? "border-b-2 border-black text-black"
+                          : "text-gray-500 hover:text-black hover:scale-102"
+                      } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
+                    >
+                      {tabTitle}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Nội dung Description */}
-                {activeTab === 'Description' && (
-                    <div className="pt-2">
-                        <p className="text-sm text-gray-600 mb-6">
-                            {product?.description || "No description available for this product."}
-                        </p>
-
-                    </div>
-                )}
+              {/* Nội dung Description */}
+              {activeTab === "Description" && (
+                <div className="pt-2">
+                  <p className="text-sm text-gray-600 mb-6">
+                    {product?.description ||
+                      "No description available for this product."}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* RIGHT: Video Placeholder */}
             <div className="w-full lg:w-1/2">
               <div className=" relative overflow-hidden rounded-lg shadow-lg aspect-video bg-black">
                 <img
-                  src={product?.thumbnail} 
+                  src={product?.thumbnail}
                   alt="Product Video Thumbnail"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 shadow-md active:scale-95 focus:outline-none" role="button" tabIndex={0} aria-label="Play video">
+                  <div
+                    className="w-16 h-16 bg-white rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 shadow-md active:scale-95 focus:outline-none"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Play video"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -347,7 +400,7 @@ const ProductDetails = () => {
                   </div>
                 </div>
                 <div className="absolute bottom-2 right-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded text-xs">
-                    1:00 M
+                  1:00 M
                 </div>
               </div>
             </div>
@@ -365,7 +418,9 @@ const ProductDetails = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500">No Similar Products Found!</p>
+              <p className="text-center text-gray-500">
+                No Similar Products Found!
+              </p>
             )}
           </div>
         </>

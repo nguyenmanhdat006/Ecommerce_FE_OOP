@@ -37,37 +37,37 @@ const sampleUsers = [
 
 export function UsersPage() {
   const { t } = useTranslation();
-  
-  const userColumns = [
-    { key: "avatar", header: "Avatar", width: "60px", render: (u) => {
-        // Prefer explicit avatar URL, otherwise use a deterministic dicebear avatar based on id/email
-        const src = u.avatar || (u.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.email)}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=user-${u.id}`);
-        return (
-          <Avatar className="w-10 h-10">
-            <AvatarImage src={src} alt={u.username || u.email} />
-            <AvatarFallback>{(u.username || u.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-        )
-      } },
+
+const userColumns = [
+  { key: "avatar", header: "Avatar", width: "60px", render: (u) => {
+      // Prefer explicit avatar URL, otherwise use a deterministic dicebear avatar based on id/email
+      const src = u.avatar || (u.email ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.email)}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=user-${u.id}`);
+      return (
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={src} alt={u.username || u.email} />
+          <AvatarFallback>{(u.username || u.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+      )
+    } },
     { key: "username", header: t('admin.users.username'), render: (u) => <span className="font-medium">{u.username}</span> },
     { key: "email", header: t('admin.users.email'), render: (u) => <span className="text-sm">{u.email}</span> },
     { key: "role", header: t('admin.users.role'), render: (u) => (
-        <Badge variant={u.role === 'ADMIN' ? undefined : 'outline'}>{u.role}</Badge>
-      ) },
+      <Badge variant={u.role === 'ADMIN' ? undefined : 'outline'}>{u.role}</Badge>
+    ) },
     { key: "status", header: t('admin.users.status'), render: (u) => (
         u.active ? <Badge className="bg-green-500 text-white">{t('admin.users.active')}</Badge> : <Badge variant="outline">{t('admin.users.inactive')}</Badge>
-      ) },
+    ) },
     { key: "actions", header: t('admin.users.actions'), width: "80px", render: (u) => (
-        <ActionMenu
-          item={u}
-          actions={[
+      <ActionMenu
+        item={u}
+        actions={[
             { label: t('admin.users.detail'), icon: <Eye className="w-4 h-4" />, onClick: (it) => window.dispatchEvent(new CustomEvent('admin-user-detail', { detail: it.id })) },
             { label: t('admin.users.deleteUser'), icon: <Trash className="w-4 h-4" />, subtitle: t('admin.users.disableAccount'), variant: 'danger', onClick: (it) => window.dispatchEvent(new CustomEvent('admin-user-delete', { detail: it.id })) },
-          ]}
-          ariaLabel="User actions"
-        />
-      ) },
-  ];
+        ]}
+        ariaLabel="User actions"
+      />
+    ) },
+];
   const dispatch = useDispatch();
   const users = useSelector((s) => s.adminUsers?.users || []);
   const loading = useSelector((s) => s.adminUsers?.loading);
