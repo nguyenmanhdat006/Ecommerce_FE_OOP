@@ -351,8 +351,22 @@ const ProductDetails = () => {
                   </div>
                 )}
 
-              {/* Price & Add to Cart */}
-              <div className="flex items-center gap-4 mb-6 pt-2">
+              {/* Price Display */}
+              <div className="mb-4 pt-2">
+                <div className="flex flex-col">
+                  <p className="text-2xl font-bold text-gray-800">
+                    {formatCurrency(product?.price * quantity)}
+                  </p>
+                  {quantity > 1 && (
+                    <p className="text-sm text-gray-500">
+                      {formatCurrency(product?.price)} × {quantity}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Add to Cart & Buy Now */}
+              <div className="mb-6">
                 {(() => {
                   const hasVariants =
                     product?.variants && product.variants.length > 0;
@@ -361,44 +375,30 @@ const ProductDetails = () => {
                   const isDisabled = hasVariants && !isVariantSelected;
 
                   return (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={addItemToCart}
-                          disabled={isDisabled}
-                          className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
-                            isDisabled
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-black text-white transform hover:scale-102 hover:shadow-md cursor-pointer active:scale-95"
-                          }`}
-                        >
-                          Add to cart
-                        </button>
-                        <button
-                          onClick={handleBuyNow}
-                          disabled={isDisabled}
-                          className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
-                            isDisabled
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-[#FF6B6B] text-white transform cursor-pointer hover:scale-102 active:scale-102 hover:shadow-md active:scale-95"
-                          }`}
-                        >
-                          Buy Now
-                        </button>
-                      </div>
-
-                      {/* Price Display */}
-                      <div className="flex flex-col">
-                        <p className="text-2xl font-bold text-gray-800">
-                          {formatCurrency(product?.price * quantity)}
-                        </p>
-                        {quantity > 1 && (
-                          <p className="text-sm text-gray-500">
-                            {formatCurrency(product?.price)} × {quantity}
-                          </p>
-                        )}
-                      </div>
-                    </>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={addItemToCart}
+                        disabled={isDisabled}
+                        className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
+                          isDisabled
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-black text-white transform hover:scale-102 hover:shadow-md cursor-pointer active:scale-95"
+                        }`}
+                      >
+                        Add to cart
+                      </button>
+                      <button
+                        onClick={handleBuyNow}
+                        disabled={isDisabled}
+                        className={`flex items-center justify-center font-medium h-10 w-40 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400 ${
+                          isDisabled
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-[#FF6B6B] text-white transform cursor-pointer hover:scale-102 active:scale-102 hover:shadow-md active:scale-95"
+                        }`}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   );
                 })()}
               </div>
