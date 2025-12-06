@@ -71,8 +71,8 @@ export const normalizeUser = (user) => {
       else if (first?.name) candidate = first.name;
 
       if (candidate) {
-        normalized.rawRole = candidate;
-        normalized.role = normalizeRole(candidate);
+  normalized.rawRole = candidate;
+  normalized.role = normalizeRole(candidate);
       }
     }
     

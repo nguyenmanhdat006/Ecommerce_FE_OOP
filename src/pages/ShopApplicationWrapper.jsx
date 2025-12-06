@@ -4,6 +4,8 @@ import ChatWidget from '../components/ChatWidget/ChatWidget'
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect, useState } from 'react'
 import { loadUserProfile } from '@/store/userProfileSlice'
+import { fetchCategories } from '@/store/categorySlice'
+import { fetchUserCarts, selectCartItems } from '@/store/features/cart'
 import { getToken, getUser } from '@/utils/jwt-helper'
 import OrderStatusToast from '@/components/OrderStatusToast/OrderStatusToast'
 import Splash from '@/components/Splash'
@@ -13,6 +15,8 @@ import content from '../data/content.json'
 const ShopApplicationWrapper = () => {
   const dispatch = useDispatch();
   const loaded = useSelector((state)=> state?.userProfile?.loaded);
+  const categoriesLoaded = useSelector((state)=> state?.categoryState?.loaded);
+  const storeCart = useSelector(selectCartItems);
   const [showSplash, setShowSplash] = useState(false);
 
   // Hiển thị splash 2 giây khi component mount (lần đầu vào hoặc refresh)
@@ -41,6 +45,21 @@ const ShopApplicationWrapper = () => {
       dispatch(loadUserProfile());
     }
   }, [dispatch, loaded]);
+
+  // Load categories
+  useEffect(() => {
+    if (!categoriesLoaded) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, categoriesLoaded]);
+
+  // Load cart when user is logged in
+  useEffect(() => {
+    const currentUser = getUser();
+    if (currentUser?.id && (!storeCart || storeCart.length === 0)) {
+      dispatch(fetchUserCarts());
+    }
+  }, [dispatch, storeCart]);
 
   return (
     <div className="min-h-screen flex flex-col">

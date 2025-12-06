@@ -181,24 +181,24 @@ export default function AdminAgent() {
         }
         
         // Fallback: tìm số đơn hàng
-        const responseConfirmMatch = response.match(/#?(\d+)/);
+      const responseConfirmMatch = response.match(/#?(\d+)/);
         if (responseConfirmMatch) {
-          const orderId = responseConfirmMatch[1];
-          // Thêm response vào messages trước
-          chatHistoryRef.current.push({
-            role: "assistant",
-            content: response,
-          });
-          const assistantMessage = {
-            id: Date.now() + 1,
-            role: "assistant",
-            content: response,
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          // Sau đó xác nhận đơn hàng
-          await handleConfirmOrder(orderId);
-          return;
+        const orderId = responseConfirmMatch[1];
+        // Thêm response vào messages trước
+        chatHistoryRef.current.push({
+          role: "assistant",
+          content: response,
+        });
+        const assistantMessage = {
+          id: Date.now() + 1,
+          role: "assistant",
+          content: response,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        // Sau đó xác nhận đơn hàng
+        await handleConfirmOrder(orderId);
+        return;
         }
       }
       

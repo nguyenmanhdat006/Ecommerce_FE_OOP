@@ -267,7 +267,7 @@ export function ImageUploadSection({
           </>
         ) : (
           <>
-            <Upload size={32} className="mx-auto mb-2 text-muted-foreground" />
+        <Upload size={32} className="mx-auto mb-2 text-muted-foreground" />
             <p className="font-medium mb-1">Kéo thả ảnh vào đây hoặc click để chọn</p>
             <p className="text-sm text-muted-foreground mb-2">
               Hoặc paste URL ảnh từ clipboard
