@@ -5,18 +5,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import _ from "lodash";
 
-import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
-import Rating from "../../components/Rating/Rating";
-import SizeFilter from "../../components/Filters/SizeFilter";
-import ProductColors from "./ProductColors";
-import ProductVariants from "./components/ProductVariants";
-import SvgCreditCard from "../../components/common/SvgCreditCard";
-import SvgCloth from "../../components/common/SvgCloth";
-import SvgShipping from "../../components/common/SvgShipping";
-import SvgReturn from "../../components/common/SvgReturn";
-import SectionHeading from "../../components/Sections/SectionsHeading/SeactionHeading";
-import ProductCard from "../ProductListPage/ProductCard";
-import Spinner from "../../components/Spinner/Spinner";
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
+import Rating from '../../components/Rating/Rating';
+import SizeFilter from '../../components/Filters/SizeFilter';
+import ProductColors from './ProductColors';
+import SvgCreditCard from '../../components/common/SvgCreditCard';
+import SvgCloth from '../../components/common/SvgCloth';
+import SvgShipping from '../../components/common/SvgShipping';
+import SvgReturn from '../../components/common/SvgReturn';
+import SectionHeading from '../../components/Sections/SectionsHeading/SeactionHeading';
+import ProductCard from '../ProductListPage/ProductCard';
+import Spinner from '../../components/Spinner/Spinner';
 
 import { addToCart, fetchUserCarts } from "../../store/features/cart";
 import { cartAPI } from "../../api/cart.api";
@@ -98,6 +97,26 @@ const ProductDetails = () => {
     }
     setBreadCrumbLink(arrayLinks);
   }, [productCategory, product]);
+
+  // Load reviews for product
+  useEffect(() => {
+    if (!product?.id) return;
+    let mounted = true;
+    setLoadingReviews(true);
+    reviewAPI
+      .getByProduct(product.id)
+      .then((res) => {
+        if (!mounted) return;
+        const data = res?.data ?? res ?? [];
+        setReviews(data);
+      })
+      .catch((err) => {
+        console.error('Failed to load reviews', err);
+        setReviews([]);
+      })
+      .finally(() => mounted && setLoadingReviews(false));
+    return () => (mounted = false);
+  }, [product?.id]);
 
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -232,7 +251,7 @@ const ProductDetails = () => {
   }, [product]);
 
   // Tab hiện tại cho phần mô tả
-  const [activeTab, setActiveTab] = useState("Description");
+  const [activeTab, setActiveTab] = useState('Description');
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -419,46 +438,43 @@ const ProductDetails = () => {
               </div>
             </div>
           </div>
-
+          
           <hr className="my-10" />
 
           {/* DESCRIPTION & VIDEO SECTION */}
           <div className="mt-12 flex flex-col lg:flex-row gap-8">
             {/* LEFT: Product Description & Tabs */}
             <div className="w-full lg:w-1/2">
-              {/* Tabs for Description, Comments, Q&A */}
-              <div className="border-b mb-4">
-                <div className="flex space-x-6">
-                  {/* Giả lập các tab với state activeTab */}
-                  {[
-                    "Description",
-                    "User comments (1)",
-                    "Question & Answer (4)",
-                  ].map((tabTitle) => (
-                    <button
-                      key={tabTitle}
-                      onClick={() => setActiveTab(tabTitle.split(" ")[0])}
-                      className={`pb-2 text-sm font-medium transition-colors duration-150 ${
-                        activeTab === tabTitle.split(" ")[0]
-                          ? "border-b-2 border-black text-black"
-                          : "text-gray-500 hover:text-black hover:scale-102"
-                      } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
-                    >
-                      {tabTitle}
-                    </button>
-                  ))}
+                
+                {/* Tabs for Description, Comments, Q&A */}
+                <div className="border-b mb-4">
+                    <div className="flex space-x-6">
+                        {/* Giả lập các tab với state activeTab */}
+                        {['Description', 'User comments (1)', 'Question & Answer (4)'].map((tabTitle) => (
+              <button
+                key={tabTitle}
+                onClick={() => setActiveTab(tabTitle.split(' ')[0])}
+                className={`pb-2 text-sm font-medium transition-colors duration-150 ${
+                  activeTab === tabTitle.split(' ')[0]
+                    ? 'border-b-2 border-black text-black' 
+                    : 'text-gray-500 hover:text-black hover:scale-102'
+                } focus:outline-none focus:ring-1 focus:ring-indigo-200`}
+              >
+                {tabTitle}
+              </button>
+                        ))}
+                    </div>
                 </div>
-              </div>
 
-              {/* Nội dung Description */}
-              {activeTab === "Description" && (
-                <div className="pt-2">
-                  <p className="text-sm text-gray-600 mb-6">
-                    {product?.description ||
-                      "No description available for this product."}
-                  </p>
-                </div>
-              )}
+                {/* Nội dung Description */}
+                {activeTab === 'Description' && (
+                    <div className="pt-2">
+                        <p className="text-sm text-gray-600 mb-6">
+                            {product?.description || "No description available for this product."}
+                        </p>
+
+                    </div>
+                )}
             </div>
 
             {/* RIGHT: Video Placeholder */}
@@ -490,6 +506,38 @@ const ProductDetails = () => {
                     </svg>
                   </div>
                 </div>
+
+                {/* User details dialog when clicking on avatar/comment */}
+                <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                    </DialogHeader>
+                    <div className="mt-4 flex items-start gap-4">
+                      <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
+                        {selectedUser?.avatar ? (
+                          <img src={selectedUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-500">U</div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-sm text-gray-700">
+                        <div className="font-semibold text-lg">{selectedUser ? `${selectedUser.firstName || ''} ${selectedUser.lastName || ''}`.trim() : '---'}</div>
+                      {isAdmin ? (
+                        <>
+                          <div className="mt-2">Email: <span className="font-medium">{selectedUser?.email || '---'}</span></div>
+                          <div className="mt-1">Phone: <span className="font-medium">{selectedUser?.phoneNumber || '---'}</span></div>
+                          <div className="mt-1">ID: <span className="text-xs text-gray-500">{selectedUser?.id || '---'}</span></div>
+                        </>
+                      ) : (
+                        <div className="mt-2 text-sm text-gray-500">Thông tin liên hệ chỉ hiển thị cho quản trị viên.</div>
+                      )}
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setUserDialogOpen(false)}>Đóng</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <div className="absolute bottom-2 right-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded text-xs">
                   1:00 M
                 </div>

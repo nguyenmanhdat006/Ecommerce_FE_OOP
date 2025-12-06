@@ -12,7 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { reviewAPI } from '@/api/review.api';
 import dayjs from "dayjs";
+import { toast } from 'react-hot-toast';
 import { formatCurrency } from "@/utils/currencyFormatter";
 
 export default function OrderManagement() {
@@ -24,6 +26,11 @@ export default function OrderManagement() {
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [currentReviewItem, setCurrentReviewItem] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
   
   // Check if user is admin
   const isAdmin = user?.role === "ADMIN";
@@ -268,6 +275,23 @@ export default function OrderManagement() {
                 Hủy đơn
               </button>
             )}
+            {/* Review button: shown when order is PAID */}
+            {order.status === 'PAID' && (
+              <button
+                className="bg-orange-500 text-white px-4 py-1 rounded hover:bg-orange-600 text-sm"
+                onClick={() => {
+                  // open review dialog for first item by default (or user can pick)
+                  const firstItem = order.orderItems && order.orderItems[0];
+                  // set current review item (keep original fields only)
+                  setCurrentReviewItem({ ...firstItem, orderId: order.id });
+                  setRating(5);
+                  setComment('');
+                  setReviewDialogOpen(true);
+                }}
+              >
+                Đánh giá
+              </button>
+            )}
           </div>
         </div>
       ))}
@@ -317,6 +341,104 @@ export default function OrderManagement() {
               onClick={handleConfirmCancel}
             >
               Xác nhận hủy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đánh giá sản phẩm</DialogTitle>
+            <DialogDescription>Hãy để lại đánh giá và nhận xét về sản phẩm bạn đã mua.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            {/* (preview removed: only rating and comment remain) */}
+
+            {/* Controls: rating + comment in responsive layout */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-1">
+                <label className="text-sm font-medium block mb-2">Đánh giá</label>
+                <div className="flex items-center gap-2">
+                  {[1,2,3,4,5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setRating(n)}
+                      className={`text-3xl leading-none focus:outline-none ${n <= rating ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'}`}
+                      aria-label={`Rate ${n} star`}
+                      title={`${n} sao`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 text-sm text-gray-600">{rating} / 5</div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium block mb-2">Nhận xét</label>
+                <textarea
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  rows={6}
+                  maxLength={500}
+                  className="w-full border rounded-md px-3 py-2 resize-y focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+                  placeholder="Mô tả trải nghiệm của bạn: chất lượng, kích thước, giao hàng... (tối đa 500 ký tự)"
+                  aria-label="Review comment"
+                />
+                <div className="flex justify-between items-center mt-1">
+                  <div className="text-xs text-gray-500">Cập nhật: đánh giá trung thực giúp người bán cải thiện chất lượng.</div>
+                  <div className="text-xs text-gray-500">{comment.length}/500</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!currentReviewItem) return;
+                if (!rating || rating < 1) {
+                  toast.error('Vui lòng chọn số sao (1-5)');
+                  return;
+                }
+                if ((comment || '').trim().length < 3) {
+                  toast.error('Vui lòng nhập nhận xét ít nhất 3 ký tự');
+                  return;
+                }
+
+                try {
+                  setSubmittingReview(true);
+                  const userId = localStorage.getItem('userId') || (user && user.id) || localStorage.getItem('customerId');
+                  const payload = {
+                    userId,
+                    productId: currentReviewItem.productId,
+                    orderItemId: currentReviewItem.id,
+                    rating,
+                    comment: comment.trim(),
+                  };
+                  await reviewAPI.create(payload);
+                  toast.success('Cảm ơn! Đánh giá của bạn đã được gửi.');
+                  setReviewDialogOpen(false);
+                  // reset local form state
+                  setRating(5);
+                  setComment('');
+                } catch (err) {
+                  console.error('Failed to submit review', err);
+                  toast.error('Gửi đánh giá thất bại. Vui lòng thử lại.');
+                } finally {
+                  setSubmittingReview(false);
+                }
+              }}
+              disabled={submittingReview}
+            >
+              {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
             </Button>
           </DialogFooter>
         </DialogContent>
