@@ -18,6 +18,8 @@ const ShopApplicationWrapper = () => {
   const categoriesLoaded = useSelector((state)=> state?.categoryState?.loaded);
   const storeCart = useSelector(selectCartItems);
   const [showSplash, setShowSplash] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
 
   // Hiển thị splash 2 giây khi component mount (lần đầu vào hoặc refresh)
   // Nhưng không hiển thị nếu vừa login (đã hiển thị splash ở AuthenticationWrapperV2)
@@ -54,12 +56,14 @@ const ShopApplicationWrapper = () => {
   }, [dispatch, categoriesLoaded]);
 
   // Load cart when user is logged in
-  useEffect(() => {
-    const currentUser = getUser();
-    if (currentUser?.id) {
-      dispatch(fetchUserCarts());
-    }
-  }, [dispatch, storeCart]);
+
+useEffect(() => {
+  const currentUser = getUser();
+
+  if (!loaded && currentUser?.id) {
+    dispatch(fetchUserCarts()).finally(() => setLoaded(true));
+  }
+}, [dispatch, loaded]);
 
   return (
     <div className="min-h-screen flex flex-col">
