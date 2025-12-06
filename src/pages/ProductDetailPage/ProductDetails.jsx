@@ -16,6 +16,17 @@ import SvgReturn from '../../components/common/SvgReturn';
 import SectionHeading from '../../components/Sections/SectionsHeading/SeactionHeading';
 import ProductCard from '../ProductListPage/ProductCard';
 import Spinner from '../../components/Spinner/Spinner';
+import { reviewAPI } from '../../api/review.api';
+import dayjs from 'dayjs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 import { addToCart } from '../../store/features/cart';
 import { cartAPI } from '../../api/cart.api';
@@ -98,6 +109,26 @@ const ProductDetails = () => {
     setBreadCrumbLink(arrayLinks);
   }, [productCategory, product]);
 
+  // Load reviews for product
+  useEffect(() => {
+    if (!product?.id) return;
+    let mounted = true;
+    setLoadingReviews(true);
+    reviewAPI
+      .getByProduct(product.id)
+      .then((res) => {
+        if (!mounted) return;
+        const data = res?.data ?? res ?? [];
+        setReviews(data);
+      })
+      .catch((err) => {
+        console.error('Failed to load reviews', err);
+        setReviews([]);
+      })
+      .finally(() => mounted && setLoadingReviews(false));
+    return () => (mounted = false);
+  }, [product?.id]);
+
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1); 
 
@@ -158,6 +189,17 @@ const ProductDetails = () => {
   
   // Tab hiện tại cho phần mô tả
   const [activeTab, setActiveTab] = useState('Description');
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const isAdmin = currentUser?.role === 'ADMIN';
+  // Edit / Delete review state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState('');
+  const [processingReviewAction, setProcessingReviewAction] = useState(false);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -283,6 +325,80 @@ const ProductDetails = () => {
                 </div>
             </div>
           </div>
+
+          {/* Edit review dialog */}
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Chỉnh sửa đánh giá</DialogTitle>
+                <DialogDescription>Thay đổi số sao và nhận xét của bạn.</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
+                <div>
+                  <label className="text-sm font-medium block mb-2">Đánh giá</label>
+                  <div className="flex items-center gap-2">
+                    {[1,2,3,4,5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setEditRating(n)}
+                        className={`text-3xl focus:outline-none ${n <= editRating ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <div className="ml-3 text-sm text-gray-600">{editRating} / 5</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium block mb-2">Nhận xét</label>
+                  <textarea
+                    value={editComment}
+                    onChange={(e) => setEditComment(e.target.value)}
+                    rows={5}
+                    maxLength={500}
+                    className="w-full border rounded-md px-3 py-2 resize-y focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Hủy</Button>
+                <Button
+                  onClick={async () => {
+                    if (!editingReview) return;
+                    if (editRating < 1) { toast.error('Vui lòng chọn từ 1-5 sao'); return; }
+                    if ((editComment || '').trim().length < 3) { toast.error('Nhập ít nhất 3 ký tự'); return; }
+                    try {
+                      setProcessingReviewAction(true);
+                      const payload = {
+                        userId: editingReview.userId || currentUser?.id,
+                        productId: product.id,
+                        orderItemId: editingReview.orderItemId,
+                        rating: editRating,
+                        comment: editComment.trim(),
+                      };
+                      await reviewAPI.update(editingReview.id, payload);
+                      // optimistic update in UI
+                      setReviews((prev) => prev.map((it) => it.id === editingReview.id ? { ...it, rating: editRating, comment: editComment.trim() } : it));
+                      toast.success('Đã cập nhật đánh giá');
+                      setEditDialogOpen(false);
+                    } catch (err) {
+                      console.error('Update review failed', err);
+                      toast.error('Cập nhật thất bại');
+                    } finally {
+                      setProcessingReviewAction(false);
+                    }
+                  }}
+                  disabled={processingReviewAction}
+                >
+                  {processingReviewAction ? 'Đang xử lý...' : 'Cập nhật'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           
           <hr className="my-10" />
 
@@ -295,7 +411,7 @@ const ProductDetails = () => {
                 <div className="border-b mb-4">
                     <div className="flex space-x-6">
                         {/* Giả lập các tab với state activeTab */}
-                        {['Description', 'User comments (1)', 'Question & Answer (4)'].map((tabTitle) => (
+                        {['Description', 'User comments'].map((tabTitle) => (
               <button
                 key={tabTitle}
                 onClick={() => setActiveTab(tabTitle.split(' ')[0])}
@@ -319,6 +435,91 @@ const ProductDetails = () => {
                         </p>
 
                     </div>
+                )}
+
+                {/* User comments tab */}
+                {activeTab === 'User' && (
+                  <div className="pt-2">
+                    {loadingReviews ? (
+                      <div className="text-center py-6"><Spinner /></div>
+                    ) : (
+                      <div className="space-y-4">
+                                {reviews.length === 0 ? (
+                                  <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                ) : (
+                                  reviews.map((r) => (
+                                    <div key={r.id} className="border rounded p-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setSelectedUser(r.user || null);
+                                              setUserDialogOpen(true);
+                                            }}
+                                            className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"
+                                            aria-label="Open user details"
+                                          >
+                                            {r.user?.avatar ? (
+                                              <img src={r.user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">U</div>
+                                            )}
+                                          </button>
+
+                                          <div>
+                                            <div className="font-semibold">{r.user ? `${r.user.firstName || ''} ${r.user.lastName || ''}`.trim() : 'Người dùng'}</div>
+                                            <div className="text-sm text-yellow-500">{Array.from({ length: r.rating }).map((_, i) => (
+                                              <span key={i}>★</span>
+                                            ))}</div>
+                                          </div>
+                                        </div>
+                                        <div className="text-xs text-gray-400">{dayjs(r.createdAt).format('DD/MM/YYYY HH:mm')}</div>
+                                      </div>
+                                      <div className="mt-2 text-sm text-gray-700">{r.comment}</div>
+                                      {/* actions: edit/delete for owner or admin */}
+                                      {(currentUser && (currentUser.id === r.user?.id)) || isAdmin ? (
+                                        <div className="mt-3 flex gap-2 justify-end">
+                                          <button
+                                            type="button"
+                                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                                            onClick={() => {
+                                              setEditingReview(r);
+                                              setEditRating(r.rating || 5);
+                                              setEditComment(r.comment || '');
+                                              setEditDialogOpen(true);
+                                            }}
+                                          >
+                                            Sửa
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                                            onClick={async () => {
+                                              if (!window.confirm('Bạn có chắc muốn xóa đánh giá này?')) return;
+                                              try {
+                                                setProcessingReviewAction(true);
+                                                await reviewAPI.delete(r.id);
+                                                setReviews((prev) => prev.filter((it) => it.id !== r.id));
+                                                toast.success('Đã xóa đánh giá');
+                                              } catch (err) {
+                                                console.error('Delete review failed', err);
+                                                toast.error('Xóa đánh giá thất bại');
+                                              } finally {
+                                                setProcessingReviewAction(false);
+                                              }
+                                            }}
+                                          >
+                                            Xóa
+                                          </button>
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  ))
+                                )}
+                      </div>
+                    )}
+                  </div>
                 )}
             </div>
 
@@ -346,6 +547,38 @@ const ProductDetails = () => {
                     </svg>
                   </div>
                 </div>
+
+                {/* User details dialog when clicking on avatar/comment */}
+                <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                    </DialogHeader>
+                    <div className="mt-4 flex items-start gap-4">
+                      <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
+                        {selectedUser?.avatar ? (
+                          <img src={selectedUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-500">U</div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-sm text-gray-700">
+                        <div className="font-semibold text-lg">{selectedUser ? `${selectedUser.firstName || ''} ${selectedUser.lastName || ''}`.trim() : '---'}</div>
+                      {isAdmin ? (
+                        <>
+                          <div className="mt-2">Email: <span className="font-medium">{selectedUser?.email || '---'}</span></div>
+                          <div className="mt-1">Phone: <span className="font-medium">{selectedUser?.phoneNumber || '---'}</span></div>
+                          <div className="mt-1">ID: <span className="text-xs text-gray-500">{selectedUser?.id || '---'}</span></div>
+                        </>
+                      ) : (
+                        <div className="mt-2 text-sm text-gray-500">Thông tin liên hệ chỉ hiển thị cho quản trị viên.</div>
+                      )}
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setUserDialogOpen(false)}>Đóng</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <div className="absolute bottom-2 right-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded text-xs">
                     1:00 M
                 </div>
