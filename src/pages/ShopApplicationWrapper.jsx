@@ -56,7 +56,7 @@ const ShopApplicationWrapper = () => {
   // Load cart when user is logged in
   useEffect(() => {
     const currentUser = getUser();
-    if (currentUser?.id && (!storeCart || storeCart.length === 0)) {
+    if (currentUser?.id) {
       dispatch(fetchUserCarts());
     }
   }, [dispatch, storeCart]);
