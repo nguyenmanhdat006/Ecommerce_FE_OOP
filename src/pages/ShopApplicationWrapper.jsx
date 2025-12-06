@@ -18,7 +18,7 @@ const ShopApplicationWrapper = () => {
   const categoriesLoaded = useSelector((state)=> state?.categoryState?.loaded);
   const storeCart = useSelector(selectCartItems);
   const [showSplash, setShowSplash] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [cartLoaded, setLoaded] = useState(false);
 
 
   // Hiển thị splash 2 giây khi component mount (lần đầu vào hoặc refresh)
@@ -60,10 +60,10 @@ const ShopApplicationWrapper = () => {
 useEffect(() => {
   const currentUser = getUser();
 
-  if (!loaded && currentUser?.id) {
+  if (!cartLoaded && currentUser?.id) {
     dispatch(fetchUserCarts()).finally(() => setLoaded(true));
   }
-}, [dispatch, loaded]);
+}, [dispatch, cartLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col">
