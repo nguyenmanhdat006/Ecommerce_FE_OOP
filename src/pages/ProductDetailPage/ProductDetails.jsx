@@ -283,6 +283,24 @@ const ProductDetails = () => {
               </div> */}
 
 
+              {/* Stock Quantity Display */}
+              {selectedVariant && selectedVariant.stockQuantity !== undefined && (
+                <div className="mb-4 pt-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Stock:</span>
+                    <span className={`text-sm font-semibold ${
+                      selectedVariant.stockQuantity === 0
+                        ? 'text-red-600'
+                        : 'text-gray-600'
+                    }`}>
+                      {selectedVariant.stockQuantity === 0
+                        ? 'Out of stock'
+                        : `${selectedVariant.stockQuantity}`}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Price & Add to Cart */}
               <div className="flex items-center gap-4 mb-6 pt-2">
                 {(() => {

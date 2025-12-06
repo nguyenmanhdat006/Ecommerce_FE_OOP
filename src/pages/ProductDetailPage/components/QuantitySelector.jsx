@@ -1,6 +1,11 @@
-import React from 'react';
+import React from "react";
 
-const QuantitySelector = ({ quantity, onQuantityChange, maxQuantity = 999, minQuantity = 1 }) => {
+const QuantitySelector = ({
+  quantity,
+  onQuantityChange,
+  maxQuantity = 999,
+  minQuantity = 1,
+}) => {
   const handleDecrease = () => {
     if (quantity > minQuantity) {
       onQuantityChange(quantity - 1);
@@ -17,7 +22,7 @@ const QuantitySelector = ({ quantity, onQuantityChange, maxQuantity = 999, minQu
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value) && value >= minQuantity && value <= maxQuantity) {
       onQuantityChange(value);
-    } else if (e.target.value === '') {
+    } else if (e.target.value === "") {
       onQuantityChange(minQuantity);
     }
   };
@@ -58,4 +63,3 @@ const QuantitySelector = ({ quantity, onQuantityChange, maxQuantity = 999, minQu
 };
 
 export default QuantitySelector;
-
