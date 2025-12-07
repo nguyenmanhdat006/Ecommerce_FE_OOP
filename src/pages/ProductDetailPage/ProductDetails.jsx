@@ -21,6 +21,7 @@ import { reviewAPI } from '../../api/review.api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import dayjs from 'dayjs';
+import { FiEdit3, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
 
 import { addToCart, fetchUserCarts } from "../../store/features/cart";
 import { cartAPI } from "../../api/cart.api";
@@ -61,6 +62,11 @@ const ProductDetails = () => {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editReviewId, setEditReviewId] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState('');
+  const [editingSubmitting, setEditingSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [similarProduct, setSimilarProducts] = useState([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const categories = useSelector((state) => state?.categoryState?.categories);
@@ -498,37 +504,112 @@ const ProductDetails = () => {
                         {reviews.length === 0 ? (
                           <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>
                         ) : (
-                          reviews.map((r) => (
-                            <div key={r.id} className="border rounded p-3">
-                              <div className="flex gap-4">
-                                <button
-                                  type="button"
-                                  onClick={() => { setSelectedUser(r.user || null); setUserDialogOpen(true); }}
-                                  className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0"
-                                >
-                                  {r.user?.avatar ? (
-                                    <img src={r.user.avatar} alt="avatar" className="w-full h-full object-cover" />
-                                  ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">U</div>
-                                  )}
-                                </button>
+                          reviews.map((r) => {
+                            const isOwner = (currentUser && (currentUser.id === r.userId || currentUser.id === r.user?.id));
+                            return (
+                              <div key={r.id} className="border rounded p-3">
+                                <div className="flex gap-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => { setSelectedUser(r.user || null); setUserDialogOpen(true); }}
+                                    className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0"
+                                  >
+                                    {r.user?.avatar ? (
+                                      <img src={r.user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">U</div>
+                                    )}
+                                  </button>
 
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between">
-                                    <div>
-                                      <div className="font-semibold text-sm">{r.user ? `${r.user.firstName || ''} ${r.user.lastName || ''}`.trim() : 'Người dùng'}</div>
-                                      <div className="mt-1 text-yellow-500 text-base leading-none">{Array.from({ length: r.rating }).map((_, i) => (
-                                        <span key={i} className="inline-block mr-0.5">★</span>
-                                      ))}</div>
+                                  <div className="flex-1">
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <div className="font-semibold text-sm">{r.user ? `${r.user.firstName || ''} ${r.user.lastName || ''}`.trim() : 'Người dùng'}</div>
+                                        <div className="mt-1 text-yellow-500 text-base leading-none">{Array.from({ length: r.rating }).map((_, i) => (
+                                          <span key={i} className="inline-block mr-0.5">★</span>
+                                        ))}</div>
+                                      </div>
+                                      <div className="text-xs text-gray-400">{dayjs(r.createdAt).format('DD/MM/YYYY HH:mm')}</div>
                                     </div>
-                                    <div className="text-xs text-gray-400">{dayjs(r.createdAt).format('DD/MM/YYYY HH:mm')}</div>
-                                  </div>
 
-                                  <div className="mt-3 text-sm text-gray-700 min-h-[48px] flex items-center">{r.comment}</div>
+                                    {/* Comment content or edit form */}
+                                    {editReviewId === r.id ? (
+                                      <div className="mt-3 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                          <label className="text-sm text-gray-600">Rating:</label>
+                                          <div className="flex items-center gap-1">
+                                            {[1,2,3,4,5].map((n) => (
+                                              <button
+                                                key={n}
+                                                type="button"
+                                                onClick={() => setEditRating(n)}
+                                                className={`text-2xl leading-none focus:outline-none ${n <= editRating ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'}`}
+                                                aria-label={`Rate ${n} star`}
+                                                title={`${n} sao`}
+                                              >
+                                                ★
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        <textarea value={editComment} onChange={(e) => setEditComment(e.target.value)} className="w-full border rounded p-2 text-sm" rows={3} />
+                                        <div className="flex items-center gap-2">
+                                          <button disabled={editingSubmitting} onClick={async () => {
+                                            setEditingSubmitting(true);
+                                            try {
+                                              const payload = { rating: editRating, comment: editComment };
+                                              await reviewAPI.update(r.id, payload);
+                                              // update local reviews
+                                              setReviews((prev) => prev.map(item => item.id === r.id ? { ...item, rating: editRating, comment: editComment } : item));
+                                              toast.success('Cập nhật đánh giá thành công');
+                                              setEditReviewId(null);
+                                            } catch (err) {
+                                              console.error('Failed to update review', err);
+                                              toast.error('Cập nhật thất bại');
+                                            } finally { setEditingSubmitting(false); }
+                                          }} className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded text-sm">
+                                            <FiCheck /> Lưu
+                                          </button>
+                                          <button disabled={editingSubmitting} onClick={() => { setEditReviewId(null); setEditComment(''); setEditRating(5); }} className="inline-flex items-center gap-2 bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm">
+                                            <FiX /> Hủy
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="mt-3 text-sm text-gray-700 min-h-[48px] flex items-center justify-between">
+                                        <div className="flex-1">{r.comment}</div>
+                                        <div className="ml-4 flex items-center gap-2">
+                                          {isOwner && (
+                                            <button onClick={() => { setEditReviewId(r.id); setEditRating(r.rating || 5); setEditComment(r.comment || ''); }} className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                                              <FiEdit3 /> Sửa
+                                            </button>
+                                          )}
+                                          {(isOwner || isAdmin) && (
+                                            <button disabled={deletingId === r.id} onClick={async () => {
+                                              const ok = window.confirm('Bạn có chắc muốn xóa đánh giá này?');
+                                              if (!ok) return;
+                                              try {
+                                                setDeletingId(r.id);
+                                                const userId = currentUser?.id || '';
+                                                await reviewAPI.delete(`${r.id}?userId=${encodeURIComponent(userId)}`);
+                                                setReviews((prev) => prev.filter(item => item.id !== r.id));
+                                                toast.success('Đã xóa đánh giá');
+                                              } catch (err) {
+                                                console.error('Failed to delete review', err);
+                                                toast.error('Xóa thất bại');
+                                              } finally { setDeletingId(null); }
+                                            }} className="inline-flex items-center gap-1 text-sm text-red-600 hover:underline">
+                                              <FiTrash2 /> Xóa
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     )}

@@ -31,7 +31,7 @@ export default function OrdersTable({
   const [loading, setLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [deletingOrders, setDeletingOrders] = useState(new Set()); // Track which orders are being deleted
-  const [updatingOrder, setUpdatingOrder] = useState(null); // Order đang được cập nhật
+  const [updatingOrder, setUpdatingOrder] = useState(null); // Order object đang được cập nhật
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   //  Gọi API khi component load
@@ -109,7 +109,8 @@ export default function OrdersTable({
 
   // Mở modal cập nhật đơn hàng
   const handleOpenUpdateModal = (order) => {
-    setUpdatingOrder(order.id);
+    // store the full order object so the modal can render immediately
+    setUpdatingOrder(order);
     setIsUpdateModalOpen(true);
   };
 
@@ -121,11 +122,21 @@ export default function OrdersTable({
   // Cập nhật đơn hàng
   const handleUpdate = async (orderId, updateData) => {
     try {
-  const response = await orderAPI.update(orderId, updateData);
-      // API có thể trả về object trực tiếp hoặc trong response.data
-      const updatedOrder = response?.data || response;
-  // reload orders from server
-  await dispatch(fetchOrders());
+      // If only status is changing, use the status endpoint so `changedBy` can be recorded
+      const keys = Object.keys(updateData || {});
+      const onlyStatus = keys.length === 1 && keys[0] === 'status';
+
+      if (onlyStatus) {
+        const changedBy = localStorage.getItem('userId') || localStorage.getItem('customerId') || 'admin';
+        await orderAPI.updateStatus(orderId, updateData.status, changedBy);
+      } else {
+        const response = await orderAPI.update(orderId, updateData);
+        // API có thể trả về object trực tiếp hoặc trong response.data
+        const updatedOrder = response?.data || response;
+      }
+
+      // reload orders from server
+      await dispatch(fetchOrders());
       alert("Đã cập nhật đơn hàng thành công!");
     } catch (error) {
       console.error("Lỗi khi cập nhật đơn hàng:", error);
@@ -165,6 +176,9 @@ export default function OrdersTable({
                   Mã đơn hàng
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                  Người mua
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                   Ngày đặt hàng
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
@@ -196,6 +210,9 @@ export default function OrdersTable({
                   </td>
                   <td className="px-4 py-3 text-sm font-medium">
                     {order.orderNumber}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {order?.customerName || order?.customer?.fullName || order?.user?.fullName || order?.userName || 'Khách vãng lai'}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {new Date(order.orderDate).toLocaleDateString("vi-VN")}
@@ -263,19 +280,13 @@ export default function OrdersTable({
           setIsUpdateModalOpen(false);
           setUpdatingOrder(null);
         }}
-        orderId={updatingOrder}
-        onUpdated={() => {
-          // Reload danh sách đơn hàng sau khi cập nhật
-          const fetchOrders = async () => {
-            try {
-              const res = await orderAPI.getAll();
-              const data = await res;
-              setOrders(data);
-            } catch (error) {
-              console.error("Lỗi khi tải dữ liệu:", error);
-            }
-          };
-          fetchOrders();
+  // pass the full order object so the modal can initialize its form
+  order={updatingOrder}
+        // allow modal to call the shared handler which calls the API and refreshes store
+        onUpdate={handleUpdate}
+        // after modal signals update complete, reload orders from the store
+        onUpdated={async () => {
+          await dispatch(fetchOrders());
         }}
       />
     </>

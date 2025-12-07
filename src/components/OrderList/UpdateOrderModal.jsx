@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Chờ xác nhận" },
@@ -84,15 +85,11 @@ export default function UpdateOrderModal({ isOpen, onClose, order, onUpdate }) {
 
     setLoading(true);
     try {
-      const updateData = {
-        status: formData.status,
-        paymentMethod: formData.paymentMethod,
-        shippingAddress: formData.shippingAddress,
-        totalAmount: parseFloat(formData.totalAmount) || order.totalAmount,
-        notes: formData.notes,
-      };
+  // Only update status to avoid calling backend 'update' (not implemented).
+  // The centralized handler in OrdersTable will call updateStatus when only status is provided.
+  const updateData = { status: formData.status };
 
-      await onUpdate(order.id, updateData);
+  await onUpdate(order.id, updateData);
       onClose();
     } catch (error) {
       console.error("Lỗi khi cập nhật đơn hàng:", error);
@@ -105,111 +102,100 @@ export default function UpdateOrderModal({ isOpen, onClose, order, onUpdate }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Cập nhật đơn hàng</DialogTitle>
-          <DialogDescription>
-            Cập nhật thông tin cho đơn hàng {order.orderNumber}
+          <DialogTitle className="text-lg font-semibold">Cập nhật đơn hàng</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Cập nhật trạng thái cho đơn hàng <span className="font-medium">{order.orderNumber}</span>
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="status">Trạng thái</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) =>
-                setFormData({ ...formData, status: value })
-              }
-            >
-              <SelectTrigger id="status">
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+          {/* Left: form controls (span 2 columns on md) */}
+          <div className="md:col-span-2 space-y-4">
+            <div>
+              <Label htmlFor="status" className="mb-2">Trạng thái</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger id="status" className="w-full">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="notes" className="mb-2">Ghi chú (tùy chọn)</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Thêm ghi chú cho nội bộ"
+                rows={4}
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Đang cập nhật..." : "Cập nhật"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Right: order summary */}
+          <aside className="md:col-span-1 bg-muted p-4 rounded-md">
+            <div className="mb-3">
+              <div className="text-xs text-muted-foreground">Người mua</div>
+              <div className="font-medium">{
+                order?.customerName ||
+                order?.customer?.fullName ||
+                order?.user?.fullName ||
+                order?.userName ||
+                order?.buyerName ||
+                order?.customer?.name ||
+                order?.customer?.full_name ||
+                'Khách vãng lai'
+              }</div>
+            </div>
+
+            <div className="mb-3">
+              <div className="text-xs text-muted-foreground">Tổng tiền</div>
+              <div className="font-medium text-lg text-orange-600">{formatCurrency(order.totalAmount)}</div>
+            </div>
+
+            <div className="mb-3">
+              <div className="text-xs text-muted-foreground">Phương thức</div>
+              <div className="font-medium">{order.paymentMethod || '-'}</div>
+            </div>
+
+            <div className="mb-3">
+              <div className="text-xs text-muted-foreground">Địa chỉ</div>
+              <div className="text-sm">{order.shippingAddress || '-'}</div>
+            </div>
+
+            <div className="mt-4">
+              <div className="text-xs text-muted-foreground">Sản phẩm</div>
+              <div className="space-y-2 mt-2 max-h-36 overflow-y-auto">
+                {order.orderItems?.map((it, i) => (
+                  <div key={it.id || i} className="flex justify-between text-sm">
+                    <div className="truncate">{it.productName || it.name || 'Sản phẩm'}</div>
+                    <div className="ml-2 font-medium">{it.quantity}x</div>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="paymentMethod">Phương thức thanh toán</Label>
-            <Select
-              value={formData.paymentMethod}
-              onValueChange={(value) =>
-                setFormData({ ...formData, paymentMethod: value })
-              }
-            >
-              <SelectTrigger id="paymentMethod">
-                <SelectValue placeholder="Chọn phương thức thanh toán" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_METHOD_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="shippingAddress">Địa chỉ giao hàng</Label>
-            <Textarea
-              id="shippingAddress"
-              value={formData.shippingAddress}
-              onChange={(e) =>
-                setFormData({ ...formData, shippingAddress: e.target.value })
-              }
-              placeholder="Nhập địa chỉ giao hàng"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="totalAmount">Tổng tiền (₫)</Label>
-            <Input
-              id="totalAmount"
-              type="number"
-              value={formData.totalAmount}
-              onChange={(e) =>
-                setFormData({ ...formData, totalAmount: e.target.value })
-              }
-              placeholder="Nhập tổng tiền"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Ghi chú</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              placeholder="Nhập ghi chú (tùy chọn)"
-              rows={3}
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Hủy
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Đang cập nhật..." : "Cập nhật"}
-            </Button>
-          </DialogFooter>
+              </div>
+            </div>
+          </aside>
         </form>
       </DialogContent>
     </Dialog>
