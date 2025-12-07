@@ -37,7 +37,8 @@ const OrderDetailPage = () => {
         setOrder(res);
         // Chỉ set ghi chú từ API nếu chưa có trong localStorage
         if (!savedNote) {
-          setNote(res.data?.notes || "");
+          // axiosClient returns response.data already, so res is the order object
+          setNote(res?.notes || "");
         }
       } catch (err) {
         console.error("Lỗi khi tải đơn hàng:", err);
@@ -104,6 +105,10 @@ const OrderDetailPage = () => {
               <p className="font-medium">{order.orderNumber}</p>
             </div>
             <div>
+              <Label>Người mua</Label>
+              <p className="font-medium">{order?.customerName || order?.customer?.fullName || order?.user?.fullName || 'Khách vãng lai'}</p>
+            </div>
+            <div>
               <Label>Trạng thái</Label>
               <div className="mt-1">{getStatusBadge(order.status)}</div>
             </div>
@@ -134,7 +139,7 @@ const OrderDetailPage = () => {
           <CardTitle>Sản phẩm trong đơn</CardTitle>
         </CardHeader>
         <CardContent>
-          {order.orderItems.length === 0 ? (
+          {(order.orderItems?.length || 0) === 0 ? (
             <p>Không có sản phẩm nào.</p>
           ) : (
             <table className="w-full text-sm border">
@@ -147,7 +152,7 @@ const OrderDetailPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {order.orderItems.map((item, idx) => (
+                {order.orderItems?.map((item, idx) => (
                   <tr key={item.id}>
                     <td className="p-2 border text-center">{idx + 1}</td>
                     <td className="p-2 border text-center">{item.quantity}</td>
@@ -161,40 +166,6 @@ const OrderDetailPage = () => {
                 ))}
               </tbody>
             </table>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 3️⃣ Lịch sử mua hàng */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lịch sử giao dịch</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {order.purchaseHistories.length === 0 ? (
-            <p>Chưa có lịch sử giao dịch.</p>
-          ) : (
-            <ul className="space-y-2">
-              {order.purchaseHistories.map((h) => (
-                <li
-                  key={h.id}
-                  className="p-3 bg-gray-50 rounded-md flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-medium">
-                      Ngày:{" "}
-                      {format(new Date(h.purchaseDate), "dd/MM/yyyy HH:mm")}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Trạng thái: {h.status}
-                    </p>
-                  </div>
-                  <span className="font-semibold text-blue-600">
-                    {formatCurrency(h.totalAmount)}
-                  </span>
-                </li>
-              ))}
-            </ul>
           )}
         </CardContent>
       </Card>
