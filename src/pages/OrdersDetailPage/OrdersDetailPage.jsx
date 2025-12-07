@@ -134,7 +134,7 @@ const OrderDetailPage = () => {
           <CardTitle>Sản phẩm trong đơn</CardTitle>
         </CardHeader>
         <CardContent>
-          {order.orderItems.length === 0 ? (
+          {order.orderItems?.length === 0 ? (
             <p>Không có sản phẩm nào.</p>
           ) : (
             <table className="w-full text-sm border">
@@ -171,7 +171,7 @@ const OrderDetailPage = () => {
           <CardTitle>Lịch sử giao dịch</CardTitle>
         </CardHeader>
         <CardContent>
-          {order.purchaseHistories.length === 0 ? (
+          {order.purchaseHistories?.length === 0 ? (
             <p>Chưa có lịch sử giao dịch.</p>
           ) : (
             <ul className="space-y-2">
