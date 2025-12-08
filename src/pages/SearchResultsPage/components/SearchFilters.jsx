@@ -3,6 +3,7 @@ import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/utils/currencyFormatter';
 
 export function SearchPriceFilter({ minPrice, maxPrice, onPriceChange }) {
   const handleRangeChange = (values) => {
@@ -24,30 +25,26 @@ export function SearchPriceFilter({ minPrice, maxPrice, onPriceChange }) {
       />
       <div className='flex justify-between'>
         <div className='border rounded-lg h-8 mt-4 max-w-[50%] w-[40%] flex items-center'>
-          <p className='pl-4 text-gray-600'>₫</p> 
           <input 
-            type='number' 
-            value={minPrice || 0} 
-            className='outline-none px-2 text-gray-600 w-full' 
+            type='text' 
+            value={formatCurrency(minPrice || 0, { currency: 'USD', locale: 'en-US', minimumFractionDigits: 0, maximumFractionDigits: 0 })} 
+            className='outline-none px-4 text-gray-600 w-full' 
             disabled 
             placeholder='Min'
           />
         </div>
         <div className='border rounded-lg h-8 mt-4 max-w-[50%] w-[40%] flex items-center'>
-          <p className='pl-4 text-gray-600'>₫</p> 
           <input 
-            type='number' 
-            value={maxPrice || 10000000} 
-            className='outline-none px-2 text-gray-600 w-full' 
+            type='text' 
+            value={formatCurrency(maxPrice || 10000, { currency: 'USD', locale: 'en-US', minimumFractionDigits: 0, maximumFractionDigits: 0 })} 
+            className='outline-none px-4 text-gray-600 w-full' 
             disabled 
-            placeholder='Max'
-          />
+            placeholder='Max' />
         </div>
       </div>
     </div>
-  );
+  )
 }
-
 export function SearchRatingFilter({ minRating, onRatingChange }) {
   const ratings = [5, 4, 3, 2, 1];
 
