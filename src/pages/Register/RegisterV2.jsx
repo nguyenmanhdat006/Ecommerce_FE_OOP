@@ -2,12 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { register, clearAuthError } from "@/store/authSlice";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
 import VerifyCodeV2 from "./VerifyCodeV2";
 import RegisterV2Form from "../../forms/RegisterV2Form";
+import SocialLoginSection from "@/components/common/SocialLoginSection";
+import { API_BASE_URL } from "@/api/constant";
 
 export default function RegisterV2() {
   const [showPassword, setShowPassword] = useState(false);
@@ -75,6 +76,15 @@ export default function RegisterV2() {
     [dispatch, values]
   );
 
+  const handleGoogleLogin = useCallback(() => {
+    window.location.href = API_BASE_URL + "/oauth2/authorization/google";
+  }, []);
+
+  const handleFacebookLogin = useCallback(() => {
+    // TODO: Implement Apple login
+    toast.info("Apple login coming soon!");
+  }, []);
+
   if (enableVerify) {
     return <VerifyCodeV2 email={values.email} />;
   }
@@ -98,31 +108,12 @@ export default function RegisterV2() {
       />
 
       {/* Social login */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">
-            Or Sign Up With
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Button
-          variant="outline"
-          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer"
-        >
-          Google
-        </Button>
-        <Button
-          variant="outline"
-          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer"
-        >
-          Apple
-        </Button>
-      </div>
+      <SocialLoginSection
+        title="Or Sign Up With"
+        onGoogleLogin={handleGoogleLogin}
+        showApple={true}
+        onFacebookLogin={handleFacebookLogin}
+      />
 
       {/* Switch to login */}
       <div className="text-center text-sm text-muted-foreground">
