@@ -11,6 +11,9 @@ export const orderAPI = {
   // GET orders for current logged-in user (requires Authorization header)
   getMine: () => axiosClient.get("/api/orders/me"),
 
+  // Get list of order items (or order items) that are completed but not yet reviewed by the user
+  getUnreviewed: () => axiosClient.get("/api/orders/unreviewed"),
+
   // DELETE 
   delete: (orderId) => axiosClient.delete(`/api/orders/${orderId}`),
 
