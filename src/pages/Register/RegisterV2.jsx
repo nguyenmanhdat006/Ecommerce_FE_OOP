@@ -7,7 +7,7 @@ import { register, clearAuthError } from "@/store/authSlice";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
 import VerifyCodeV2 from "./VerifyCodeV2";
-import RegisterV2Form from "./RegisterV2Form";
+import RegisterV2Form from "../../forms/RegisterV2Form";
 
 export default function RegisterV2() {
   const [showPassword, setShowPassword] = useState(false);
