@@ -11,6 +11,8 @@ import { NavLinkItem } from "../components/NavLinkItem";
 import { SearchBar } from "../components/SearchBar";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { User } from "lucide-react";
+import { useEffect } from 'react';
+import BellComponent from '../components/Bell';
 import { getToken } from "@/utils/jwt-helper";
 import { countCartItems } from '@/store/features/cart';
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
@@ -34,6 +36,8 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
       toast.error(err?.message || t('navigation.logoutFailed'));
     }
   };
+
+  
 
   return (
     <>
@@ -69,6 +73,10 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
                 <User size={22} />
               </Button>
             )}
+            {/* Notification bell for unreviewed items */}
+            <div>
+              <BellComponent />
+            </div>
             <Button
               variant="ghost"
               size="icon"
