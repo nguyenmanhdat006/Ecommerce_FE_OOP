@@ -2,14 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff } from "lucide-react";
 import { register, clearAuthError } from "@/store/authSlice";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
 import VerifyCodeV2 from "./VerifyCodeV2";
+import RegisterV2Form from "../../forms/RegisterV2Form";
+import SocialLoginSection from "@/components/common/SocialLoginSection";
+import { API_BASE_URL } from "@/api/constant";
 
 export default function RegisterV2() {
   const [showPassword, setShowPassword] = useState(false);
@@ -77,6 +76,15 @@ export default function RegisterV2() {
     [dispatch, values]
   );
 
+  const handleGoogleLogin = useCallback(() => {
+    window.location.href = API_BASE_URL + "/oauth2/authorization/google";
+  }, []);
+
+  const handleFacebookLogin = useCallback(() => {
+    // TODO: Implement Apple login
+    toast.info("Apple login coming soon!");
+  }, []);
+
   if (enableVerify) {
     return <VerifyCodeV2 email={values.email} />;
   }
@@ -87,203 +95,25 @@ export default function RegisterV2() {
       subtitle="Create a new account to get started with Shopease."
     >
       {/* Form fields */}
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label
-              htmlFor="firstName"
-              className="text-sm font-medium text-foreground"
-            >
-              First Name
-            </Label>
-            <Input
-              id="firstName"
-              name="firstName"
-              type="text"
-              placeholder="John"
-              value={values.firstName}
-              onChange={handleOnChange}
-              disabled={loading}
-              required
-              className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="lastName"
-              className="text-sm font-medium text-foreground"
-            >
-              Last Name
-            </Label>
-            <Input
-              id="lastName"
-              name="lastName"
-              type="text"
-              placeholder="Doe"
-              value={values.lastName}
-              onChange={handleOnChange}
-              disabled={loading}
-              required
-              className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-foreground">
-            Email
-          </Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="user@company.com"
-            value={values.email}
-            onChange={handleOnChange}
-            disabled={loading}
-            required
-            className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="phoneNumber"
-            className="text-sm font-medium text-foreground"
-          >
-            Phone Number
-          </Label>
-          <Input
-            id="phoneNumber"
-            name="phoneNumber"
-            type="tel"
-            placeholder="+1234567890"
-            value={values.phoneNumber}
-            onChange={handleOnChange}
-            disabled={loading}
-            required
-            className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="password"
-            className="text-sm font-medium text-foreground"
-          >
-            Password
-          </Label>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter password"
-              value={values.password}
-              onChange={handleOnChange}
-              disabled={loading}
-              required
-              autoComplete="new-password"
-              className="h-12 pr-10 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="confirmPassword"
-            className="text-sm font-medium text-foreground"
-          >
-            Confirm Password
-          </Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm password"
-              value={values.confirmPassword}
-              onChange={handleOnChange}
-              disabled={loading}
-              required
-              autoComplete="new-password"
-              className="h-12 pr-10 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {error && (
-          <p className="text-sm text-red-600">
-            {typeof error === "string"
-              ? error
-              : error?.message || "Registration failed!"}
-          </p>
-        )}
-
-        {/* Submit button */}
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full h-12 text-sm font-medium text-white hover:opacity-90 rounded-lg shadow-none cursor-pointer disabled:opacity-50"
-          style={{ backgroundColor: "#fea0b0" }}
-        >
-          {loading ? "Creating Account..." : "Create Account"}
-        </Button>
-      </form>
+      <RegisterV2Form
+        values={values}
+        handleOnChange={handleOnChange}
+        showPassword={showPassword}
+        setShowPassword={setShowPassword}
+        showConfirmPassword={showConfirmPassword}
+        setShowConfirmPassword={setShowConfirmPassword}
+        loading={loading}
+        error={error}
+        onSubmit={onSubmit}
+      />
 
       {/* Social login */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">
-            Or Sign Up With
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Button
-          variant="outline"
-          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer"
-        >
-          Google
-        </Button>
-        <Button
-          variant="outline"
-          className="h-12 border-gray-200 hover:bg-gray-50 hover:text-gray-900 rounded-lg bg-white shadow-none cursor-pointer"
-        >
-          Apple
-        </Button>
-      </div>
+      <SocialLoginSection
+        title="Or Sign Up With"
+        onGoogleLogin={handleGoogleLogin}
+        showApple={true}
+        onFacebookLogin={handleFacebookLogin}
+      />
 
       {/* Switch to login */}
       <div className="text-center text-sm text-muted-foreground">

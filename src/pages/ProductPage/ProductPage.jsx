@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts, deleteProduct, fetchProductById } from '@/store/productSlice';
+import { fetchProducts, deleteProduct, fetchProductById, clearProductDetail } from '@/store/productSlice';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { useTranslation } from 'react-i18next';
 
@@ -60,26 +60,26 @@ function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
             </tr>
           )}
 
-          {products.map((product) => (
-            <tr key={product.id} className="border-b hover:bg-gray-50">
-              <td className="px-4 py-2 text-sm text-gray-600">{product.id}</td>
+          {products.filter(Boolean).map((product) => (
+            <tr key={product?.id} className="border-b hover:bg-gray-50">
+              <td className="px-4 py-2 text-sm text-gray-600">{product?.id || "—"}</td>
               <td className="px-4 py-2">
-                {product.thumbnail ? (
-                  <img src={product.thumbnail || undefined} alt={product.name} className="w-14 h-14 rounded-md object-cover border" />
+                {product?.thumbnail ? (
+                  <img src={product.thumbnail || undefined} alt={product?.name || ""} className="w-14 h-14 rounded-md object-cover border" />
                 ) : (
                   <div className="w-14 h-14 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500">{t('admin.products.noImage')}</div>
                 )}
               </td>
-              <td className="px-4 py-2 text-sm text-gray-700">{product.name}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{product.brand || "—"}</td>
-              <td className="px-4 py-2 text-sm text-gray-700 text-right font-medium">{formatCurrency(product.price)}</td>
-              <td className="px-4 py-2">{origin && <QRCodeCanvas value={`${origin}/qr?id=${product.id}`} size={60} />}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">{product?.name || "—"}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">{product?.brand || "—"}</td>
+              <td className="px-4 py-2 text-sm text-gray-700 text-right font-medium">{formatCurrency(product?.price || 0)}</td>
+              <td className="px-4 py-2">{origin && product?.id && <QRCodeCanvas value={`${origin}/qr?id=${product.id}`} size={60} />}</td>
               <td className="px-4 py-2 relative">
                 <div className="inline-block text-left">
                   <button
                     className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md hover:bg-gray-100"
-                    onClick={() => setSelectedDropdown(selectedDropdown === product.id ? null : product.id)}
-                    aria-expanded={selectedDropdown === product.id}
+                    onClick={() => setSelectedDropdown(selectedDropdown === product?.id ? null : product?.id)}
+                    aria-expanded={selectedDropdown === product?.id}
                   >
                     <MoreVertical className="h-4 w-4 text-gray-600" />
                   </button>
@@ -87,7 +87,7 @@ function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
                   
 
 
-                  {selectedDropdown === product.id && (
+                  {selectedDropdown === product?.id && (
                     <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
                       {/* close dropdown before opening modal to avoid stuck state */}
                       <button
@@ -95,7 +95,7 @@ function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
                         onClick={() => {
                           setSelectedDropdown(null);
                           // set productId then open modal in next animation frame
-                          requestAnimationFrame(() => onOpenDetail(product.id));
+                          requestAnimationFrame(() => onOpenDetail(product?.id));
                         }}
                       >
                         {t('admin.common.detail')}
@@ -105,7 +105,7 @@ function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
                         className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
                         onClick={() => {
                           setSelectedDropdown(null);
-                          navigate(`/admin/product/edit/${product.id}`);
+                          navigate(`/admin/product/edit/${product?.id}`);
                         }}
                       >
                         {t('admin.common.edit')}
@@ -117,9 +117,9 @@ function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
                         className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-100 flex items-center gap-2"
                         onClick={async () => {
                           setSelectedDropdown(null);
-                          const confirmed = window.confirm(t('admin.products.deleteConfirm', { name: product.name }));
+                          const confirmed = window.confirm(t('admin.products.deleteConfirm', { name: product?.name || "this product" }));
                           if (!confirmed) return;
-                          onDeleteProduct(product.id);
+                          onDeleteProduct(product?.id);
                         }}
                       >
                         <Trash2 className="h-4 w-4" /> {t('admin.common.delete')}
@@ -302,14 +302,21 @@ export default function ProductPageMain() {
   const products = useSelector((state) => state.productSlice?.products || []);
   const loading = useSelector((state) => state.productSlice?.loading);
   const error = useSelector((state) => state.productSlice?.error);
-  const storeLoaded = useSelector((state) => state.productSlice?.loaded);
 
-  // Fetch products on mount if not loaded
+  // Reset productDetail and modal state when component mounts
   useEffect(() => {
-    if (!storeLoaded || products.length === 0) {
-      dispatch(fetchProducts());
-    }
-  }, [dispatch, storeLoaded, products.length]);
+    // Reset modal state when component mounts
+    setDetailOpen(false);
+    setSelectedProductId(null);
+    // Clear productDetail to avoid stale data
+    dispatch(clearProductDetail());
+  }, [dispatch]);
+
+  // Fetch products on mount and when navigating to this page
+  useEffect(() => {
+    // Always fetch fresh data when component mounts to avoid stale state
+    dispatch(fetchProducts());
+  }, [dispatch]);
 
   // Handle delete product
   const handleDeleteProduct = async (productId) => {
@@ -329,8 +336,10 @@ export default function ProductPageMain() {
 
   // Filter products based on search term
   const filteredProducts = products.filter((p) => 
-    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.id?.toLowerCase().includes(searchTerm.toLowerCase())
+    p && (
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.id?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
 
