@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders, fetchMyOrders, selectOrders, selectMyOrders } from "@/store/features/order";
+import { fetchOrders, fetchMyOrders, selectOrders, selectMyOrders, setOrderItemReviewed } from "@/store/features/order";
 import { orderAPI } from '@/api/order.api';
 import { selectUserProfile } from "@/store/userProfileSlice";
 import {
@@ -187,6 +187,25 @@ export default function OrderManagement() {
     selectedStatus === "ALL"
       ? baseList
       : baseList.filter(o => o.status === selectedStatus);
+
+  // DEBUG: log orders and reviewedMap to verify isReviewed presence after fetch/refresh
+  useEffect(() => {
+    try {
+      // avoid flooding logs; print counts and a sample
+      console.debug('[OrderSuccess] orders count', (orders || []).length, 'myOrders count', (myOrders || []).length);
+      if (baseList && baseList.length > 0) {
+        const sample = baseList[0];
+        console.debug('[OrderSuccess] sample order:', {
+          id: sample.id,
+          status: sample.status,
+          items: (sample.orderItems || []).map(it => ({ id: it.id, productId: it.productId, isReviewed: it.isReviewed }))
+        });
+      }
+      console.debug('[OrderSuccess] reviewedMap keys', Object.keys(reviewedMap || {}));
+    } catch (e) {
+      // ignore
+    }
+  }, [orders, myOrders, reviewedMap]);
 
   if (loading)
     return (
@@ -566,12 +585,16 @@ export default function OrderManagement() {
                     await reviewAPI.update(editingReviewId, payload);
                     // update local reviewedMap
                     setReviewedMap(prev => ({ ...prev, [currentReviewItem.id]: { id: editingReviewId, ...payload } }));
+                    // mark orderItem as reviewed locally in redux store for immediate/refresh persistence
+                    dispatch(setOrderItemReviewed({ orderId: currentReviewItem.orderId, orderItemId: currentReviewItem.id, isReviewed: true }));
                     toast.success('Cập nhật đánh giá thành công.');
                   } else {
                     const res = await reviewAPI.create(payload);
                     // res may contain created review with id
                     const created = res || null;
                     setReviewedMap(prev => ({ ...prev, [currentReviewItem.id]: created }));
+                    // mark orderItem as reviewed locally in redux store
+                    dispatch(setOrderItemReviewed({ orderId: currentReviewItem.orderId, orderItemId: currentReviewItem.id, isReviewed: true }));
                     toast.success('Cảm ơn! Đánh giá của bạn đã được gửi.');
                   }
                   setReviewDialogOpen(false);
