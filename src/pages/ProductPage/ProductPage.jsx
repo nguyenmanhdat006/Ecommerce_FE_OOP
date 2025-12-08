@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from '@/api/constant';
-import { productAPI } from '@/api/product.api';
 import { QRCodeCanvas } from "qrcode.react";
 import { toast } from 'react-hot-toast';
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts } from '@/store/productSlice';
+import { fetchProducts, deleteProduct } from '@/store/productSlice';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { useTranslation } from 'react-i18next';
 
@@ -31,7 +30,7 @@ function Input({ className = "", ...props }) {
 }
 
 /* ProductTable: list with dropdown */
-function ProductTable({ products, onOpenDetail, navigate }) {
+function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
   const { t } = useTranslation();
   const [selectedDropdown, setSelectedDropdown] = useState(null);
   const [origin, setOrigin] = useState("");
@@ -121,22 +120,11 @@ function ProductTable({ products, onOpenDetail, navigate }) {
                         onClick={async () => {
                           setSelectedDropdown(null);
                           const confirmed = window.confirm(t('admin.products.deleteConfirm', { name: product.name }));
-                            if (!confirmed) return;
-
-                            try {
-                              // use shared axios client via productAPI which handles auth and baseURL
-                              await productAPI.delete(product.id);
-                              toast.success(t('admin.products.deleteSuccess'));
-                              // Update local products state
-                              setProducts((prev) => prev.filter((p) => p.id !== product.id));
-                            } catch (error) {
-                              console.error("❌ Lỗi khi xóa:", error);
-                              toast.error(t('admin.products.deleteFailed', { error: error?.message || (error?.data?.message) || 'Unknown error' }));
-                            }
+                          if (!confirmed) return;
+                          onDeleteProduct(product.id);
                         }}
-
                       >
-                      <Trash2 className="h-4 w-4" /> {t('admin.common.delete')}
+                        <Trash2 className="h-4 w-4" /> {t('admin.common.delete')}
                       </button>
 
                     </div>
@@ -340,43 +328,45 @@ function ProductDetailModal({ productId, open, onClose }) {
 export default function ProductPageMain() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const navigate = useNavigate();
 
-  // initial load - use Redux cache when available
+  // Use Redux store directly
   const dispatch = useDispatch();
-  const storeProducts = useSelector((state) => state.productState?.products || []);
-  const storeLoaded = useSelector((state) => state.productState?.loaded);
+  const products = useSelector((state) => state.productSlice?.products || []);
+  const loading = useSelector((state) => state.productSlice?.loading);
+  const error = useSelector((state) => state.productSlice?.error);
+  const storeLoaded = useSelector((state) => state.productSlice?.loaded);
 
+  // Fetch products on mount if not loaded
   useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        if (!storeLoaded || !storeProducts || storeProducts.length === 0) {
-          // fetch via thunk and use payload to populate local state
-          const action = await dispatch(fetchProducts());
-          const payload = action?.payload || [];
-          if (mounted) setProducts(payload || []);
-        } else {
-          if (mounted) setProducts(storeProducts);
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải products:", err);
-        if (mounted) setProducts([]);
+    if (!storeLoaded || products.length === 0) {
+      dispatch(fetchProducts());
+    }
+  }, [dispatch, storeLoaded, products.length]);
+
+  // Handle delete product
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const result = await dispatch(deleteProduct(productId));
+      if (deleteProduct.fulfilled.match(result)) {
+        toast.success(t('admin.products.deleteSuccess'));
+      } else {
+        const errorMessage = result.payload?.message || result.error?.message || 'Unknown error';
+        toast.error(t('admin.products.deleteFailed', { error: errorMessage }));
       }
-    };
-    load();
-    return () => (mounted = false);
-  }, [dispatch, storeProducts, storeLoaded]);
+    } catch (error) {
+      console.error("❌ Lỗi khi xóa:", error);
+      toast.error(t('admin.products.deleteFailed', { error: error?.message || 'Unknown error' }));
+    }
+  };
 
-
-  console.table(products.map(p => ({
-  name: p.name,
-  variantsType: typeof p.variants,
-  variants: p.variants,
-})));
+  // Filter products based on search term
+  const filteredProducts = products.filter((p) => 
+    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
 
 
@@ -434,8 +424,14 @@ export default function ProductPageMain() {
               <h2 className="text-xl font-bold">{t('admin.products.productList')}</h2>
             </div>
 
+            {loading && products.length === 0 && (
+              <div className="text-center py-10 text-gray-500">Đang tải...</div>
+            )}
+            {error && products.length === 0 && (
+              <div className="text-center py-10 text-red-500">Lỗi: {error}</div>
+            )}
             <ProductTable
-              products={products.filter((p) => p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || p.id?.toLowerCase().includes(searchTerm.toLowerCase()))}
+              products={filteredProducts}
               onOpenDetail={(id) => {
                 // ensure previous dropdown closed and then open modal
                 setSelectedProductId(id);
@@ -443,6 +439,7 @@ export default function ProductPageMain() {
               }}
               onNavigateAdd={() => navigate("/admin/product/add")}
               navigate={navigate}
+              onDeleteProduct={handleDeleteProduct}
             />
           </section>
         </div>
