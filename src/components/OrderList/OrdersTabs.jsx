@@ -1,16 +1,19 @@
 "use client";
-
-const tabs = [
-  { id: "all", label: "All" },
-  { id: "PENDING", label: "PENDING" },
-  { id: "SHIPPING", label: "SHIPPING" },
-  { id: "WAIT_DELIVER", label: "WAIT_DELIVER" },
-  { id: "PAID", label: "PAID" },
-  { id: "CANCELED", label: "CANCELED" },
-  { id: "REFUND", label: "REFUND" },
-];
+import { useTranslation } from "react-i18next";
 
 export default function OrdersTabs({ activeTab, onTabChange }) {
+  const { t } = useTranslation();
+  
+  const tabs = [
+    { id: "all", label: t('admin.orders.all') },
+    { id: "PENDING", label: t('admin.orders.pending') },
+    { id: "SHIPPING", label: t('admin.orders.shipping') },
+    { id: "WAIT_DELIVER", label: t('admin.orders.waitDeliver') },
+    { id: "PAID", label: t('admin.orders.paid') },
+    { id: "CANCELED", label: t('admin.orders.canceled') },
+    { id: "REFUND", label: t('admin.orders.refund') },
+  ];
+
   return (
     <div className="flex gap-6 border-b border-border">
       {tabs.map((tab) => (

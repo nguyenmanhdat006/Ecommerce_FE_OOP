@@ -8,11 +8,12 @@ import {
   clearUser,
 } from "@/utils/jwt-helper";
 import { normalizeUser } from "@/utils/roleNormalizer";
+import { clearUserProfile, loadUserProfile } from "@/store/userProfileSlice";
 
 // LOGIN
 export const login = createAsyncThunk(
   "auth/login",
-  async (data, { rejectWithValue }) => {
+  async (data, { rejectWithValue, dispatch }) => {
     try {
       console.log("Login data:", data);
       const res = await authAPI.login(data);
@@ -22,6 +23,11 @@ export const login = createAsyncThunk(
       // Normalize user before saving
       const normalizedUser = normalizeUser(res.user);
       saveUser(normalizedUser);
+      
+      // Clear old userProfile and load fresh user profile from backend
+      dispatch(clearUserProfile());
+      dispatch(loadUserProfile());
+      
       return { ...res, user: normalizedUser };
     } catch (err) {
       return rejectWithValue(err.response?.data || "Login failed");
@@ -59,12 +65,14 @@ export const refreshToken = createAsyncThunk(
 // LOGOUT
 export const logout = createAsyncThunk(
   "auth/logout",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       // const res = await authAPI .logout();
       // return res.data;
       clearTokens();
       clearUser();
+      // Clear userProfileSlice to prevent showing old user data
+      dispatch(clearUserProfile());
       return null;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Logout failed");

@@ -1,11 +1,10 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { authAPI } from "@/api/auth.api";
 import { toast } from "react-hot-toast";
 import AuthFormLayout from "@/components/common/AuthFormLayout";
+import VerifyCodeV2Form from "../../forms/VerifyCodeV2Form";
 
 export default function VerifyCodeV2({ email }) {
   const [code, setCode] = useState("");
@@ -94,42 +93,13 @@ export default function VerifyCodeV2({ email }) {
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label
-              htmlFor="code"
-              className="text-sm font-medium text-foreground"
-            >
-              Verification Code
-            </Label>
-            <Input
-              id="code"
-              name="code"
-              type="text"
-              placeholder="000000"
-              value={code}
-              onChange={handleOnChange}
-              disabled={loading}
-              required
-              maxLength={6}
-              className="h-12 text-center text-2xl tracking-widest border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#000000]"
-              style={{ letterSpacing: "0.5em" }}
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={loading || code.length !== 6}
-            className="w-full h-12 text-sm font-medium text-white hover:opacity-90 rounded-lg shadow-none cursor-pointer disabled:opacity-50"
-            style={{ backgroundColor: "#fea0b0" }}
-          >
-            {loading ? "Verifying..." : "Verify Email"}
-          </Button>
-        </form>
+        <VerifyCodeV2Form
+          code={code}
+          handleOnChange={handleOnChange}
+          loading={loading}
+          error={error}
+          onSubmit={onSubmit}
+        />
 
         <div className="text-center text-sm text-muted-foreground">
           Didn't receive the code?{" "}

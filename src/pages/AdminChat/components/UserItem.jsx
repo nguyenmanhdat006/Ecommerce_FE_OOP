@@ -14,14 +14,14 @@ export default function UserItem({
         ${selected ? "bg-blue-50 border-l-4 border-l-blue-600" : ""}`}
     >
       <div
-        className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 
-          text-white flex items-center justify-center font-semibold text-lg"
+        className="w-12 h-12 rounded-full bg-gray-300 
+          text-white flex items-center justify-center font-semibold text-lg overflow-hidden"
       >
         {user.avatar ? (
           <img
             src={user.avatar}
             alt={user.name}
-            className="w-10 h-10 rounded-full"
+            className="w-full h-full rounded-full object-cover"
           />
         ) : user.firstName?.[0]?.toUpperCase() &&
           user.lastName?.[0]?.toUpperCase() ? (

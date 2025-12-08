@@ -9,14 +9,19 @@ import { UserDropdown } from "../components/UserDropdown";
 import { ActionLink } from "../components/ActionLink";
 import { NavLinkItem } from "../components/NavLinkItem";
 import { SearchBar } from "../components/SearchBar";
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { User } from "lucide-react";
+import { useEffect } from 'react';
+import BellComponent from '../components/Bell';
 import { getToken } from "@/utils/jwt-helper";
 import { countCartItems } from '@/store/features/cart';
 import { ROUTE_CONSTANTS } from "@/constants/routeConstants";
+import { useTranslation } from "react-i18next";
 
 export default function DesktopNavigation({ links, actions, isActiveLink }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const isAuthenticated = getToken();
   const user = useSelector((state) => state.userProfile?.profile);
   const cartCount = useSelector(countCartItems) || 0;
@@ -25,12 +30,14 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
     try {
       await dispatch(logout()).unwrap();
       clearTokens();
-      toast.success("Logged out successfully");
+      toast.success(t('navigation.loggedOutSuccessfully'));
       navigate("/");
     } catch (err) {
-      toast.error(err?.message || "Logout failed");
+      toast.error(err?.message || t('navigation.logoutFailed'));
     }
   };
+
+  
 
   return (
     <>
@@ -53,6 +60,7 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
         <div className="block sm:hidden md:hidden lg:block">
           <SearchBar />
         </div>
+        <LanguageSwitcher />
         {isAuthenticated ? (
           <>
             {user?.role === "ADMIN" && (
@@ -65,6 +73,10 @@ export default function DesktopNavigation({ links, actions, isActiveLink }) {
                 <User size={22} />
               </Button>
             )}
+            {/* Notification bell for unreviewed items */}
+            <div>
+              <BellComponent />
+            </div>
             <Button
               variant="ghost"
               size="icon"

@@ -34,7 +34,27 @@ export const fetchMyOrders = createAsyncThunk(
 const orderSlice = createSlice({
   name: 'orderState',
   initialState,
-  reducers: {},
+  reducers: {
+    // Mark a specific order item as reviewed locally
+    setOrderItemReviewed(state, action) {
+      const { orderId, orderItemId, isReviewed = true } = action.payload || {};
+      const updateList = (list) => {
+        if (!Array.isArray(list)) return;
+        const idx = list.findIndex(o => String(o.id) === String(orderId));
+        if (idx === -1) return;
+        const order = list[idx];
+        if (!order || !Array.isArray(order.orderItems)) return;
+        const itemIdx = order.orderItems.findIndex(it => String(it.id) === String(orderItemId));
+        if (itemIdx === -1) return;
+        order.orderItems[itemIdx] = { ...order.orderItems[itemIdx], isReviewed };
+        // replace
+        list[idx] = { ...order };
+      };
+
+      updateList(state.orders);
+      updateList(state.myOrders);
+    }
+  },
   extraReducers: (builder) => {
     builder
   .addCase(fetchOrders.pending, (state) => ({ ...state, loading: true, error: null }))
@@ -50,4 +70,5 @@ const orderSlice = createSlice({
 
 export const selectOrders = (state) => state?.orderState?.orders ?? [];
 export const selectMyOrders = (state) => state?.orderState?.myOrders ?? [];
+export const { setOrderItemReviewed } = orderSlice.actions;
 export default orderSlice.reducer;

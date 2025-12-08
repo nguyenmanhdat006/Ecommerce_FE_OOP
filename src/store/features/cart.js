@@ -29,7 +29,29 @@ const cartSlice = createSlice({
   initialState: initialState,
   reducers: {
     addToCart: (state, action) => {
-      state.cart.push(action?.payload);
+      const payload = action?.payload;
+      // Try to find existing item by id and variant id
+      const existingIndex = state.cart.findIndex((it) => {
+        const sameProduct = String(it.id) === String(payload.id);
+        const itVariantId = it?.variant?.id || it?.productVariantId || null;
+        const payloadVariantId = payload?.variant?.id || payload?.productVariantId || null;
+        const sameVariant = String(itVariantId) === String(payloadVariantId);
+        return sameProduct && sameVariant;
+      });
+
+      if (existingIndex >= 0) {
+        // merge: increment quantity and update subtotal
+        const existing = state.cart[existingIndex];
+        const newQty = (Number(existing.quantity) || 0) + (Number(payload.quantity) || 0);
+        const updated = {
+          ...existing,
+          quantity: newQty,
+          subTotal: (Number(existing.price) || 0) * newQty,
+        };
+        state.cart[existingIndex] = updated;
+      } else {
+        state.cart.push(payload);
+      }
       return state;
     },
     removeFromCart: (state, action) => {

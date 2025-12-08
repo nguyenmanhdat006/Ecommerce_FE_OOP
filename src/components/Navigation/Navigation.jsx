@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils"
 import { DEFAULT_NAVIGATION_CONFIG } from "./constants"
 import { useScrollEffect } from "./hooks/useScrollEffect"
+import { useNavigationLinks, useNavigationActions } from "./hooks/useNavigationI18n"
 import Logo from "./Logo"
 import DesktopNavigation from "./Desktop/DesktopNavigation"
 import MobileNavigation from "./Mobile/MobileNavigation"
@@ -10,11 +11,19 @@ export default function Navbar({
   logo = DEFAULT_NAVIGATION_CONFIG.logo,
   name = DEFAULT_NAVIGATION_CONFIG.name,
   homeUrl = DEFAULT_NAVIGATION_CONFIG.homeUrl,
-  links = DEFAULT_NAVIGATION_CONFIG.links,
-  actions = DEFAULT_NAVIGATION_CONFIG.actions,
+  links,
+  actions,
 }) {
   const isScrolled = useScrollEffect()
   const location = useLocation()
+  
+  // Use i18n hooks if links/actions not provided
+  const i18nLinks = useNavigationLinks();
+  const i18nActions = useNavigationActions();
+  
+  // Use provided links/actions or fallback to i18n versions
+  const finalLinks = links || i18nLinks;
+  const finalActions = actions || i18nActions;
   
   // Function to check if a link is active
   const isActiveLink = (href) => {
@@ -34,12 +43,12 @@ export default function Navbar({
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-5">
         <Logo logo={logo} name={name} homeUrl={homeUrl} />
-        <DesktopNavigation links={links} actions={actions} isActiveLink={isActiveLink} />
+        <DesktopNavigation links={finalLinks} actions={finalActions} isActiveLink={isActiveLink} />
         <MobileNavigation 
           name={name} 
           homeUrl={homeUrl} 
-          links={links} 
-          actions={actions}
+          links={finalLinks} 
+          actions={finalActions}
           isActiveLink={isActiveLink}
         />
       </div>
