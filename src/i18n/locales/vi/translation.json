@@ -174,7 +174,8 @@
       "loading": "Đang tải...",
       "noData": "Không có dữ liệu",
       "error": "Lỗi",
-      "success": "Thành công"
+      "success": "Thành công",
+      "detail": "Chi tiết"
     }
   }
 }

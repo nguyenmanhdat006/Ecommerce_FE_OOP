@@ -174,7 +174,8 @@
       "loading": "Loading...",
       "noData": "No data",
       "error": "Error",
-      "success": "Success"
+      "success": "Success",
+      "detail": "Detail"
     }
   }
 }

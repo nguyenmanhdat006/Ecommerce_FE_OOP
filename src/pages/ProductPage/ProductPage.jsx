@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE_URL } from '@/api/constant';
 import { QRCodeCanvas } from "qrcode.react";
 import { toast } from 'react-hot-toast';
 import { Search, Settings, Download, Plus, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts, deleteProduct } from '@/store/productSlice';
+import { fetchProducts, deleteProduct, fetchProductById } from '@/store/productSlice';
 import { formatCurrency } from '@/utils/currencyFormatter';
 import { useTranslation } from 'react-i18next';
 
@@ -141,11 +139,10 @@ function ProductTable({ products, onOpenDetail, navigate, onDeleteProduct }) {
 
 /* ProductDetailModal: overlay that can be closed via backdrop, Esc, or close button */
 function ProductDetailModal({ productId, open, onClose }) {
-  const [loading, setLoading] = useState(false);
-  const [product, setProduct] = useState(null);
-  const [variants, setVariants] = useState([]);
-  const [resources, setResources] = useState([]);
-  const [statuses, setStatuses] = useState([]);
+  const dispatch = useDispatch();
+  const productDetail = useSelector((state) => state.productSlice?.productDetail);
+  const loading = useSelector((state) => state.productSlice?.loading);
+  const error = useSelector((state) => state.productSlice?.error);
 
   // close on Esc
   useEffect(() => {
@@ -157,51 +154,11 @@ function ProductDetailModal({ productId, open, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Fetch product detail when modal opens
   useEffect(() => {
     if (!open || !productId) return;
-
-    const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-    setLoading(true);
-    setProduct(null);
-    setVariants([]);
-    setResources([]);
-    setStatuses([]);
-
-    console.log("ℹ️ Fetching product details for:", productId);
-
-    const base = API_BASE_URL || 'http://localhost:8080';
-    Promise.all([
-      axios.get(`${base}/api/products/${productId}`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`${base}/api/product-variants?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`${base}/api/products/${productId}/resources`, { headers }).catch((e) => ({ error: e })),
-      axios.get(`${base}/api/product-statuses?productId=${productId}`, { headers }).catch((e) => ({ error: e })),
-    ])
-      .then(([resP, resV, resR, resS]) => {
-        console.log("resP", resP);
-        console.log("resV", resV);
-        console.log("resR", resR);
-        console.log("resS", resS);
-
-        if (resP?.error) {
-          setProduct({ __loadError: true, message: resP.error?.response?.data?.message || resP.error.message });
-        } else setProduct(resP.data);
-
-        if (resV?.error) {
-          setVariants([]);
-        } else setVariants(resV.data || []);
-
-        if (resR?.error) {
-          setResources([]);
-        } else setResources(resR.data || []);
-
-        if (resS?.error) {
-          setStatuses([]);
-        } else setStatuses(resS.data || []);
-      })
-      .finally(() => setLoading(false));
-  }, [open, productId]);
+    dispatch(fetchProductById(productId));
+  }, [open, productId, dispatch]);
 
   if (!open) return null;
 
@@ -228,34 +185,55 @@ function ProductDetailModal({ productId, open, onClose }) {
 
         {loading ? (
           <div className="py-10 text-center">Đang tải...</div>
-        ) : product && product.__loadError ? (
-          <div className="py-10 text-center text-red-500">Lỗi tải sản phẩm: {product.message}</div>
-        ) : !product ? (
+        ) : error ? (
+          <div className="py-10 text-center text-red-500">Lỗi tải sản phẩm: {error}</div>
+        ) : !productDetail ? (
           <div className="py-10 text-center text-gray-500">Không tìm thấy sản phẩm</div>
         ) : (
           <div className="space-y-6 mt-4">
             {/* Section 1 */}
             <section className="flex gap-6">
               <div className="w-48 h-48 rounded-lg overflow-hidden border flex-shrink-0">
-                {resources.find((r) => r.isPrimary && r.url) ? (
-                  <img src={resources.find((r) => r.isPrimary && r.url).url || undefined} alt={product.name} className="w-full h-full object-cover" />
-                ) : product.thumbnail ? (
-                  <img src={product.thumbnail || undefined} alt={product.name} className="w-full h-full object-cover" />
+                {productDetail.productResources?.find((r) => r.isPrimary && r.url) ? (
+                  <img src={productDetail.productResources.find((r) => r.isPrimary && r.url).url || undefined} alt={productDetail.name} className="w-full h-full object-cover" />
+                ) : productDetail.thumbnail ? (
+                  <img src={productDetail.thumbnail || undefined} alt={productDetail.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-500">No image</div>
                 )}
               </div>
 
               <div className="flex-1">
-                <h3 className="text-xl font-semibold">{product.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">ID: {product.id}</p>
+                <h3 className="text-xl font-semibold">{productDetail.name}</h3>
+                <p className="text-sm text-gray-500 mt-1">ID: {productDetail.id}</p>
+                {productDetail.slug && (
+                  <p className="text-sm text-gray-500">Slug: {productDetail.slug}</p>
+                )}
                 <div className="mt-3 flex items-center gap-4">
-                  <div className="text-2xl font-bold">{formatCurrency(product.price)}</div>
-                  {product.newArrival && <div className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Mới</div>}
+                  <div className="text-2xl font-bold">{formatCurrency(productDetail.price)}</div>
+                  {productDetail.newArrival && <div className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm">Mới</div>}
+                  {productDetail.rating && (
+                    <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                      ⭐ {productDetail.rating}
+                    </div>
+                  )}
                 </div>
-                <p className="mt-3 text-gray-700">{product.description}</p>
-                <p className="mt-2 text-sm text-gray-600">Thương hiệu: {product.brand || "—"}</p>
-                <p className="mt-1 text-sm text-gray-600">Category: {product.categoryName || "—"}</p>
+                <p className="mt-3 text-gray-700">{productDetail.description || "—"}</p>
+                <div className="mt-3 space-y-1">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Thương hiệu:</span> {productDetail.brand || "—"}
+                  </p>
+                  {productDetail.categoryName && (
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Category:</span> {productDetail.categoryName}
+                    </p>
+                  )}
+                  {productDetail.categoryTypeName && (
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Category Type:</span> {productDetail.categoryTypeName}
+                    </p>
+                  )}
+                </div>
               </div>
             </section>
 
@@ -273,7 +251,7 @@ function ProductDetailModal({ productId, open, onClose }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {variants.length ? variants.map((v) => {
+                    {productDetail.variants?.length ? productDetail.variants.map((v) => {
                       const qty = Number(v.stockQuantity) || 0;
                       const status = qty === 0 ? "Hết hàng" : qty < 5 ? "Tồn kho thấp" : "Còn hàng";
                       const colorClass = qty === 0 ? "text-red-600" : qty < 5 ? "text-amber-600" : "text-green-600";
@@ -297,24 +275,11 @@ function ProductDetailModal({ productId, open, onClose }) {
             <section>
               <h4 className="text-lg font-semibold mb-2">Hình ảnh</h4>
               <div className="grid grid-cols-4 gap-3">
-                {resources.length ? resources.map((r) => (
+                {productDetail.productResources?.length ? productDetail.productResources.map((r) => (
                   <div key={r.id} className={`border rounded overflow-hidden ${r.isPrimary ? "ring-2 ring-yellow-300" : ""}`}>
                     {r.url ? <img src={r.url || undefined} alt={r.name} className="w-full h-28 object-cover" /> : <div className="w-full h-28 flex items-center justify-center text-sm text-gray-400">No image</div>}
                   </div>
                 )) : <div className="text-sm text-gray-400">Không có tài nguyên</div>}
-              </div>
-            </section>
-
-            {/* Section 4 */}
-            <section>
-              <h4 className="text-lg font-semibold mb-2">Lịch sử trạng thái</h4>
-              <div className="space-y-2">
-                {statuses.length ? statuses.map((s) => (
-                  <div key={s.id} className="text-sm text-gray-700 border rounded p-2">
-                    <div className="text-xs text-gray-500">{new Date(s.createdAt || s.timestamp || s.date || 0).toLocaleString()}</div>
-                    <div className="mt-1">{s.status || s.note || "—"}</div>
-                  </div>
-                )) : <div className="text-sm text-gray-400">Không có lịch sử trạng thái</div>}
               </div>
             </section>
           </div>
